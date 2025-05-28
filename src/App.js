@@ -9,10 +9,17 @@ import {
   useParams
 } from 'react-router-dom';
 
-import { FaHome, FaBoxOpen, FaClipboardList, FaCommentDots, FaBars } from 'react-icons/fa';
+import {
+  FaHome,
+  FaBoxOpen,
+  FaClipboardList,
+  FaCommentDots,
+  FaBars,
+  FaCogs,
+  FaQuestionCircle
+} from 'react-icons/fa';
 import Papa from 'papaparse';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
-import { FaCogs } from 'react-icons/fa';
 import './App.css';
 
 const parseCSV = async (filePath) =>
@@ -390,10 +397,11 @@ const App = () => {
             </li>
             <li>
               <NavLink to="/automatisierung" className={({ isActive }) => `sidebar-link ${isActive ? 'active' : ''}`}>
-                <FaBars className="icon" /><span className="label">Automatisierung</span>
+                <FaCogs className="icon" /><span className="label">Automatisierung</span>
               </NavLink>
             </li>
           </ul>
+
           <ul className="sidebar-footer">
             <li>
               <NavLink to="/feedback" className={({ isActive }) => `sidebar-link ${isActive ? 'active' : ''}`}>
@@ -402,10 +410,11 @@ const App = () => {
             </li>
             <li>
               <NavLink to="/help" className={({ isActive }) => `sidebar-link ${isActive ? 'active' : ''}`}>
-                <FaBars className="icon" /><span className="label">Hilfe</span>
+                <FaQuestionCircle className="icon" /><span className="label">Hilfe</span>
               </NavLink>
             </li>
           </ul>
+
         </div>
 
 

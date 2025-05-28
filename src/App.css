@@ -238,6 +238,8 @@ a.email-link:hover {
     flex-direction: row;
     width: 100%;
     height: 60px;
+    overflow-x: auto;
+    white-space: nowrap;
   }
 
   .sidebar--open {
@@ -247,7 +249,19 @@ a.email-link:hover {
   .sidebar ul {
     display: flex;
     flex-direction: row;
-    justify-content: space-around;
+    justify-content: space-evenly;
+  }
+
+  .sidebar li {
+    padding: 10px;
+  }
+
+  .sidebar .label {
+    display: none;
+  }
+
+  .sidebar--open .label {
+    display: none; /* Auch im geöffneten Zustand Text ausblenden, um Platz zu sparen */
   }
 
   .main-content {
@@ -256,6 +270,20 @@ a.email-link:hover {
 
   .detail-view {
     padding: 15px;
+  }
+
+  .order-list li {
+    font-size: 14px;
+    padding: 10px;
+  }
+
+  .automation-entry {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .automation-button {
+    width: 100%;
   }
 }
 
