@@ -64,8 +64,8 @@ const Home = ({ orders, outputs }) => (
             <YAxis stroke="#888" />
             <Tooltip contentStyle={{ backgroundColor: '#222', borderColor: '#666', color: '#fff' }} />
             <Legend />
-            <Line type="monotone" dataKey="bestellungen" stroke="#ff9800" strokeWidth={3} />
-            <Line type="monotone" dataKey="ausgaenge" stroke="#2196f3" strokeWidth={3} />
+            <Line type="monotone" dataKey="Bestellungen" stroke="#ff9800" strokeWidth={3} />
+            <Line type="monotone" dataKey="Ausgänge" stroke="#2196f3" strokeWidth={3} />
           </LineChart>
         </ResponsiveContainer>
       </div>
@@ -278,10 +278,10 @@ const generateMonthlyData = (orders, outputs, filterSupplier = '', filterArticle
 
   return Object.values(monthlyData)
     .map(row => ({
-      ...row,
+      month: row.month,
       Bestellungen: Math.round(row.Bestellungen),
       Ausgänge: Math.round(row.Ausgänge),
-      Bestand: Math.round(row.Bestellungen - row.Ausgänge)
+      bestand: Math.round(row.Bestellungen - row.Ausgänge)
     }))
     .sort((a, b) => a.month.localeCompare(b.month));
 };
