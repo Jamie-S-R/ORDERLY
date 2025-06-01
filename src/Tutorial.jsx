@@ -1,127 +1,159 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 
-const steps = [
+const tutorialSteps = [
   {
-    title: "Bestellungen",
-    description: "Überwache alle eingehenden Bestellungen inklusive Lieferstatus, Mengen und Lieferterminen.",
-    link: "/orderlog",
-    note: "Filtern nach Lieferant oder Artikelnummer möglich."
+    title: 'Willkommen bei ORDERLY',
+    content: (
+      <>
+        <p>
+          Willkommen bei <strong>ORDERLY</strong> – deinem digitalen Werkzeug für smartes Lager- und Bestellmanagement.
+        </p>
+        <p>
+          Dieses Tutorial führt dich durch alle Funktionen Schritt für Schritt. Du kannst direkt mitklicken.
+        </p>
+        <p>
+          Klicke auf <strong>Weiter</strong>, um zu starten.
+        </p>
+      </>
+    )
   },
   {
-    title: "Lagerverlauf",
-    description: "Analysiere die Bestandsentwicklung über Zeit – basierend auf Bestellungen und Ausgängen.",
-    link: "/lager",
-    note: "Filtere nach Lieferant und Artikel für gezielte Auswertungen."
+    title: 'Bestelllog & Ausgänge',
+    content: (
+      <>
+        <p>
+          Im <Link className="section-link" to="/orderlog">Bestelllog</Link> findest du alle bisherigen Bestellungen. Jede Bestellung ist anklickbar – mit Details zu Datum, Menge, Preis und Artikel.
+        </p>
+        <p>
+          Unter <Link className="section-link" to="/outputlog">Ausgänge</Link> sind alle Verbrauchsvorgänge gelistet – inklusive Artikelnummer, Menge, Datum und Abteilung.
+        </p>
+      </>
+    )
   },
   {
-    title: "Retouren",
-    description: "Betrachte Rückläufer nach Artikel, Menge und Rücksendegrund.",
-    link: "/retouren",
-    note: "Wähle einen Lieferanten für detaillierte Einblicke."
+    title: 'Lagerverlauf & Termintreue',
+    content: (
+      <>
+        <p>
+          Der <Link className="section-link" to="/lagerverlauf">Lagerverlauf</Link> visualisiert deinen Lagerbestand monatlich:
+        </p>
+        <ul>
+          <li>Bestellungen pro Monat</li>
+          <li>Verbrauch / Ausgänge</li>
+          <li>Entwicklung des Lagerbestands</li>
+        </ul>
+        <p>
+          Unter <Link className="section-link" to="/termintreue">Termintreue</Link> analysierst du die Pünktlichkeit deiner Lieferanten:
+        </p>
+        <ul>
+          <li>Anteil pünktlicher Lieferungen</li>
+          <li>Durchschnittliche Verspätung</li>
+        </ul>
+      </>
+    )
   },
   {
-    title: "Engpässe",
-    description: "Identifiziere kritische Lagerbestände und Engpassentwicklungen.",
-    link: "/engpaesse",
-    note: "Nur aktuelle Engpässe werden standardmäßig angezeigt."
+    title: 'Retouren & Engpässe',
+    content: (
+      <>
+        <p>
+          Die <Link className="section-link" to="/retouren">Retouren</Link>-Ansicht zeigt dir:
+        </p>
+        <ul>
+          <li>Welche Artikel oft zurückgehen</li>
+          <li>Von welchem Lieferanten sie stammen</li>
+          <li>Einzelne Rückläufer mit Grund</li>
+        </ul>
+        <p>
+          In <Link className="section-link" to="/engpaesse">Engpässe</Link> werden automatisch kritische Artikel erkannt. Du siehst:
+        </p>
+        <ul>
+          <li>Welche Produkte aktuell kritisch sind</li>
+          <li>Wie lange sie schon kritisch sind</li>
+        </ul>
+      </>
+    )
   },
   {
-    title: "Finanzen",
-    description: "Visualisiere monatliche Kosten nach Lieferant und Kategorie.",
-    link: "/finanzen",
-    note: "Ideal für Kostenkontrolle und Budgetplanung."
+    title: 'Finanzen & Bewertung',
+    content: (
+      <>
+        <p>
+          Unter <Link className="section-link" to="/finanzen">Finanzen</Link> siehst du:
+        </p>
+        <ul>
+          <li>Monatliche Gesamtausgaben</li>
+          <li>Kosten nach Warengruppe (z. B. Bremsen, Antrieb, Sonstiges)</li>
+          <li>Trends deiner Einkaufsentwicklung</li>
+        </ul>
+        <p>
+          Die <Link className="section-link" to="/bewertung">Lieferantenbewertung</Link> bewertet deine Lieferanten nach:
+        </p>
+        <ul>
+          <li>Pünktlichkeit</li>
+          <li>Retourenquote</li>
+          <li>Preisniveau</li>
+        </ul>
+      </>
+    )
   },
   {
-    title: "Lieferantenbewertung",
-    description: "Vergleiche Lieferanten objektiv auf Basis von Zuverlässigkeit, Rückläufern und Lieferdauer.",
-    link: "/bewertung",
-    note: "Metriken werden in Scores übersetzt für klare Vergleichbarkeit."
+    title: 'Automatisierung & Feedback',
+    content: (
+      <>
+        <p>
+          Im Bereich <Link className="section-link" to="/automatisierung">Automatisierung</Link> kannst du automatische Nachbestellungen einrichten. Du siehst:
+        </p>
+        <ul>
+          <li>Den nächsten geplanten Nachbestelltermin</li>
+          <li>Letzte manuelle Bestellungen</li>
+          <li>Alle letzten Artikel eines Lieferanten</li>
+        </ul>
+        <p>
+          Über <Link className="section-link" to="/feedback">Feedback</Link> kannst du jederzeit Rückmeldung geben oder Ideen einreichen.
+        </p>
+      </>
+    )
+  },
+  {
+    title: 'Tutorial abgeschlossen',
+    content: (
+      <>
+        <p>
+          Das war das komplette Tutorial zu ORDERLY!
+        </p>
+        <p>
+          Du kannst dieses Tutorial jederzeit erneut über <code>/tutorial</code> aufrufen.
+        </p>
+        <p>
+          Viel Spaß beim Arbeiten mit ORDERLY! 🚀
+        </p>
+      </>
+    )
   }
 ];
 
 const Tutorial = () => {
-  const [stepIndex, setStepIndex] = useState(0);
+  const [step, setStep] = useState(0);
   const navigate = useNavigate();
-  const step = steps[stepIndex];
+  const isFirst = step === 0;
+  const isLast = step === tutorialSteps.length - 1;
 
-  const handleNext = () => {
-    if (stepIndex < steps.length - 1) setStepIndex(prev => prev + 1);
-  };
-
-  const handlePrev = () => {
-    if (stepIndex > 0) setStepIndex(prev => prev - 1);
-  };
+  const handleNext = () => isLast ? navigate('/') : setStep(prev => prev + 1);
+  const handleBack = () => setStep(prev => Math.max(prev - 1, 0));
 
   return (
-    <div className="detail-view" style={{ maxWidth: '800px', margin: '0 auto' }}>
-      <h1 style={{ marginBottom: '1.5rem' }}>Tutorial – Funktionen im Überblick</h1>
-      <p style={{ marginBottom: '2rem' }}>
-        Dieses Tutorial führt Schritt für Schritt durch alle Bereiche des Systems. Ideal für neue Nutzer oder zur Live-Präsentation.
-      </p>
+    <div className="detail-view">
+      <h2>{tutorialSteps[step].title}</h2>
+      <div>{tutorialSteps[step].content}</div>
 
-      <div style={{
-        backgroundColor: '#1e1e1e',
-        border: '1px solid #444',
-        borderRadius: '8px',
-        padding: '2rem',
-        marginBottom: '2rem'
-      }}>
-        <h2 style={{ marginBottom: '1rem' }}>{step.title}</h2>
-        <p style={{ marginBottom: '1rem' }}>{step.description}</p>
-        <p style={{ fontStyle: 'italic', color: '#aaa' }}>{step.note}</p>
-        <button
-          onClick={() => navigate(step.link)}
-          style={{
-            marginTop: '1.5rem',
-            backgroundColor: '#ff9800',
-            color: '#000',
-            padding: '0.6rem 1.2rem',
-            border: 'none',
-            borderRadius: '4px',
-            fontWeight: 'bold',
-            cursor: 'pointer'
-          }}
-        >
-          Funktion öffnen
-        </button>
-      </div>
-
-      <div style={{
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center'
-      }}>
-        <button
-          onClick={handlePrev}
-          disabled={stepIndex === 0}
-          style={{
-            padding: '0.5rem 1rem',
-            backgroundColor: '#333',
-            color: '#ccc',
-            border: '1px solid #555',
-            borderRadius: '4px',
-            cursor: stepIndex === 0 ? 'not-allowed' : 'pointer'
-          }}
-        >
+      <div style={{ marginTop: '2rem', display: 'flex', justifyContent: 'space-between' }}>
+        <button onClick={handleBack} disabled={isFirst} style={{ opacity: isFirst ? 0.5 : 1 }}>
           Zurück
         </button>
-        <span style={{ color: '#888' }}>
-          Schritt {stepIndex + 1} von {steps.length}
-        </span>
-        <button
-          onClick={handleNext}
-          disabled={stepIndex === steps.length - 1}
-          style={{
-            padding: '0.5rem 1rem',
-            backgroundColor: '#333',
-            color: '#ccc',
-            border: '1px solid #555',
-            borderRadius: '4px',
-            cursor: stepIndex === steps.length - 1 ? 'not-allowed' : 'pointer'
-          }}
-        >
-          Weiter
+        <button onClick={handleNext}>
+          {isLast ? 'Zur Startseite' : 'Weiter'}
         </button>
       </div>
     </div>
