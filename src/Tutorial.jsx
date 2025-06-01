@@ -153,7 +153,7 @@ const tutorialSteps = [
     title: 'Tutorial abgeschlossen',
     content: (
       <>
-        <p>Das war das komplette Tutorial zu ORDERLY!</p>
+        <p>Das war das Tutorial zu ORDERLY!</p>
         <p>Du kannst dieses Tutorial jederzeit erneut über <code>/tutorial</code> aufrufen.</p>
         <p>Viel Spaß beim Arbeiten mit ORDERLY! 🚀</p>
       </>
