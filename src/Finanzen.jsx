@@ -123,7 +123,7 @@ const Finanzen = () => {
       </div>
 
       {!selectedSupplier && (
-        <AccordionSection title="1. Gesamtausgaben pro Lieferant">
+        <AccordionSection title="Gesamtausgaben pro Lieferant">
           <ResponsiveContainer width="100%" height={300}>
             <BarChart data={ausgabenProLieferant}>
               <CartesianGrid strokeDasharray="3 3" stroke="#444" />
@@ -137,7 +137,7 @@ const Finanzen = () => {
         </AccordionSection>
       )}
 
-      <AccordionSection title="2. Monatliche Ausgaben">
+      <AccordionSection title="Monatliche Ausgaben">
         <ResponsiveContainer width="100%" height={300}>
           <BarChart data={ausgabenProMonat}>
             <CartesianGrid strokeDasharray="3 3" stroke="#444" />
@@ -150,7 +150,7 @@ const Finanzen = () => {
         </ResponsiveContainer>
       </AccordionSection>
 
-      <AccordionSection title="3. Ausgaben nach Kategorie">
+      <AccordionSection title="Ausgaben nach Kategorie">
         <ResponsiveContainer width="100%" height={300}>
           <PieChart>
             <Pie

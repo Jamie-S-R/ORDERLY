@@ -77,7 +77,7 @@ const Lieferantenbewertung = () => {
     <div className="detail-view">
       <h2>📈 Lieferantenbewertung</h2>
 
-      <AccordionSection title="1. Radar-Diagramm: Vergleich">
+      <AccordionSection title="Radar-Diagramm: Vergleich">
         <ResponsiveContainer width="100%" height={400}>
           <RadarChart cx="50%" cy="50%" outerRadius="80%" data={bewertungen}>
             <PolarGrid />
@@ -91,7 +91,7 @@ const Lieferantenbewertung = () => {
         </ResponsiveContainer>
       </AccordionSection>
 
-      <AccordionSection title="2. Durchschnittliche Lieferdauer">
+      <AccordionSection title="Durchschnittliche Lieferdauer">
         <ResponsiveContainer width="100%" height={300}>
           <BarChart data={bewertungen}>
             <CartesianGrid strokeDasharray="3 3" stroke="#444" />
@@ -104,7 +104,7 @@ const Lieferantenbewertung = () => {
         </ResponsiveContainer>
       </AccordionSection>
 
-      <AccordionSection title="3. Detailtabelle">
+      <AccordionSection title="Detailtabelle">
         <table style={{ width: '100%', color: '#ccc', borderCollapse: 'collapse' }}>
           <thead>
             <tr>

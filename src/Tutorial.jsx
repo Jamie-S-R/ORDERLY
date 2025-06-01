@@ -3,6 +3,29 @@ import { useNavigate, Link } from 'react-router-dom';
 
 const tutorialSteps = [
   {
+    title: 'Was ist ORDERLY?',
+    content: (
+      <>
+        <p>
+          <strong>ORDERLY</strong> ist eine smarte, cloudbasierte SaaS-Lösung für kleine und mittlere Unternehmen (KMU), die den gesamten <strong>Materialeinkauf automatisieren</strong> und vereinfachen soll.
+        </p>
+        <p>
+          Durch intelligente Auswertung vergangener Lagerbewegungen schlägt ORDERLY automatisch Bestellungen vor, erkennt Engpässe, bewertet Lieferanten und zeigt dir Retourengründe sowie finanzielle Entwicklungen.
+        </p>
+        <p>
+          Du brauchst keine Installation, keine Schulung – ORDERLY ist <strong>sofort einsatzbereit</strong> und läuft auf jedem Gerät im Browser.
+        </p>
+        <ul>
+          <li>📦 Automatisierte Nachbestellungen</li>
+          <li>📈 Analyse von Lager, Retouren & Lieferanten</li>
+          <li>💶 Transparenz über Kosten und Verbrauch</li>
+          <li>🧠 Unterstützung durch KI</li>
+        </ul>
+        <p>Im Folgenden lernst du alle Funktionen Schritt für Schritt kennen.</p>
+      </>
+    )
+  },
+  {
     title: 'Willkommen bei ORDERLY',
     content: (
       <>
@@ -88,7 +111,7 @@ const tutorialSteps = [
           <li>Trends deiner Einkaufsentwicklung</li>
         </ul>
         <p>
-          Die <Link className="section-link" to="/bewertung">Lieferantenbewertung</Link> bewertet deine Lieferanten nach:
+          Die <Link className="section-link" to="/lieferantenbewertung">Lieferantenbewertung</Link> bewertet deine Lieferanten nach:
         </p>
         <ul>
           <li>Pünktlichkeit</li>
@@ -103,12 +126,12 @@ const tutorialSteps = [
     content: (
       <>
         <p>
-          Im Bereich <Link className="section-link" to="/automatisierung">Automatisierung</Link> kannst du automatische Nachbestellungen einrichten. Du siehst:
+          Im Bereich <Link className="section-link" to="/automatisierung">Automatisierung</Link> siehst du, welche Bestellungen bereits automatisch vorgeschlagen wurden – basierend auf Artikelverbrauch und Mindestmengen.
         </p>
         <ul>
-          <li>Den nächsten geplanten Nachbestelltermin</li>
-          <li>Letzte manuelle Bestellungen</li>
-          <li>Alle letzten Artikel eines Lieferanten</li>
+          <li>Automatische Bestellvorschläge nach KI-Analyse</li>
+          <li>Übersicht aller geplanten Nachbestellungen</li>
+          <li>Letzte manuelle Bestellungen zur Nachverfolgung</li>
         </ul>
         <p>
           Über <Link className="section-link" to="/feedback">Feedback</Link> kannst du jederzeit Rückmeldung geben oder Ideen einreichen.
@@ -117,18 +140,22 @@ const tutorialSteps = [
     )
   },
   {
+    title: 'Setup, Datenschutz & Support',
+    content: (
+      <>
+        <p><strong>Einrichtung:</strong> Keine Installation nötig. Einfach im Browser öffnen. Benutzer per Mail einladen und Rechte verteilen.</p>
+        <p><strong>Datenschutz:</strong> DSGVO-konform. Alle Daten liegen verschlüsselt auf Servern in der EU. Keine Weitergabe.</p>
+        <p><strong>Support:</strong> In der Pilotphase stehen wir persönlich zur Verfügung. Danach via Ticketsystem oder Videochat.</p>
+      </>
+    )
+  },
+  {
     title: 'Tutorial abgeschlossen',
     content: (
       <>
-        <p>
-          Das war das komplette Tutorial zu ORDERLY!
-        </p>
-        <p>
-          Du kannst dieses Tutorial jederzeit erneut über <code>/tutorial</code> aufrufen.
-        </p>
-        <p>
-          Viel Spaß beim Arbeiten mit ORDERLY! 🚀
-        </p>
+        <p>Das war das komplette Tutorial zu ORDERLY!</p>
+        <p>Du kannst dieses Tutorial jederzeit erneut über <code>/tutorial</code> aufrufen.</p>
+        <p>Viel Spaß beim Arbeiten mit ORDERLY! 🚀</p>
       </>
     )
   }
@@ -147,7 +174,6 @@ const Tutorial = () => {
     <div className="detail-view">
       <h2>{tutorialSteps[step].title}</h2>
       <div>{tutorialSteps[step].content}</div>
-
       <div style={{ marginTop: '2rem', display: 'flex', justifyContent: 'space-between' }}>
         <button onClick={handleBack} disabled={isFirst} style={{ opacity: isFirst ? 0.5 : 1 }}>
           Zurück
