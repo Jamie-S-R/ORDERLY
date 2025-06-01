@@ -1,4 +1,3 @@
-// App.js
 import React, { useState, useEffect } from 'react';
 import {
   BrowserRouter as Router,
@@ -16,23 +15,41 @@ import {
   FaCommentDots,
   FaBars,
   FaCogs,
-  FaQuestionCircle
+  FaQuestionCircle,
+  FaChartLine,
+  FaClock,
+  FaUndoAlt,
+  FaTruckLoading,
+  FaEuroSign,
+  FaStarHalfAlt
 } from 'react-icons/fa';
-import Papa from 'papaparse';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
-import './App.css';
+import Termintreue from './Termintreue';
 
-const parseCSV = async (filePath) =>
+
+import Papa from 'papaparse';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, BarChart, Bar } from 'recharts';
+import './App.css';
+import Sidebar from './Sidebar';
+import Retouren from './Retouren';
+import Lagerverlauf from './Lagerverlauf';
+import Engpaesse from './Engpaesse';
+import Finanzen from './Finanzen';
+import Lieferantenbewertung from './Lieferantenbewertung';
+import Tutorial from './Tutorial';
+
+
+const parseCSV = async (filePath, idField) =>
   new Promise((resolve) => {
     Papa.parse(filePath, {
       download: true,
       header: true,
       complete: (results) => {
-        const cleaned = results.data.filter(row => row.BestellID || row.AusgangsID);
+        const cleaned = results.data.filter(row => row[idField]);
         resolve(cleaned);
       }
     });
   });
+
 
 const Home = ({ orders, outputs }) => (
   <div className="home">
@@ -219,30 +236,57 @@ const Help = () => (
   </div>
 );
 
-const generateMonthlyData = (orders, outputs) => {
-  const data = {};
+const generateMonthlyData = (orders, outputs, filterSupplier = '', filterArticle = '') => {
+  const monthlyData = {};
+
   const getMonth = (dateStr) => {
     if (!dateStr) return null;
     const date = new Date(dateStr);
-    return isNaN(date) ? null : date.toISOString().slice(0, 7);
+    return isNaN(date) ? null : date.toISOString().slice(0, 7); // YYYY-MM
   };
 
-  orders.forEach((o) => {
+  orders.forEach(o => {
     const month = getMonth(o.Bestelldatum);
     if (!month) return;
-    if (!data[month]) data[month] = { month, bestellungen: 0, ausgaenge: 0 };
-    data[month].bestellungen++;
+
+    if (filterSupplier && o.Lieferant !== filterSupplier) return;
+    if (filterArticle && o.Artikelnummer !== filterArticle) return;
+
+    const menge = parseFloat(o.Menge) || 0;
+
+    if (!monthlyData[month]) {
+      monthlyData[month] = { month, Bestellungen: 0, Ausgänge: 0 };
+    }
+
+    monthlyData[month].Bestellungen += menge;
   });
 
-  outputs.forEach((o) => {
+  outputs.forEach(o => {
     const month = getMonth(o.Ausgangsdatum);
     if (!month) return;
-    if (!data[month]) data[month] = { month, bestellungen: 0, ausgaenge: 0 };
-    data[month].ausgaenge++;
+
+    if (filterArticle && o.Artikelnummer !== filterArticle) return;
+
+    const menge = parseFloat(o.VerbrauchteMenge) || 0;
+
+    if (!monthlyData[month]) {
+      monthlyData[month] = { month, Bestellungen: 0, Ausgänge: 0 };
+    }
+
+    monthlyData[month].Ausgänge += menge;
   });
 
-  return Object.values(data).sort((a, b) => a.month.localeCompare(b.month));
+  return Object.values(monthlyData)
+    .map(row => ({
+      ...row,
+      Bestellungen: Math.round(row.Bestellungen),
+      Ausgänge: Math.round(row.Ausgänge),
+      Bestand: Math.round(row.Bestellungen - row.Ausgänge)
+    }))
+    .sort((a, b) => a.month.localeCompare(b.month));
 };
+
+
 
 const Automation = ({ orders }) => {
   const uniqueSuppliers = [...new Set(orders.map(o => o.Lieferant))].filter(Boolean);
@@ -367,9 +411,9 @@ const App = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   useEffect(() => {
-    parseCSV('/data/bestellungen.csv').then(setOrders);
-    parseCSV('/data/ausgaenge.csv').then(setOutputs);
-  }, []);
+  parseCSV('/data/bestellungen.csv', 'BestellID').then(setOrders);
+  parseCSV('/data/ausgaenge.csv', 'AusgangsID').then(setOutputs);
+}, []);
 
   return (
     <Router>
@@ -378,13 +422,18 @@ const App = () => {
           className={`sidebar ${sidebarOpen ? 'sidebar--open' : ''}`}
           onMouseEnter={() => setSidebarOpen(true)}
           onMouseLeave={() => setSidebarOpen(false)}
-        >
+        > 
           <ul className="sidebar-main">
+            {/* Allgemein */}
+            <li className="sidebar-category">🏠 Allgemein</li>
             <li>
               <NavLink to="/" className={({ isActive }) => `sidebar-link ${isActive ? 'active' : ''}`}>
                 <FaHome className="icon" /><span className="label">Startseite</span>
               </NavLink>
             </li>
+
+            {/* Daten */}
+            <li className="sidebar-category">📋 Daten</li>
             <li>
               <NavLink to="/orderlog" className={({ isActive }) => `sidebar-link ${isActive ? 'active' : ''}`}>
                 <FaClipboardList className="icon" /><span className="label">Bestelllog</span>
@@ -395,6 +444,44 @@ const App = () => {
                 <FaBoxOpen className="icon" /><span className="label">Ausgänge</span>
               </NavLink>
             </li>
+
+            {/* Analyse */}
+            <li className="sidebar-category">📊 Analyse</li>
+            <li>
+              <NavLink to="/lagerverlauf" className={({ isActive }) => `sidebar-link ${isActive ? 'active' : ''}`}>
+                <FaChartLine className="icon" /><span className="label">Lagerverlauf</span>
+              </NavLink>
+            </li>
+            <li>
+              <NavLink to="/termintreue" className={({ isActive }) => `sidebar-link ${isActive ? 'active' : ''}`}>
+                <FaClock className="icon" /><span className="label">Termintreue</span>
+              </NavLink>
+            </li>
+            <li>
+              <NavLink to="/retouren" className={({ isActive }) => `sidebar-link ${isActive ? 'active' : ''}`}>
+                <FaUndoAlt className="icon" /><span className="label">Retouren</span>
+              </NavLink>
+
+            </li>
+            <li>
+              <NavLink to="/engpaesse">
+                <FaTruckLoading className="icon" />
+                <span className="label">Engpässe</span>
+              </NavLink>
+            </li>
+            <li>
+              <NavLink to="/finanzen">
+                <FaEuroSign className="icon" /><span className="label">Finanzen</span>
+              </NavLink>
+            </li>
+            <li>
+              <NavLink to="/bewertung">
+                <FaStarHalfAlt className="icon" /><span className="label">Bewertung</span>
+              </NavLink>
+            </li>
+
+            {/* Verwaltung */}
+            <li className="sidebar-category">⚙️ Verwaltung</li>
             <li>
               <NavLink to="/automatisierung" className={({ isActive }) => `sidebar-link ${isActive ? 'active' : ''}`}>
                 <FaCogs className="icon" /><span className="label">Automatisierung</span>
@@ -402,6 +489,7 @@ const App = () => {
             </li>
           </ul>
 
+          {/* Footer */}
           <ul className="sidebar-footer">
             <li>
               <NavLink to="/feedback" className={({ isActive }) => `sidebar-link ${isActive ? 'active' : ''}`}>
@@ -414,7 +502,6 @@ const App = () => {
               </NavLink>
             </li>
           </ul>
-
         </div>
 
 
@@ -428,6 +515,14 @@ const App = () => {
             <Route path="/feedback" element={<Feedback />} />
             <Route path="/help" element={<Help />} />
             <Route path="/automatisierung" element={<Automation orders={orders} />} />
+            <Route path="/lagerverlauf" element={<Lagerverlauf orders={orders} outputs={outputs} />} />
+            <Route path="/termintreue" element={<Termintreue orders={orders} />} />
+            <Route path="/engpaesse" element={<Engpaesse orders={orders} outputs={outputs} />} />
+            <Route path="/retouren" element={<Retouren />} />
+            <Route path="/finanzen" element={<Finanzen />} />
+            <Route path="/bewertung" element={<Lieferantenbewertung />} />
+            <Route path="/tutorial" element={<Tutorial />} />
+
           </Routes>
         </div>
       </div>

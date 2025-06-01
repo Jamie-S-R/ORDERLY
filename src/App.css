@@ -528,3 +528,17 @@ a.email-link:hover {
 .show-more-button:hover {
   background: #444;
 }
+
+.sidebar-category {
+  margin-top: 10px;
+  padding: 12px 20px 6px;
+  font-size: 12px;
+  color: #666;
+  text-transform: uppercase;
+  font-weight: 600;
+  letter-spacing: 1px;
+  pointer-events: none;
+  user-select: none;
+  background: #1e1e1e;
+  border-top: 1px solid #2c2c2c;
+}

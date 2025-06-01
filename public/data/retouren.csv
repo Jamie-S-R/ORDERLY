@@ -1,0 +1,301 @@
+RetoureID,Datum,Artikelnummer,GrundDerRetoure,Menge,Lieferant
+5000,2023-09-18,MA-RT-MDR-P,Qualitätsmängel,16,Magura Bosch Parts & Services GmbH
+5001,2023-03-01,SI-KI-STORIA,Qualitätsmängel,19,Selle Italia S.r.l.
+5002,2024-01-14,SH-BR-M820,Falscher Artikel geliefert,30,Shimano GmbH
+5003,2024-04-02,MA-HB-MT7,Überbestellung,24,Magura Bosch Parts & Services GmbH
+5004,2023-09-03,MA-RT-MDR-P,Qualitätsmängel,9,Magura Bosch Parts & Services GmbH
+5005,2023-12-28,CO-TU-PREM,Nicht mehr benötigt,45,Continental AG
+5006,2023-11-17,MA-RT-MDR-P,Falscher Artikel geliefert,38,Magura Bosch Parts & Services GmbH
+5007,2024-05-03,MA-RT-MDR-P,Überbestellung,35,Magura Bosch Parts & Services GmbH
+5008,2023-10-26,MA-RT-MDR-P,Qualitätsmängel,7,Magura Bosch Parts & Services GmbH
+5009,2023-10-05,SH-BR-M820,Überbestellung,4,Shimano GmbH
+5010,2024-03-02,MA-RT-MDR-P,Qualitätsmängel,15,Magura Bosch Parts & Services GmbH
+5011,2024-02-10,SH-CN-HG601,Überbestellung,38,Shimano GmbH
+5012,2024-02-06,SI-SA-FLITE,Falscher Artikel geliefert,37,Selle Italia S.r.l.
+5013,2023-06-04,CO-RE-RACE,Falscher Artikel geliefert,39,Continental AG
+5014,2024-01-08,CO-RE-RACE,Beschädigte Lieferung,4,Continental AG
+5015,2023-10-16,CO-RE-RACE,Überbestellung,36,Continental AG
+5016,2024-03-07,MA-HB-MT7,Beschädigte Lieferung,36,Magura Bosch Parts & Services GmbH
+5017,2023-03-14,MA-RT-CL,Falscher Artikel geliefert,5,Magura Bosch Parts & Services GmbH
+5018,2023-04-08,MA-HB-MT7,Beschädigte Lieferung,43,Magura Bosch Parts & Services GmbH
+5019,2023-10-21,MA-RT-CL,Überbestellung,15,Magura Bosch Parts & Services GmbH
+5020,2023-12-04,SH-BR-M820,Falscher Artikel geliefert,49,Shimano GmbH
+5021,2024-02-05,MA-RT-MDR-P,Nicht mehr benötigt,31,Magura Bosch Parts & Services GmbH
+5022,2023-06-20,CO-RE-RACE,Beschädigte Lieferung,17,Continental AG
+5023,2024-03-06,SR-BB-DUB-PF,Überbestellung,16,SRAM LLC
+5024,2024-03-17,SI-SA-FLITE,Qualitätsmängel,14,Selle Italia S.r.l.
+5025,2023-06-20,SI-KI-STORIA,Qualitätsmängel,25,Selle Italia S.r.l.
+5026,2023-11-22,MA-RT-MDR-P,Nicht mehr benötigt,13,Magura Bosch Parts & Services GmbH
+5027,2023-09-20,SH-CN-HG601,Beschädigte Lieferung,50,Shimano GmbH
+5028,2023-02-25,CO-RE-RACE,Beschädigte Lieferung,7,Continental AG
+5029,2023-06-12,SI-SA-FLITE,Beschädigte Lieferung,34,Selle Italia S.r.l.
+5030,2023-04-05,CO-RE-RACE,Qualitätsmängel,11,Continental AG
+5031,2023-07-28,SH-BR-M820,Qualitätsmängel,45,Shimano GmbH
+5032,2023-05-23,SR-BB-DUB-PF,Falscher Artikel geliefert,9,SRAM LLC
+5033,2023-07-31,SH-CN-HG601,Beschädigte Lieferung,16,Shimano GmbH
+5034,2023-03-15,CO-RE-RACE,Falscher Artikel geliefert,17,Continental AG
+5035,2023-04-27,SH-BR-M820,Falscher Artikel geliefert,45,Shimano GmbH
+5036,2023-11-19,CO-RE-RACE,Qualitätsmängel,42,Continental AG
+5037,2023-07-29,SI-SA-FLITE,Qualitätsmängel,8,Selle Italia S.r.l.
+5038,2024-02-22,MA-RT-MDR-P,Beschädigte Lieferung,43,Magura Bosch Parts & Services GmbH
+5039,2023-01-25,SH-CN-HG601,Nicht mehr benötigt,31,Shimano GmbH
+5040,2023-05-21,CO-TU-PREM,Falscher Artikel geliefert,33,Continental AG
+5041,2023-03-28,MA-HB-MT7,Qualitätsmängel,2,Magura Bosch Parts & Services GmbH
+5042,2023-01-11,CO-RE-RACE,Überbestellung,44,Continental AG
+5043,2024-02-09,MA-RT-CL,Qualitätsmängel,9,Magura Bosch Parts & Services GmbH
+5044,2024-02-07,SI-KI-STORIA,Nicht mehr benötigt,41,Selle Italia S.r.l.
+5045,2023-10-05,SI-KI-STORIA,Beschädigte Lieferung,25,Selle Italia S.r.l.
+5046,2023-11-15,MA-RT-CL,Falscher Artikel geliefert,28,Magura Bosch Parts & Services GmbH
+5047,2023-10-27,MA-RT-CL,Qualitätsmängel,36,Magura Bosch Parts & Services GmbH
+5048,2023-09-06,MA-RT-CL,Nicht mehr benötigt,28,Magura Bosch Parts & Services GmbH
+5049,2024-02-20,CO-RE-RACE,Nicht mehr benötigt,22,Continental AG
+5050,2023-05-09,MA-HB-MT7,Qualitätsmängel,8,Magura Bosch Parts & Services GmbH
+5051,2024-04-05,CO-RE-RACE,Qualitätsmängel,20,Continental AG
+5052,2023-10-27,MA-HB-MT7,Qualitätsmängel,23,Magura Bosch Parts & Services GmbH
+5053,2023-09-21,CO-TU-PREM,Beschädigte Lieferung,18,Continental AG
+5054,2023-10-12,SH-BR-M820,Beschädigte Lieferung,31,Shimano GmbH
+5055,2023-12-06,SI-SA-FLITE,Nicht mehr benötigt,31,Selle Italia S.r.l.
+5056,2023-07-06,MA-RT-MDR-P,Falscher Artikel geliefert,15,Magura Bosch Parts & Services GmbH
+5057,2023-09-27,CO-RE-RACE,Falscher Artikel geliefert,41,Continental AG
+5058,2023-12-18,MA-RT-CL,Qualitätsmängel,32,Magura Bosch Parts & Services GmbH
+5059,2023-08-18,MA-RT-CL,Beschädigte Lieferung,9,Magura Bosch Parts & Services GmbH
+5060,2024-01-18,SI-SA-FLITE,Beschädigte Lieferung,37,Selle Italia S.r.l.
+5061,2024-04-01,MA-RT-MDR-P,Falscher Artikel geliefert,38,Magura Bosch Parts & Services GmbH
+5062,2023-12-24,MA-HB-MT7,Beschädigte Lieferung,47,Magura Bosch Parts & Services GmbH
+5063,2023-05-24,SR-BB-DUB-PF,Beschädigte Lieferung,29,SRAM LLC
+5064,2024-03-16,MA-HB-MT7,Überbestellung,12,Magura Bosch Parts & Services GmbH
+5065,2024-03-11,SI-KI-STORIA,Beschädigte Lieferung,8,Selle Italia S.r.l.
+5066,2023-09-25,CO-RE-RACE,Nicht mehr benötigt,45,Continental AG
+5067,2024-02-23,SR-BB-DUB-PF,Qualitätsmängel,11,SRAM LLC
+5068,2023-12-29,SI-KI-STORIA,Nicht mehr benötigt,27,Selle Italia S.r.l.
+5069,2023-04-30,SI-SA-FLITE,Falscher Artikel geliefert,36,Selle Italia S.r.l.
+5070,2024-05-08,CO-RE-RACE,Nicht mehr benötigt,9,Continental AG
+5071,2024-02-17,SH-CN-HG601,Falscher Artikel geliefert,27,Shimano GmbH
+5072,2023-07-12,MA-RT-CL,Nicht mehr benötigt,25,Magura Bosch Parts & Services GmbH
+5073,2023-05-18,SI-SA-FLITE,Beschädigte Lieferung,22,Selle Italia S.r.l.
+5074,2023-11-11,SH-CN-HG601,Beschädigte Lieferung,6,Shimano GmbH
+5075,2023-07-18,CO-RE-RACE,Nicht mehr benötigt,43,Continental AG
+5076,2024-01-18,MA-RT-MDR-P,Überbestellung,19,Magura Bosch Parts & Services GmbH
+5077,2024-03-16,MA-HB-MT7,Überbestellung,50,Magura Bosch Parts & Services GmbH
+5078,2023-07-14,CO-TU-PREM,Beschädigte Lieferung,10,Continental AG
+5079,2024-05-04,SH-BR-M820,Beschädigte Lieferung,38,Shimano GmbH
+5080,2023-06-20,SH-CN-HG601,Falscher Artikel geliefert,23,Shimano GmbH
+5081,2023-02-08,MA-RT-MDR-P,Überbestellung,18,Magura Bosch Parts & Services GmbH
+5082,2023-06-24,SH-CN-HG601,Überbestellung,21,Shimano GmbH
+5083,2023-06-26,SH-BR-M820,Beschädigte Lieferung,23,Shimano GmbH
+5084,2023-05-23,SR-BB-DUB-PF,Überbestellung,22,SRAM LLC
+5085,2023-08-25,CO-TU-PREM,Überbestellung,21,Continental AG
+5086,2024-04-07,MA-HB-MT7,Qualitätsmängel,38,Magura Bosch Parts & Services GmbH
+5087,2023-09-02,MA-RT-CL,Falscher Artikel geliefert,33,Magura Bosch Parts & Services GmbH
+5088,2023-02-11,SI-SA-FLITE,Falscher Artikel geliefert,1,Selle Italia S.r.l.
+5089,2023-06-05,SR-BB-DUB-PF,Qualitätsmängel,13,SRAM LLC
+5090,2023-10-28,MA-RT-CL,Nicht mehr benötigt,8,Magura Bosch Parts & Services GmbH
+5091,2023-04-16,CO-TU-PREM,Qualitätsmängel,4,Continental AG
+5092,2023-09-13,MA-RT-CL,Überbestellung,29,Magura Bosch Parts & Services GmbH
+5093,2023-09-10,SI-SA-FLITE,Nicht mehr benötigt,48,Selle Italia S.r.l.
+5094,2023-12-14,MA-RT-CL,Nicht mehr benötigt,9,Magura Bosch Parts & Services GmbH
+5095,2023-06-23,CO-RE-RACE,Überbestellung,47,Continental AG
+5096,2023-08-01,MA-RT-CL,Beschädigte Lieferung,33,Magura Bosch Parts & Services GmbH
+5097,2023-05-13,SI-SA-FLITE,Beschädigte Lieferung,49,Selle Italia S.r.l.
+5098,2023-02-25,MA-HB-MT7,Falscher Artikel geliefert,13,Magura Bosch Parts & Services GmbH
+5099,2024-01-16,CO-RE-RACE,Überbestellung,42,Continental AG
+5100,2023-11-17,MA-HB-MT7,Überbestellung,20,Magura Bosch Parts & Services GmbH
+5101,2023-04-04,SI-SA-FLITE,Falscher Artikel geliefert,23,Selle Italia S.r.l.
+5102,2024-01-29,SI-KI-STORIA,Falscher Artikel geliefert,10,Selle Italia S.r.l.
+5103,2023-11-08,SI-SA-FLITE,Überbestellung,4,Selle Italia S.r.l.
+5104,2023-10-06,CO-RE-RACE,Nicht mehr benötigt,39,Continental AG
+5105,2023-11-19,SI-SA-FLITE,Beschädigte Lieferung,8,Selle Italia S.r.l.
+5106,2024-05-04,CO-TU-PREM,Nicht mehr benötigt,39,Continental AG
+5107,2024-01-01,MA-HB-MT7,Nicht mehr benötigt,20,Magura Bosch Parts & Services GmbH
+5108,2023-06-25,SH-CN-HG601,Beschädigte Lieferung,7,Shimano GmbH
+5109,2024-04-10,SH-BR-M820,Nicht mehr benötigt,34,Shimano GmbH
+5110,2023-08-02,SH-CN-HG601,Beschädigte Lieferung,40,Shimano GmbH
+5111,2023-05-03,MA-RT-MDR-P,Falscher Artikel geliefert,20,Magura Bosch Parts & Services GmbH
+5112,2023-07-13,MA-HB-MT7,Überbestellung,40,Magura Bosch Parts & Services GmbH
+5113,2023-02-12,MA-RT-MDR-P,Qualitätsmängel,40,Magura Bosch Parts & Services GmbH
+5114,2024-01-15,MA-HB-MT7,Überbestellung,42,Magura Bosch Parts & Services GmbH
+5115,2024-01-12,MA-HB-MT7,Falscher Artikel geliefert,16,Magura Bosch Parts & Services GmbH
+5116,2023-04-02,SH-CN-HG601,Überbestellung,31,Shimano GmbH
+5117,2023-11-02,CO-RE-RACE,Überbestellung,38,Continental AG
+5118,2023-11-19,SH-CN-HG601,Falscher Artikel geliefert,21,Shimano GmbH
+5119,2024-05-06,MA-HB-MT7,Qualitätsmängel,27,Magura Bosch Parts & Services GmbH
+5120,2023-04-02,MA-RT-CL,Überbestellung,34,Magura Bosch Parts & Services GmbH
+5121,2024-03-15,CO-RE-RACE,Falscher Artikel geliefert,29,Continental AG
+5122,2024-04-30,SI-KI-STORIA,Falscher Artikel geliefert,38,Selle Italia S.r.l.
+5123,2023-12-03,MA-RT-MDR-P,Falscher Artikel geliefert,50,Magura Bosch Parts & Services GmbH
+5124,2023-06-22,SR-BB-DUB-PF,Qualitätsmängel,15,SRAM LLC
+5125,2023-03-20,SH-BR-M820,Überbestellung,21,Shimano GmbH
+5126,2023-01-02,SI-SA-FLITE,Nicht mehr benötigt,14,Selle Italia S.r.l.
+5127,2024-04-18,SI-SA-FLITE,Falscher Artikel geliefert,39,Selle Italia S.r.l.
+5128,2024-01-02,SR-BB-DUB-PF,Beschädigte Lieferung,32,SRAM LLC
+5129,2023-08-12,CO-RE-RACE,Nicht mehr benötigt,39,Continental AG
+5130,2023-12-10,CO-TU-PREM,Nicht mehr benötigt,42,Continental AG
+5131,2023-10-11,CO-TU-PREM,Beschädigte Lieferung,8,Continental AG
+5132,2023-03-08,MA-HB-MT7,Falscher Artikel geliefert,5,Magura Bosch Parts & Services GmbH
+5133,2023-04-05,CO-RE-RACE,Qualitätsmängel,50,Continental AG
+5134,2023-07-27,SH-CN-HG601,Falscher Artikel geliefert,14,Shimano GmbH
+5135,2023-09-24,SH-CN-HG601,Beschädigte Lieferung,12,Shimano GmbH
+5136,2023-06-17,SH-BR-M820,Überbestellung,25,Shimano GmbH
+5137,2024-01-30,SI-SA-FLITE,Beschädigte Lieferung,34,Selle Italia S.r.l.
+5138,2023-05-01,SI-SA-FLITE,Falscher Artikel geliefert,28,Selle Italia S.r.l.
+5139,2024-01-20,SR-BB-DUB-PF,Falscher Artikel geliefert,49,SRAM LLC
+5140,2024-01-12,SI-SA-FLITE,Falscher Artikel geliefert,17,Selle Italia S.r.l.
+5141,2023-06-29,SI-KI-STORIA,Falscher Artikel geliefert,49,Selle Italia S.r.l.
+5142,2023-10-20,SH-BR-M820,Überbestellung,35,Shimano GmbH
+5143,2023-10-21,CO-TU-PREM,Nicht mehr benötigt,12,Continental AG
+5144,2024-04-09,SI-KI-STORIA,Falscher Artikel geliefert,12,Selle Italia S.r.l.
+5145,2023-06-22,SH-CN-HG601,Beschädigte Lieferung,40,Shimano GmbH
+5146,2023-10-15,MA-RT-CL,Nicht mehr benötigt,37,Magura Bosch Parts & Services GmbH
+5147,2024-01-13,MA-RT-CL,Nicht mehr benötigt,49,Magura Bosch Parts & Services GmbH
+5148,2023-01-30,CO-RE-RACE,Falscher Artikel geliefert,5,Continental AG
+5149,2023-05-08,SI-KI-STORIA,Beschädigte Lieferung,7,Selle Italia S.r.l.
+5150,2023-01-20,MA-RT-CL,Beschädigte Lieferung,38,Magura Bosch Parts & Services GmbH
+5151,2024-04-02,CO-RE-RACE,Beschädigte Lieferung,31,Continental AG
+5152,2023-12-21,SH-CN-HG601,Beschädigte Lieferung,8,Shimano GmbH
+5153,2023-03-16,SR-BB-DUB-PF,Überbestellung,39,SRAM LLC
+5154,2023-04-21,CO-TU-PREM,Nicht mehr benötigt,26,Continental AG
+5155,2023-08-08,SH-BR-M820,Überbestellung,38,Shimano GmbH
+5156,2023-09-04,CO-TU-PREM,Nicht mehr benötigt,6,Continental AG
+5157,2024-05-04,MA-RT-CL,Überbestellung,47,Magura Bosch Parts & Services GmbH
+5158,2023-04-19,SI-SA-FLITE,Qualitätsmängel,45,Selle Italia S.r.l.
+5159,2023-10-04,SH-CN-HG601,Beschädigte Lieferung,43,Shimano GmbH
+5160,2024-01-24,MA-RT-CL,Überbestellung,15,Magura Bosch Parts & Services GmbH
+5161,2023-11-25,SR-BB-DUB-PF,Beschädigte Lieferung,29,SRAM LLC
+5162,2023-12-02,SI-KI-STORIA,Überbestellung,33,Selle Italia S.r.l.
+5163,2023-03-19,CO-RE-RACE,Qualitätsmängel,27,Continental AG
+5164,2024-01-08,SH-CN-HG601,Qualitätsmängel,36,Shimano GmbH
+5165,2023-05-26,SR-BB-DUB-PF,Beschädigte Lieferung,4,SRAM LLC
+5166,2023-08-17,SH-BR-M820,Beschädigte Lieferung,38,Shimano GmbH
+5167,2023-09-12,MA-HB-MT7,Beschädigte Lieferung,37,Magura Bosch Parts & Services GmbH
+5168,2023-03-08,MA-RT-CL,Beschädigte Lieferung,31,Magura Bosch Parts & Services GmbH
+5169,2023-10-02,MA-RT-CL,Überbestellung,47,Magura Bosch Parts & Services GmbH
+5170,2024-03-23,SH-CN-HG601,Falscher Artikel geliefert,33,Shimano GmbH
+5171,2023-01-20,SI-KI-STORIA,Überbestellung,34,Selle Italia S.r.l.
+5172,2023-10-10,SR-BB-DUB-PF,Qualitätsmängel,4,SRAM LLC
+5173,2023-02-23,SI-KI-STORIA,Qualitätsmängel,50,Selle Italia S.r.l.
+5174,2023-05-09,MA-RT-CL,Falscher Artikel geliefert,26,Magura Bosch Parts & Services GmbH
+5175,2024-02-08,SI-SA-FLITE,Beschädigte Lieferung,18,Selle Italia S.r.l.
+5176,2023-03-03,MA-HB-MT7,Qualitätsmängel,44,Magura Bosch Parts & Services GmbH
+5177,2023-01-22,MA-RT-MDR-P,Nicht mehr benötigt,46,Magura Bosch Parts & Services GmbH
+5178,2023-11-08,SI-KI-STORIA,Überbestellung,38,Selle Italia S.r.l.
+5179,2023-08-17,CO-TU-PREM,Qualitätsmängel,3,Continental AG
+5180,2023-07-16,CO-RE-RACE,Falscher Artikel geliefert,45,Continental AG
+5181,2024-01-20,SR-BB-DUB-PF,Beschädigte Lieferung,46,SRAM LLC
+5182,2023-07-11,MA-RT-MDR-P,Überbestellung,4,Magura Bosch Parts & Services GmbH
+5183,2023-06-29,MA-RT-MDR-P,Beschädigte Lieferung,32,Magura Bosch Parts & Services GmbH
+5184,2023-05-02,SH-BR-M820,Beschädigte Lieferung,24,Shimano GmbH
+5185,2024-01-31,SH-CN-HG601,Beschädigte Lieferung,1,Shimano GmbH
+5186,2023-02-16,MA-RT-CL,Falscher Artikel geliefert,12,Magura Bosch Parts & Services GmbH
+5187,2023-04-14,MA-RT-MDR-P,Beschädigte Lieferung,32,Magura Bosch Parts & Services GmbH
+5188,2023-04-25,SR-BB-DUB-PF,Beschädigte Lieferung,34,SRAM LLC
+5189,2023-12-04,SI-KI-STORIA,Überbestellung,24,Selle Italia S.r.l.
+5190,2023-11-21,MA-HB-MT7,Beschädigte Lieferung,49,Magura Bosch Parts & Services GmbH
+5191,2023-04-30,MA-RT-CL,Überbestellung,39,Magura Bosch Parts & Services GmbH
+5192,2023-09-05,MA-HB-MT7,Überbestellung,40,Magura Bosch Parts & Services GmbH
+5193,2023-03-18,CO-TU-PREM,Beschädigte Lieferung,2,Continental AG
+5194,2023-06-23,SH-BR-M820,Nicht mehr benötigt,21,Shimano GmbH
+5195,2024-01-20,SI-KI-STORIA,Falscher Artikel geliefert,47,Selle Italia S.r.l.
+5196,2023-06-17,SR-BB-DUB-PF,Überbestellung,18,SRAM LLC
+5197,2023-07-03,CO-RE-RACE,Qualitätsmängel,38,Continental AG
+5198,2023-04-21,SI-SA-FLITE,Beschädigte Lieferung,16,Selle Italia S.r.l.
+5199,2023-06-04,SH-CN-HG601,Nicht mehr benötigt,3,Shimano GmbH
+5200,2023-09-05,MA-RT-CL,Nicht mehr benötigt,49,Magura Bosch Parts & Services GmbH
+5201,2023-08-25,CO-TU-PREM,Qualitätsmängel,6,Continental AG
+5202,2024-02-07,CO-TU-PREM,Nicht mehr benötigt,27,Continental AG
+5203,2023-01-11,CO-RE-RACE,Beschädigte Lieferung,5,Continental AG
+5204,2024-03-16,SH-BR-M820,Überbestellung,35,Shimano GmbH
+5205,2024-01-20,MA-HB-MT7,Qualitätsmängel,20,Magura Bosch Parts & Services GmbH
+5206,2024-03-26,CO-RE-RACE,Überbestellung,23,Continental AG
+5207,2023-10-05,MA-HB-MT7,Überbestellung,10,Magura Bosch Parts & Services GmbH
+5208,2023-01-13,CO-RE-RACE,Beschädigte Lieferung,9,Continental AG
+5209,2024-04-14,CO-TU-PREM,Beschädigte Lieferung,34,Continental AG
+5210,2023-07-04,SI-SA-FLITE,Qualitätsmängel,2,Selle Italia S.r.l.
+5211,2023-08-17,SI-KI-STORIA,Beschädigte Lieferung,10,Selle Italia S.r.l.
+5212,2023-05-24,SI-SA-FLITE,Beschädigte Lieferung,24,Selle Italia S.r.l.
+5213,2023-06-14,SI-SA-FLITE,Beschädigte Lieferung,9,Selle Italia S.r.l.
+5214,2023-06-03,SI-KI-STORIA,Beschädigte Lieferung,49,Selle Italia S.r.l.
+5215,2024-04-10,CO-TU-PREM,Falscher Artikel geliefert,15,Continental AG
+5216,2024-01-15,MA-RT-CL,Beschädigte Lieferung,25,Magura Bosch Parts & Services GmbH
+5217,2023-12-02,CO-RE-RACE,Falscher Artikel geliefert,49,Continental AG
+5218,2024-02-19,MA-RT-CL,Überbestellung,42,Magura Bosch Parts & Services GmbH
+5219,2024-02-05,CO-RE-RACE,Qualitätsmängel,27,Continental AG
+5220,2023-07-02,SH-BR-M820,Falscher Artikel geliefert,22,Shimano GmbH
+5221,2023-10-25,SI-KI-STORIA,Falscher Artikel geliefert,14,Selle Italia S.r.l.
+5222,2023-01-19,CO-RE-RACE,Qualitätsmängel,17,Continental AG
+5223,2024-03-17,SR-BB-DUB-PF,Nicht mehr benötigt,20,SRAM LLC
+5224,2023-10-04,MA-RT-MDR-P,Beschädigte Lieferung,50,Magura Bosch Parts & Services GmbH
+5225,2023-03-07,SI-SA-FLITE,Nicht mehr benötigt,39,Selle Italia S.r.l.
+5226,2024-04-17,CO-TU-PREM,Beschädigte Lieferung,1,Continental AG
+5227,2024-02-28,SR-BB-DUB-PF,Überbestellung,5,SRAM LLC
+5228,2023-05-20,SH-CN-HG601,Überbestellung,36,Shimano GmbH
+5229,2023-09-12,MA-HB-MT7,Qualitätsmängel,46,Magura Bosch Parts & Services GmbH
+5230,2023-02-02,SH-BR-M820,Nicht mehr benötigt,28,Shimano GmbH
+5231,2024-03-13,CO-TU-PREM,Falscher Artikel geliefert,11,Continental AG
+5232,2023-07-07,MA-RT-MDR-P,Beschädigte Lieferung,3,Magura Bosch Parts & Services GmbH
+5233,2023-02-25,SH-CN-HG601,Nicht mehr benötigt,47,Shimano GmbH
+5234,2023-12-01,SR-BB-DUB-PF,Falscher Artikel geliefert,43,SRAM LLC
+5235,2023-05-13,SR-BB-DUB-PF,Nicht mehr benötigt,9,SRAM LLC
+5236,2023-05-28,CO-RE-RACE,Qualitätsmängel,16,Continental AG
+5237,2023-07-14,CO-TU-PREM,Nicht mehr benötigt,28,Continental AG
+5238,2023-04-05,MA-RT-MDR-P,Überbestellung,50,Magura Bosch Parts & Services GmbH
+5239,2024-01-15,SI-SA-FLITE,Überbestellung,41,Selle Italia S.r.l.
+5240,2024-05-11,MA-RT-MDR-P,Überbestellung,49,Magura Bosch Parts & Services GmbH
+5241,2024-02-03,CO-RE-RACE,Qualitätsmängel,43,Continental AG
+5242,2024-03-30,MA-HB-MT7,Überbestellung,4,Magura Bosch Parts & Services GmbH
+5243,2023-01-16,MA-HB-MT7,Nicht mehr benötigt,12,Magura Bosch Parts & Services GmbH
+5244,2023-04-21,MA-RT-MDR-P,Falscher Artikel geliefert,42,Magura Bosch Parts & Services GmbH
+5245,2023-02-26,CO-TU-PREM,Falscher Artikel geliefert,2,Continental AG
+5246,2024-05-13,SH-CN-HG601,Überbestellung,32,Shimano GmbH
+5247,2023-08-07,SI-KI-STORIA,Nicht mehr benötigt,13,Selle Italia S.r.l.
+5248,2024-02-04,MA-RT-CL,Beschädigte Lieferung,3,Magura Bosch Parts & Services GmbH
+5249,2023-02-08,SI-SA-FLITE,Beschädigte Lieferung,30,Selle Italia S.r.l.
+5250,2023-09-18,MA-HB-MT7,Nicht mehr benötigt,18,Magura Bosch Parts & Services GmbH
+5251,2023-10-30,SR-BB-DUB-PF,Qualitätsmängel,17,SRAM LLC
+5252,2023-01-23,CO-TU-PREM,Beschädigte Lieferung,22,Continental AG
+5253,2023-08-12,MA-RT-CL,Überbestellung,16,Magura Bosch Parts & Services GmbH
+5254,2023-04-03,SH-BR-M820,Beschädigte Lieferung,6,Shimano GmbH
+5255,2024-04-19,MA-HB-MT7,Falscher Artikel geliefert,48,Magura Bosch Parts & Services GmbH
+5256,2023-06-12,MA-RT-CL,Qualitätsmängel,23,Magura Bosch Parts & Services GmbH
+5257,2023-04-08,MA-RT-CL,Überbestellung,16,Magura Bosch Parts & Services GmbH
+5258,2023-03-13,MA-RT-MDR-P,Qualitätsmängel,6,Magura Bosch Parts & Services GmbH
+5259,2023-06-11,MA-HB-MT7,Beschädigte Lieferung,24,Magura Bosch Parts & Services GmbH
+5260,2024-04-20,MA-RT-CL,Überbestellung,9,Magura Bosch Parts & Services GmbH
+5261,2024-03-13,SH-BR-M820,Qualitätsmängel,34,Shimano GmbH
+5262,2023-06-05,SI-KI-STORIA,Nicht mehr benötigt,29,Selle Italia S.r.l.
+5263,2023-03-31,CO-RE-RACE,Überbestellung,35,Continental AG
+5264,2024-04-03,CO-RE-RACE,Falscher Artikel geliefert,16,Continental AG
+5265,2023-03-05,MA-RT-CL,Qualitätsmängel,19,Magura Bosch Parts & Services GmbH
+5266,2024-04-24,SI-SA-FLITE,Falscher Artikel geliefert,11,Selle Italia S.r.l.
+5267,2024-02-01,SI-KI-STORIA,Nicht mehr benötigt,48,Selle Italia S.r.l.
+5268,2023-03-13,SI-SA-FLITE,Qualitätsmängel,7,Selle Italia S.r.l.
+5269,2023-03-20,SH-BR-M820,Überbestellung,9,Shimano GmbH
+5270,2023-06-13,MA-HB-MT7,Beschädigte Lieferung,30,Magura Bosch Parts & Services GmbH
+5271,2024-01-01,SI-KI-STORIA,Qualitätsmängel,44,Selle Italia S.r.l.
+5272,2023-05-13,SR-BB-DUB-PF,Falscher Artikel geliefert,24,SRAM LLC
+5273,2023-08-19,SH-BR-M820,Beschädigte Lieferung,31,Shimano GmbH
+5274,2023-11-22,CO-TU-PREM,Falscher Artikel geliefert,8,Continental AG
+5275,2023-08-25,MA-RT-MDR-P,Falscher Artikel geliefert,26,Magura Bosch Parts & Services GmbH
+5276,2023-04-09,SH-CN-HG601,Qualitätsmängel,41,Shimano GmbH
+5277,2023-09-27,SH-CN-HG601,Qualitätsmängel,49,Shimano GmbH
+5278,2024-02-15,SR-BB-DUB-PF,Nicht mehr benötigt,2,SRAM LLC
+5279,2023-09-04,SH-BR-M820,Nicht mehr benötigt,27,Shimano GmbH
+5280,2023-05-24,MA-HB-MT7,Überbestellung,6,Magura Bosch Parts & Services GmbH
+5281,2024-04-02,CO-TU-PREM,Falscher Artikel geliefert,24,Continental AG
+5282,2023-05-12,CO-RE-RACE,Falscher Artikel geliefert,15,Continental AG
+5283,2024-01-09,CO-RE-RACE,Beschädigte Lieferung,15,Continental AG
+5284,2023-11-22,SH-BR-M820,Überbestellung,15,Shimano GmbH
+5285,2023-09-08,MA-RT-MDR-P,Nicht mehr benötigt,14,Magura Bosch Parts & Services GmbH
+5286,2023-01-20,MA-RT-MDR-P,Nicht mehr benötigt,10,Magura Bosch Parts & Services GmbH
+5287,2023-05-05,SI-SA-FLITE,Beschädigte Lieferung,44,Selle Italia S.r.l.
+5288,2023-12-07,SH-BR-M820,Qualitätsmängel,47,Shimano GmbH
+5289,2024-01-07,CO-RE-RACE,Beschädigte Lieferung,41,Continental AG
+5290,2023-08-11,SI-KI-STORIA,Qualitätsmängel,9,Selle Italia S.r.l.
+5291,2023-06-23,SI-SA-FLITE,Falscher Artikel geliefert,15,Selle Italia S.r.l.
+5292,2023-05-23,SH-BR-M820,Überbestellung,42,Shimano GmbH
+5293,2024-03-01,SH-BR-M820,Beschädigte Lieferung,16,Shimano GmbH
+5294,2023-12-02,SI-KI-STORIA,Nicht mehr benötigt,21,Selle Italia S.r.l.
+5295,2023-04-20,SI-SA-FLITE,Falscher Artikel geliefert,2,Selle Italia S.r.l.
+5296,2024-01-14,SH-CN-HG601,Überbestellung,21,Shimano GmbH
+5297,2023-07-06,SI-KI-STORIA,Beschädigte Lieferung,17,Selle Italia S.r.l.
+5298,2023-12-26,SR-BB-DUB-PF,Nicht mehr benötigt,38,SRAM LLC
+5299,2023-02-09,MA-RT-MDR-P,Nicht mehr benötigt,21,Magura Bosch Parts & Services GmbH
