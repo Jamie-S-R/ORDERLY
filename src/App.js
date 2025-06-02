@@ -25,12 +25,15 @@ import Lieferantenbewertung from './Lieferantenbewertung';
 import Tutorial from './Tutorial';
 import Termintreue from './Termintreue';
 import Automatisierung from './Automatisierung';
+import Feedback from './Feedback'
+import Help from './Help'
 
 import LagerverlaufPreview from './previews/LagerverlaufPreview';
 import TermintreuePreview from './previews/TermintreuePreview';
 import RetourenPreview from './previews/RetourenPreview';
 import BewertungPreview from './previews/RadarBewertungPreview';
 import AutomatisierungPreview from './previews/AutomatisierungPreview';
+
 
 const parseCSV = async (filePath, idField) =>
   new Promise((resolve) => {
@@ -173,6 +176,8 @@ const App = () => {
             <Route path="/tutorial" element={<Tutorial />} />
             <Route path="/orderlog" element={<OrderLog orders={orders} />} />
             <Route path="/outputlog" element={<OutputLog outputs={outputs} />} />
+            <Route path="/feedback" element={<Feedback />} />
+            <Route path="/help" element={<Help />} />
           </Routes>
         </main>
       </div>
