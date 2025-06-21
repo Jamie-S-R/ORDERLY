@@ -1,11 +1,15 @@
 import { getBlob, putBlob } from '@vercel/blob';
 
 export default async function handler(req, res) {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+
   const { method, query, body } = req;
   const { file } = query;
 
   if (!['ausgaenge.csv', 'bestellungen.csv'].includes(file)) {
-    return res.status(400).json({ error: 'Invalid file name' });
+    return res.status(400).json({ error: 'Invalid file name', received: file });
   }
 
   if (method === 'GET') {
