@@ -1,4 +1,3 @@
-// App.js
 import React, { useState, useEffect } from 'react';
 import {
   BrowserRouter as Router,
@@ -32,11 +31,11 @@ import AutomatisierungPreview from './previews/AutomatisierungPreview';
 import BarcodeScanner from './BarcodeScanner';
 import InvoiceScanner from './InvoiceScanner';
 
-
-
 const parseCSV = async (filePath, idField) =>
   new Promise((resolve) => {
-    Papa.parse(filePath, {
+    const isLocal = process.env.NODE_ENV === 'development';
+    const url = isLocal ? `/data/${filePath.split('/').pop()}` : `/api/update-csv?file=${filePath.split('/').pop()}`;
+    Papa.parse(url, {
       download: true,
       header: true,
       complete: (results) => {
@@ -100,7 +99,7 @@ const OutputLog = ({ outputs }) => {
           <h3>📋 Ausgabendetails</h3>
           <p><strong>Artikelnummer:</strong> {selected.Artikelnummer}</p>
           <p><strong>Menge:</strong> {selected.VerbrauchteMenge}</p>
-          <p><strong>Abteilung:</strong> {selected.Abteilung}</p>
+          <p><strong>Abteilung:</strong> {selected.Abteilung || 'Unbekannt'}</p>
           <p><strong>Datum:</strong> {selected.Ausgangsdatum}</p>
           <p><strong>Bemerkung:</strong> {selected.Bemerkungen}</p>
           <button onClick={() => setSelected(null)}>Schließen</button>
@@ -185,7 +184,7 @@ const OutputDetails = ({ outputs }) => {
       <h2>📋 Ausgabendetails</h2>
       <p><strong>Artikelnummer:</strong> {output.Artikelnummer}</p>
       <p><strong>Menge:</strong> {output.VerbrauchteMenge}</p>
-      <p><strong>Abteilung:</strong> {output.Abteilung}</p>
+      <p><strong>Abteilung:</strong> {output.Abteilung || 'Unbekannt'}</p>
       <p><strong>Datum:</strong> {output.Ausgangsdatum}</p>
       <p><strong>Bemerkung:</strong> {output.Bemerkungen}</p>
       <Link to="/outputlog" className="section-link">← Zurück zur Liste</Link>
@@ -225,11 +224,11 @@ const App = () => {
     const handleResize = () => {
       const isNowMobile = window.innerWidth <= 768;
       setIsMobile(isNowMobile);
-      setMenuOpen(false); // Sidebar standardmäßig eingeklappt
+      setMenuOpen(false);
     };
 
     window.addEventListener('resize', handleResize);
-    handleResize(); // Initial aufrufen
+    handleResize();
 
     return () => window.removeEventListener('resize', handleResize);
   }, []);
@@ -274,7 +273,7 @@ const App = () => {
                 <div className="live-scannen">
                   <h1 style={{ color: '#f7a440', marginBottom: '2rem' }}>📷 Live-Scannen</h1>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <BarcodeScanner />
+                    <BarcodeScanner orders={orders} setOrders={setOrders} outputs={outputs} setOutputs={setOutputs} />
                     <InvoiceScanner />
                   </div>
                 </div>
