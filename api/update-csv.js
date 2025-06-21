@@ -9,12 +9,11 @@ export default async function handler(req, res) {
   const { method, query, body } = req;
   const { file } = query;
 
-  if (!['ausgaenge.csv', 'bestellungen.csv'].includes(file)) {
-    console.error('Invalid file name:', file);
-    return res.status(400).json({ error: 'Invalid file name', received: file });
-  }
-
   if (method === 'GET') {
+    if (!['ausgaenge.csv', 'bestellungen.csv'].includes(file)) {
+      console.error('Invalid file name:', file);
+      return res.status(400).json({ error: 'Invalid file name', received: file });
+    }
     try {
       const blob = await getBlob({ pathname: file });
       if (!blob) {
@@ -30,6 +29,10 @@ export default async function handler(req, res) {
   } else if (method === 'POST') {
     try {
       const { ausgaenge, bestellungen } = body;
+      if (!ausgaenge && !bestellungen) {
+        console.error('No CSV data provided in body');
+        return res.status(400).json({ error: 'No CSV data provided' });
+      }
       if (ausgaenge) {
         console.log('Saving ausgaenge.csv:', ausgaenge.slice(0, 100));
         await putBlob({ pathname: 'ausgaenge.csv', body: ausgaenge });

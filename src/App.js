@@ -41,6 +41,10 @@ const parseCSV = async (filePath, idField) =>
       complete: (results) => {
         const cleaned = results.data.filter(row => row[idField]);
         resolve(cleaned);
+      },
+      error: (err) => {
+        console.error('CSV Parse Error:', err);
+        resolve([]);
       }
     });
   });
@@ -216,15 +220,33 @@ const App = () => {
   const [outputs, setOutputs] = useState([]);
   const [menuOpen, setMenuOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
+  const [dataUpdated, setDataUpdated] = useState(0);
+
+  const loadData = async () => {
+    try {
+      const loadedOrders = await parseCSV('/data/bestellungen.csv', 'BestellID');
+      const loadedOutputs = await parseCSV('/data/ausgaenge.csv', 'AusgangsID');
+      setOrders(loadedOrders);
+      setOutputs(loadedOutputs);
+    } catch (err) {
+      console.error('Error loading CSV data:', err);
+    }
+  };
 
   useEffect(() => {
-    parseCSV('/data/bestellungen.csv', 'BestellID').then(setOrders);
-    parseCSV('/data/ausgaenge.csv', 'AusgangsID').then(setOutputs);
+    loadData();
+  }, [dataUpdated]);
 
+  // Trigger data reload after orders/outputs change
+  const handleDataUpdate = () => {
+    setDataUpdated(prev => prev + 1);
+  };
+
+  useEffect(() => {
     const handleResize = () => {
       const isNowMobile = window.innerWidth <= 768;
       setIsMobile(isNowMobile);
-      setMenuOpen(false);
+      setMenuOpen(isNowMobile ? false : true);
     };
 
     window.addEventListener('resize', handleResize);
@@ -233,14 +255,11 @@ const App = () => {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  const toggleMenu = () => setMenuOpen(prev => !prev);
-  const closeMenu = () => setMenuOpen(false);
-
   return (
     <Router>
-      <button onClick={toggleMenu} className="menu-toggle">☰</button>
+      <button onClick={() => setMenuOpen(prev => !prev)} className="menu-toggle">☰</button>
       <div className="app">
-        {menuOpen && isMobile && <div className="overlay active" onClick={closeMenu}></div>}
+        {menuOpen && isMobile && <div className="overlay active" onClick={() => setMenuOpen(false)}></div>}
         <aside className={`sidebar ${menuOpen ? 'sidebar--open' : ''}`}>
           <Sidebar isOpen={menuOpen} setIsOpen={setMenuOpen} isMobile={isMobile} />
         </aside>
@@ -273,7 +292,7 @@ const App = () => {
                 <div className="live-scannen">
                   <h1 style={{ color: '#f7a440', marginBottom: '2rem' }}>📷 Live-Scannen</h1>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <BarcodeScanner orders={orders} setOrders={setOrders} outputs={outputs} setOutputs={setOutputs} />
+                    <BarcodeScanner orders={orders} setOrders={setOrders} outputs={outputs} setOutputs={setOutputs} onDataUpdate={handleDataUpdate} />
                     <InvoiceScanner />
                   </div>
                 </div>
