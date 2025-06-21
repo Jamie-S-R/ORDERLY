@@ -1,8 +1,19 @@
 import React, { useEffect, useRef, useState } from 'react';
 import Papa from 'papaparse';
+import Quagga from 'quagga';
+
+const AccordionSection = ({ title, children }) => (
+  <section style={{ marginBottom: '1.5rem', border: '1px solid #444', borderRadius: '6px' }}>
+    <header style={{ padding: '0.8rem 1rem', background: '#333', color: '#fff' }}>
+      <strong>▼ {title}</strong>
+    </header>
+    <div style={{ padding: '1rem', background: '#1e1e1e' }}>{children}</div>
+  </section>
+);
 
 const BarcodeScanner = () => {
   const videoRef = useRef(null);
+  const quaggaRef = useRef(null);
   const [csvData, setCsvData] = useState({ ausgaenge: [], bestellungen: [] });
   const [scanResult, setScanResult] = useState(null);
   const [error, setError] = useState(null);
@@ -10,6 +21,7 @@ const BarcodeScanner = () => {
   const [newEntry, setNewEntry] = useState(null);
   const [isScanning, setIsScanning] = useState(false);
   const [successMessage, setSuccessMessage] = useState(null);
+  const [useQuagga, setUseQuagga] = useState(false);
   const animationFrameRef = useRef(null);
 
   // Initialize newEntry immediately
@@ -47,6 +59,11 @@ const BarcodeScanner = () => {
       Lieferdauer: '7',
       Kategorie: 'Sonstiges',
     });
+    // Check BarcodeDetector support
+    if (!('BarcodeDetector' in window)) {
+      setUseQuagga(true);
+      setError('Barcode-Scanner nicht verfügbar in diesem Browser. Bitte Barcode manuell eingeben.');
+    }
   }, []);
 
   // Load CSVs
@@ -78,7 +95,6 @@ const BarcodeScanner = () => {
         }
 
         setCsvData(newCsvData);
-        // Update newEntry IDs based on loaded CSVs
         setNewEntry(prev => {
           const maxAusgangsID = newCsvData.ausgaenge.length > 0 ? Math.max(...newCsvData.ausgaenge.map(item => parseInt(item.AusgangsID || 0))) + 1 : 1;
           const maxBestellID = newCsvData.bestellungen.length > 0 ? Math.max(...newCsvData.bestellungen.map(item => parseInt(item.BestellID || 0))) + 1 : 1000;
@@ -105,8 +121,38 @@ const BarcodeScanner = () => {
       setError('Formular wird geladen, bitte warten.');
       return;
     }
-    if ('BarcodeDetector' in window) {
-      setIsScanning(true);
+    setIsScanning(true);
+
+    if (useQuagga) {
+      quaggaRef.current = document.getElementById('quagga-video');
+      Quagga.init({
+        inputStream: {
+          name: 'Live',
+          type: 'LiveStream',
+          target: quaggaRef.current,
+          constraints: {
+            facingMode: 'environment',
+          },
+        },
+        decoder: {
+          readers: ['ean_reader', 'code_128_reader', 'qr_code_reader'],
+        },
+      }, (err) => {
+        if (err) {
+          setError('QuaggaJS Fehler: ' + err.message);
+          setIsScanning(false);
+          return;
+        }
+        Quagga.start();
+      });
+
+      Quagga.onDetected((result) => {
+        const scannedBarcode = result.codeResult.code;
+        handleBarcode(scannedBarcode);
+        Quagga.stop();
+        setIsScanning(false);
+      });
+    } else if ('BarcodeDetector' in window) {
       try {
         const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
         const video = videoRef.current;
@@ -143,13 +189,14 @@ const BarcodeScanner = () => {
         setError('Kamerafehler: ' + err.message);
         setIsScanning(false);
       }
-    } else {
-      setError('BarcodeDetector API wird in diesem Browser nicht unterstützt.');
     }
   };
 
   const stopScanning = () => {
     setIsScanning(false);
+    if (useQuagga && Quagga) {
+      Quagga.stop();
+    }
     if (videoRef.current && videoRef.current.srcObject) {
       videoRef.current.srcObject.getTracks().forEach(track => track.stop());
       videoRef.current.srcObject = null;
@@ -259,29 +306,48 @@ const BarcodeScanner = () => {
     let updatedCsvData = { ...csvData };
     let updatedBestellungen = [...csvData.bestellungen];
 
-    if (entryType === 'Eingang' && scanResult?.newBestellungCreated) {
-      const bestellungIndex = updatedBestellungen.findIndex(item => item.BestellID === newRecord.BestellID);
-      if (bestellungIndex !== -1) {
-        updatedBestellungen[bestellungIndex] = {
-          ...updatedBestellungen[bestellungIndex],
-          AktuellerLagerbestand: newRecord.Menge,
-          Menge: newRecord.Menge,
-        };
-        updatedCsvData = { ...updatedCsvData, bestellungen: updatedBestellungen };
-      }
-    } else if (entryType === 'Eingang') {
+    if (entryType === 'Eingang') {
       const bestellungIndex = updatedBestellungen.findIndex(item => item.Artikelnummer === newRecord.Artikelnummer);
       if (bestellungIndex !== -1) {
         updatedBestellungen[bestellungIndex] = {
           ...updatedBestellungen[bestellungIndex],
           AktuellerLagerbestand: (parseInt(updatedBestellungen[bestellungIndex].AktuellerLagerbestand || 0) + parseInt(newRecord.Menge)).toString(),
           Menge: (parseInt(updatedBestellungen[bestellungIndex].Menge || 0) + parseInt(newRecord.Menge)).toString(),
+          Bestelldatum: newRecord.Bestelldatum,
+          Bestellart: newRecord.Bestellart,
+          Lieferant: newRecord.Lieferant,
+          Artikelbeschreibung: newRecord.Artikelbeschreibung,
+          Einheit: newRecord.Einheit,
+          PreisProEinheit: newRecord.PreisProEinheit,
+          Bestellstatus: newRecord.Bestellstatus,
+          GeplantesLieferdatum: newRecord.GeplantesLieferdatum,
+          TatsächlichesLieferdatum: newRecord.TatsächlichesLieferdatum,
+          JahrMonat: newRecord.JahrMonat,
+          Kategorie: newRecord.Kategorie,
         };
-        updatedCsvData = { ...updatedCsvData, bestellungen: updatedBestellungen };
+      } else if (scanResult?.newBestellungCreated) {
+        const bestellungIndex = updatedBestellungen.findIndex(item => item.BestellID === newRecord.BestellID);
+        if (bestellungIndex !== -1) {
+          updatedBestellungen[bestellungIndex] = {
+            ...updatedBestellungen[bestellungIndex],
+            AktuellerLagerbestand: newRecord.Menge,
+            Menge: newRecord.Menge,
+            Bestelldatum: newRecord.Bestelldatum,
+            Bestellart: newRecord.Bestellart,
+            Lieferant: newRecord.Lieferant,
+            Artikelbeschreibung: newRecord.Artikelbeschreibung,
+            Einheit: newRecord.Einheit,
+            PreisProEinheit: newRecord.PreisProEinheit,
+            Bestellstatus: newRecord.Bestellstatus,
+            GeplantesLieferdatum: newRecord.GeplantesLieferdatum,
+            TatsächlichesLieferdatum: newRecord.TatsächlichesLieferdatum,
+            JahrMonat: newRecord.JahrMonat,
+            Kategorie: newRecord.Kategorie,
+          };
+        }
       }
-    }
-
-    if (entryType === 'Ausgang') {
+      updatedCsvData = { ...updatedCsvData, bestellungen: updatedBestellungen };
+    } else {
       const ausgangRecord = {
         AusgangsID: newRecord.AusgangsID,
         Ausgangsdatum: newRecord.Ausgangsdatum,
@@ -396,6 +462,17 @@ const BarcodeScanner = () => {
     document.body.removeChild(link);
   };
 
+  // Sort logs by date (newest first)
+  const sortedLogs = [...csvData.ausgaenge.map(item => ({
+    ...item,
+    type: 'Ausgang',
+    date: item.Ausgangsdatum,
+  })), ...csvData.bestellungen.map(item => ({
+    ...item,
+    type: 'Eingang',
+    date: item.Bestelldatum,
+  }))].sort((a, b) => new Date(b.date) - new Date(a.date)).slice(0, 10);
+
   return (
     <div style={{ maxWidth: '600px', margin: '0 auto', padding: '20px', fontFamily: 'Arial, sans-serif' }}>
       <h2>Lagerverwaltung</h2>
@@ -424,10 +501,11 @@ const BarcodeScanner = () => {
           )}
         </div>
       )}
-      <video ref={videoRef} style={{ width: '100%', border: '1px solid #ccc', display: isScanning ? 'block' : 'none' }} muted />
+      <div id="quagga-video" style={{ width: '100%', border: '1px solid #ccc', display: isScanning && useQuagga ? 'block' : 'none' }} />
+      <video ref={videoRef} style={{ width: '100%', border: '1px solid #ccc', display: isScanning && !useQuagga ? 'block' : 'none' }} muted />
       {error && <p style={{ color: 'red', textAlign: 'center' }}>{error}</p>}
       {successMessage && <p style={{ color: 'green', textAlign: 'center' }}>{successMessage}</p>}
-      {!('BarcodeDetector' in window) && entryType && (
+      {entryType && (
         <form onSubmit={handleManualSubmit} style={{ marginTop: '10px' }}>
           <input
             type="text"
@@ -452,8 +530,8 @@ const BarcodeScanner = () => {
           )}
           {scanResult.bestellung && (
             <p>
-              Bestellung: {scanResult.bestellung.Menge} Einheiten bestellt am {scanResult.bestellung.Bestelldatum}, 
-              Status: {scanResult.bestellung.Bestellstatus}
+              Eingang: {scanResult.bestellung.Menge} Einheiten eingegangen am {scanResult.bestellung.Bestelldatum}, 
+              Lagerbestand: {scanResult.bestellung.AktuellerLagerbestand}
             </p>
           )}
           {!scanResult.ausgang && !scanResult.bestellung && (
@@ -530,48 +608,6 @@ const BarcodeScanner = () => {
                         style={{ padding: '5px', width: '100%' }}
                       />
                     </label>
-                  </>
-                )}
-                <label>
-                  Artikelnummer:
-                  <input
-                    type="text"
-                    value={newEntry.Artikelnummer}
-                    onChange={(e) => handleNewEntryChange('Artikelnummer', e.target.value)}
-                    required
-                    style={{ padding: '5px', width: '100%' }}
-                  />
-                </label>
-                <label>
-                  LagerbestandVor:
-                  <input
-                    type="number"
-                    value={newEntry.LagerbestandVor}
-                    onChange={(e) => handleNewEntryChange('LagerbestandVor', e.target.value)}
-                    required
-                    style={{ padding: '5px', width: '100%' }}
-                  />
-                </label>
-                <label>
-                  LagerbestandNach:
-                  <input
-                    type="number"
-                    value={newEntry.LagerbestandNach}
-                    readOnly
-                    style={{ padding: '5px', width: '100%' }}
-                  />
-                </label>
-                <label>
-                  Bemerkungen:
-                  <input
-                    type="text"
-                    value={newEntry.Bemerkungen}
-                    onChange={(e) => handleNewEntryChange('Bemerkungen', e.target.value)}
-                    style={{ padding: '5px', width: '100%' }}
-                  />
-                </label>
-                {entryType === 'Eingang' && (
-                  <>
                     <label>
                       Bestellart:
                       <input
@@ -647,6 +683,44 @@ const BarcodeScanner = () => {
                   </>
                 )}
                 <label>
+                  Artikelnummer:
+                  <input
+                    type="text"
+                    value={newEntry.Artikelnummer}
+                    onChange={(e) => handleNewEntryChange('Artikelnummer', e.target.value)}
+                    required
+                    style={{ padding: '5px', width: '100%' }}
+                  />
+                </label>
+                <label>
+                  LagerbestandVor:
+                  <input
+                    type="number"
+                    value={newEntry.LagerbestandVor}
+                    onChange={(e) => handleNewEntryChange('LagerbestandVor', e.target.value)}
+                    required
+                    style={{ padding: '5px', width: '100%' }}
+                  />
+                </label>
+                <label>
+                  LagerbestandNach:
+                  <input
+                    type="number"
+                    value={newEntry.LagerbestandNach}
+                    readOnly
+                    style={{ padding: '5px', width: '100%' }}
+                  />
+                </label>
+                <label>
+                  Bemerkungen:
+                  <input
+                    type="text"
+                    value={newEntry.Bemerkungen}
+                    onChange={(e) => handleNewEntryChange('Bemerkungen', e.target.value)}
+                    style={{ padding: '5px', width: '100%' }}
+                  />
+                </label>
+                <label>
                   GeplantesLieferdatum:
                   <input
                     type="date"
@@ -672,14 +746,34 @@ const BarcodeScanner = () => {
           )}
         </div>
       )}
-      {(csvData.ausgaenge.length > 0 || csvData.bestellungen.length > 0) && (
-        <button
-          onClick={downloadAllCsvs}
-          style={{ marginTop: '20px', padding: '5px 10px', background: '#FF9800', color: 'white', border: 'none', cursor: 'pointer' }}
-        >
-          Alle CSVs herunterladen
-        </button>
-      )}
+      <AccordionSection title="Letzte Einträge">
+        <table style={{ width: '100%', color: '#ccc', borderCollapse: 'collapse' }}>
+          <thead>
+            <tr>
+              <th style={{ textAlign: 'left', padding: '8px', borderBottom: '1px solid #555' }}>Typ</th>
+              <th style={{ textAlign: 'left', padding: '8px', borderBottom: '1px solid #555' }}>Artikelnummer</th>
+              <th style={{ textAlign: 'left', padding: '8px', borderBottom: '1px solid #555' }}>Datum</th>
+              <th style={{ textAlign: 'right', padding: '8px', borderBottom: '1px solid #555' }}>Menge</th>
+              <th style={{ textAlign: 'right', padding: '8px', borderBottom: '1px solid #555' }}>Lagerbestand</th>
+            </tr>
+          </thead>
+          <tbody>
+            {sortedLogs.map((log, i) => (
+              <tr key={i}>
+                <td style={{ padding: '8px', borderBottom: '1px solid #333' }}>{log.type}</td>
+                <td style={{ padding: '8px', borderBottom: '1px solid #333' }}>{log.Artikelnummer}</td>
+                <td style={{ padding: '8px', borderBottom: '1px solid #333' }}>{log.date}</td>
+                <td style={{ padding: '8px', textAlign: 'right', borderBottom: '1px solid #333' }}>
+                  {log.type === 'Ausgang' ? log.VerbrauchteMenge : log.Menge}
+                </td>
+                <td style={{ padding: '8px', textAlign: 'right', borderBottom: '1px solid #333' }}>
+                  {log.type === 'Ausgang' ? log.LagerbestandNach : log.AktuellerLagerbestand}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </AccordionSection>
     </div>
   );
 };
