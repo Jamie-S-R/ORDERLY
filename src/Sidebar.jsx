@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+// Sidebar.jsx
+import React from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import {
   FaHome,
@@ -14,8 +15,16 @@ import {
   FaEuroSign,
   FaStarHalfAlt
 } from 'react-icons/fa';
+import { FaCamera } from 'react-icons/fa';
 
 const categories = [
+  {
+    title: '📷 Scannen',
+    icon: FaCamera,
+    links: [
+      { to: '/live-scannen', label: 'Live-Scannen', icon: FaCamera },
+    ],
+  },
   {
     title: '🏠 Allgemein',
     icon: FaHome,
@@ -41,7 +50,6 @@ const categories = [
       { to: '/engpaesse', label: 'Engpässe', icon: FaTruckLoading },
       { to: '/finanzen', label: 'Finanzen', icon: FaEuroSign },
       { to: '/lieferantenbewertung', label: 'Bewertung', icon: FaStarHalfAlt },
-
     ],
   },
   {
@@ -53,25 +61,24 @@ const categories = [
   },
 ];
 
-const Sidebar = () => {
-  const [isOpen, setIsOpen] = useState(false);
+const Sidebar = ({ isOpen, setIsOpen, isMobile }) => {
   const location = useLocation();
 
   return (
     <div
       className={`sidebar ${isOpen ? 'sidebar--open' : ''}`}
-      onMouseEnter={() => setIsOpen(true)}
-      onMouseLeave={() => setIsOpen(false)}
+      onMouseEnter={() => !isMobile && setIsOpen(true)}
+      onMouseLeave={() => !isMobile && setIsOpen(false)}
     >
       <div className="sidebar-content">
         <ul className="sidebar-main">
           {isOpen ? (
-            // 👉 Offene Sidebar: mit NavLinks & Aktivitätslogik
+            // Offene Sidebar: mit NavLinks & Aktivitätslogik
             categories.map((category, index) => {
               const isCategoryActive = category.links.some(link => location.pathname === link.to);
               return (
                 <React.Fragment key={index}>
-                  <li className="sidebar-category">
+                  <li className={`sidebar-category ${isCategoryActive ? 'active-category' : ''}`}>
                     {category.title}
                   </li>
                   {category.links.map((link, linkIndex) => (
@@ -80,6 +87,7 @@ const Sidebar = () => {
                         to={link.to}
                         end
                         className={({ isActive }) => `sidebar-link ${isActive ? 'active' : ''}`}
+                        onClick={() => isMobile && setIsOpen(false)} // Schließt Sidebar nur auf Mobile
                       >
                         <link.icon className="icon" />
                         <span className="label">{link.label}</span>
@@ -90,11 +98,11 @@ const Sidebar = () => {
               );
             })
           ) : (
-            // 👉 Eingeklappte Sidebar: Nur Icons, keine NavLinks
+            // Eingeklappte Sidebar: Nur Icons
             categories.map((category, index) => {
               const isCategoryActive = category.links.some(link => location.pathname === link.to);
               return (
-                <li key={index} className={isCategoryActive ? 'active-category-collapsed' : ''}>
+                <li key={index} className={`sidebar-icon-only ${isCategoryActive ? 'active-category-collapsed' : ''}`}>
                   <div className="sidebar-icon-only" title={category.title}>
                     <category.icon className="icon" />
                   </div>
@@ -104,16 +112,25 @@ const Sidebar = () => {
           )}
         </ul>
       </div>
-
       <ul className="sidebar-footer">
         <li>
-          <NavLink to="/feedback" end className={({ isActive }) => `sidebar-link ${isActive ? 'active' : ''}`}>
+          <NavLink
+            to="/feedback"
+            end
+            className={({ isActive }) => `sidebar-link ${isActive ? 'active' : ''}`}
+            onClick={() => isMobile && setIsOpen(false)}
+          >
             <FaCommentDots className="icon" />
             {isOpen && <span className="label">Feedback</span>}
           </NavLink>
         </li>
         <li>
-          <NavLink to="/help" end className={({ isActive }) => `sidebar-link ${isActive ? 'active' : ''}`}>
+          <NavLink
+            to="/help"
+            end
+            className={({ isActive }) => `sidebar-link ${isActive ? 'active' : ''}`}
+            onClick={() => isMobile && setIsOpen(false)}
+          >
             <FaQuestionCircle className="icon" />
             {isOpen && <span className="label">Hilfe</span>}
           </NavLink>

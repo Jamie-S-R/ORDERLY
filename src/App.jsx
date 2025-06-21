@@ -1,32 +1,57 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Switch, Route, Link } from 'react-router-dom';
 import './App.css';
 
+
 function App() {
   const [menuOpen, setMenuOpen] = useState(false);
-  const toggleMenu = () => setMenuOpen(!menuOpen);
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
+
+  console.log('menuOpen:', menuOpen, 'isMobile:', isMobile);
+
+  const toggleMenu = () => setMenuOpen(prev => !prev);
+  const closeMenu = () => setMenuOpen(false);
+
+  useEffect(() => {
+    const handleResize = () => {
+      const isNowMobile = window.innerWidth <= 768;
+      setIsMobile(isNowMobile);
+      setMenuOpen(!isNowMobile); // Desktop: offen, Mobile: zu
+    };
+
+    window.addEventListener('resize', handleResize);
+    handleResize(); // Initial aufrufen
+
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+
 
   return (
     <Router>
+      <button onClick={toggleMenu} className="menu-toggle">☰</button>
       <div className="app">
-        <div className={`sidebar ${menuOpen ? 'sidebar--open' : ''}`}>
-          <button onClick={toggleMenu}>☰</button>
-          <ul className="sidebar-main">
-            <li><Link to="/">Startseite</Link></li>
-            <li><Link to="/orderlog">Bestelllog</Link></li>
-            <li><Link to="/inventory">Bestand</Link></li>
-            <li><Link to="/stock-history">Lagerverlauf</Link></li>
-            <li><Link to="/stock-comparison">Soll/Ist Lager</Link></li>
-            <li><Link to="/finance">Finanzdaten</Link></li>
-            <li><Link to="/delivery-reliability">Liefertermintreue</Link></li>
-            <li><Link to="/returns">Retouren</Link></li>
-            <li><Link to="/delivery-bottlenecks">Lieferengpässe</Link></li>
-            <li><Link to="/supplier-rating">Lieferantenbewertung</Link></li>
-            <li><Link to="/feedback">Feedback</Link></li>
-          </ul>
-        </div>
+        {menuOpen && isMobile && <div className="overlay" onClick={closeMenu}></div>}
 
-        <div className="main-content">
+
+
+        <aside className={`sidebar ${menuOpen ? 'sidebar--open' : ''}`}>
+          <ul className="sidebar-main">
+            <li><Link to="/" onClick={closeMenu}>Startseite</Link></li>
+            <li><Link to="/orderlog" onClick={closeMenu}>Bestelllog</Link></li>
+            <li><Link to="/inventory" onClick={closeMenu}>Bestand</Link></li>
+            <li><Link to="/stock-history" onClick={closeMenu}>Lagerverlauf</Link></li>
+            <li><Link to="/stock-comparison" onClick={closeMenu}>Soll/Ist Lager</Link></li>
+            <li><Link to="/finance" onClick={closeMenu}>Finanzdaten</Link></li>
+            <li><Link to="/delivery-reliability" onClick={closeMenu}>Liefertermintreue</Link></li>
+            <li><Link to="/returns" onClick={closeMenu}>Retouren</Link></li>
+            <li><Link to="/delivery-bottlenecks" onClick={closeMenu}>Lieferengpässe</Link></li>
+            <li><Link to="/supplier-rating" onClick={closeMenu}>Lieferantenbewertung</Link></li>
+            <li><Link to="/feedback" onClick={closeMenu}>Feedback</Link></li>
+          </ul>
+        </aside>
+
+        <main className="main-content">
           <Switch>
             <Route path="/" exact component={Home} />
             <Route path="/orderlog" component={OrderLog} />
@@ -40,11 +65,12 @@ function App() {
             <Route path="/supplier-rating" component={SupplierRating} />
             <Route path="/feedback" component={Feedback} />
           </Switch>
-        </div>
+        </main>
       </div>
     </Router>
   );
 }
+
 
 function Home() {
   return (
