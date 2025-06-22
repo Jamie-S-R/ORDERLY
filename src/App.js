@@ -110,14 +110,8 @@ const OutputLog = ({ outputs, setOutputs, onDataUpdate }) => {
         throw new Error(`Löschfehler: ${response.status} - ${JSON.stringify(errorText)}`);
       }
 
-      // Update local state immediately
       setOutputs(prev => prev.filter(o => o.AusgangsID !== ausgangsID));
-      // Trigger data reload with delay to ensure server sync
-      setTimeout(() => {
-        if (onDataUpdate) {
-          onDataUpdate();
-        }
-      }, 1000);
+      onDataUpdate();
     } catch (err) {
       setError('Fehler beim Löschen: ' + err.message);
     } finally {
@@ -129,6 +123,7 @@ const OutputLog = ({ outputs, setOutputs, onDataUpdate }) => {
     <div className="detail-view">
       <h2>📤 Ausgangshistorie</h2>
       {error && <p style={{ color: 'red', textAlign: 'center' }}>{error}</p>}
+      {isDeleting && <p style={{ color: 'yellow', textAlign: 'center' }}>Löschen...</p>}
       <label style={{ marginBottom: '10px', display: 'block' }}>
         Sortieren nach:
         <select value={sortOrder} onChange={(e) => setSortOrder(e.target.value)} style={{ marginLeft: '10px', padding: '5px' }}>
@@ -207,14 +202,8 @@ const OrderLog = ({ orders, setOrders, onDataUpdate }) => {
         throw new Error(`Löschfehler: ${response.status} - ${JSON.stringify(errorText)}`);
       }
 
-      // Update local state immediately
       setOrders(prev => prev.filter(o => o.BestellID !== bestellID));
-      // Trigger data reload with delay to ensure server sync
-      setTimeout(() => {
-        if (onDataUpdate) {
-          onDataUpdate();
-        }
-      }, 1000);
+      onDataUpdate();
     } catch (err) {
       setError('Fehler beim Löschen: ' + err.message);
     } finally {
@@ -226,6 +215,7 @@ const OrderLog = ({ orders, setOrders, onDataUpdate }) => {
     <div className="detail-view">
       <h2>📦 Bestellhistorie</h2>
       {error && <p style={{ color: 'red', textAlign: 'center' }}>{error}</p>}
+      {isDeleting && <p style={{ color: 'yellow', textAlign: 'center' }}>Löschen...</p>}
       <label style={{ marginBottom: '10px', display: 'block' }}>
         Sortieren nach:
         <select value={sortOrder} onChange={(e) => setSortOrder(e.target.value)} style={{ marginLeft: '10px', padding: '5px' }}>
@@ -341,19 +331,24 @@ const App = () => {
   const [outputs, setOutputs] = useState([]);
   const [menuOpen, setMenuOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
-  const [dataUpdated, setDataUpdated] = useState(0);
+  const [dataVersion, setDataVersion] = useState(0); // Renamed to avoid confusion
   const [isLoading, setIsLoading] = useState(false);
 
   const loadData = useCallback(async () => {
-    if (isLoading) return;
+    if (isLoading) {
+      console.log('loadData skipped: already loading');
+      return;
+    }
     setIsLoading(true);
     try {
+      console.log('Loading data...');
       const [loadedOrders, loadedOutputs] = await Promise.all([
         parseCSV('/data/bestellungen.csv', 'BestellID'),
         parseCSV('/data/ausgaenge.csv', 'AusgangsID'),
       ]);
       setOrders(loadedOrders);
       setOutputs(loadedOutputs);
+      console.log('Data loaded:', { orders: loadedOrders.length, outputs: loadedOutputs.length });
     } catch (err) {
       console.error('Error loading CSV data:', err);
     } finally {
@@ -363,11 +358,11 @@ const App = () => {
 
   useEffect(() => {
     loadData();
-  }, [dataUpdated, loadData]);
+  }, [dataVersion, loadData]);
 
-  // Trigger data reload with debouncing
   const handleDataUpdate = useCallback(() => {
-    setDataUpdated(prev => prev + 1);
+    console.log('handleDataUpdate called');
+    setDataVersion(prev => prev + 1);
   }, []);
 
   useEffect(() => {
@@ -392,6 +387,7 @@ const App = () => {
           <Sidebar isOpen={menuOpen} setIsOpen={setMenuOpen} isMobile={isMobile} />
         </aside>
         <main className="main-content">
+          {isLoading && <p style={{ color: 'yellow', textAlign: 'center' }}>Daten werden geladen...</p>}
           <Routes>
             <Route
               path="/"

@@ -48,46 +48,58 @@ const BarcodeScanner = ({ orders, setOrders, outputs, setOutputs, onDataUpdate }
 
   // Initialize newEntry with dynamic BestellID
   useEffect(() => {
+    let isMounted = true;
     const initializeNewEntry = async () => {
-      const today = new Date();
-      const datum = today.toISOString().split('T')[0];
-      const monat = today.toISOString().slice(0, 7);
-      const geplantesLieferdatum = new Date(today.getTime());
-      geplantesLieferdatum.setDate(today.getDate() + 7);
-      const maxAusgangsID = outputs.length > 0 ? Math.max(...outputs.map(item => parseInt(item.AusgangsID || 0))) + 1 : 1;
-      const nextBestellID = await fetchNextBestellID();
+      try {
+        const today = new Date();
+        const datum = today.toISOString().split('T')[0];
+        const monat = today.toISOString().slice(0, 7);
+        const geplantesLieferdatum = new Date(today.getTime());
+        geplantesLieferdatum.setDate(today.getDate() + 7);
+        const maxAusgangsID = outputs.length > 0 ? Math.max(...outputs.map(item => parseInt(item.AusgangsID || 0))) + 1 : 1;
+        const nextBestellID = await fetchNextBestellID();
 
-      setNewEntry({
-        AusgangsID: maxAusgangsID.toString(),
-        BestellID: nextBestellID.toString(),
-        Ausgangsdatum: datum,
-        Bestelldatum: datum,
-        Artikelnummer: '',
-        VerbrauchteMenge: '1',
-        Menge: '1',
-        LagerbestandVor: '100',
-        LagerbestandNach: entryType === 'Ausgang' ? '99' : '101',
-        AktuellerLagerbestand: '0',
-        Bemerkungen: 'Neuer Eintrag',
-        Monat: monat,
-        JahrMonat: monat,
-        GeplantesLieferdatum: geplantesLieferdatum.toISOString().split('T')[0],
-        TatsächlichesLieferdatum: geplantesLieferdatum.toISOString().split('T')[0],
-        Bestellart: 'Standardbestellung',
-        Lieferant: 'Unbekannt',
-        Artikelbeschreibung: 'Neuer Artikel',
-        Einheit: 'Stück',
-        PreisProEinheit: '0.00',
-        Bestellstatus: 'Offen',
-        Engpass: 'false',
-        KritischSeit: '',
-        Gesamtpreis: '0.00',
-        Lieferdauer: '7',
-        Kategorie: 'Sonstiges',
-      });
+        if (isMounted) {
+          setNewEntry({
+            AusgangsID: maxAusgangsID.toString(),
+            BestellID: nextBestellID.toString(),
+            Ausgangsdatum: datum,
+            Bestelldatum: datum,
+            Artikelnummer: '',
+            VerbrauchteMenge: '1',
+            Menge: '1',
+            LagerbestandVor: '100',
+            LagerbestandNach: entryType === 'Ausgang' ? '99' : '101',
+            AktuellerLagerbestand: '0',
+            Bemerkungen: 'Neuer Eintrag',
+            Monat: monat,
+            JahrMonat: monat,
+            GeplantesLieferdatum: geplantesLieferdatum.toISOString().split('T')[0],
+            TatsächlichesLieferdatum: geplantesLieferdatum.toISOString().split('T')[0],
+            Bestellart: 'Standardbestellung',
+            Lieferant: 'Unbekannt',
+            Artikelbeschreibung: 'Neuer Artikel',
+            Einheit: 'Stück',
+            PreisProEinheit: '0.00',
+            Bestellstatus: 'Offen',
+            Engpass: 'false',
+            KritischSeit: '',
+            Gesamtpreis: '0.00',
+            Lieferdauer: '7',
+            Kategorie: 'Sonstiges',
+          });
+        }
+      } catch (err) {
+        if (isMounted) {
+          setError('Initialisierungsfehler: ' + err.message);
+        }
+      }
     };
 
     initializeNewEntry();
+    return () => {
+      isMounted = false;
+    };
   }, [entryType, outputs]);
 
   // Barcode scanning with optimized QuaggaJS
@@ -104,7 +116,7 @@ const BarcodeScanner = ({ orders, setOrders, outputs, setOutputs, onDataUpdate }
     setError(null);
 
     try {
-      // Optimierte Constraints für schnellere Verarbeitung
+      console.log('Starting barcode scanner...');
       const constraints = {
         video: {
           facingMode: 'environment',
@@ -129,7 +141,6 @@ const BarcodeScanner = ({ orders, setOrders, outputs, setOutputs, onDataUpdate }
         throw new Error('Kamerafehler: ' + err.message);
       });
 
-      // Optimierte QuaggaJS-Konfiguration
       Quagga.init({
         inputStream: {
           name: 'Live',
@@ -150,26 +161,29 @@ const BarcodeScanner = ({ orders, setOrders, outputs, setOutputs, onDataUpdate }
             'upc_reader',
             'upc_e_reader',
           ],
-          multiple: true, // Erlaubt Erkennung mehrerer Barcodes
+          multiple: false,
         },
         locator: {
-          patchSize: 'small', // Schnellere Erkennung
-          halfSample: false, // Verbessert Orientierungstoleranz
+          patchSize: 'small',
+          halfSample: false,
         },
-        numOfWorkers: 1, // Einzelner Worker für bessere iOS-Performance
-        frequency: 20, // Häufigere Scans
+        numOfWorkers: 1,
+        frequency: 20,
         locate: true,
       }, (err) => {
         if (err) {
+          console.error('QuaggaJS Init Error:', err);
           setError('QuaggaJS Fehler: ' + err.message);
           setIsScanning(false);
           stopScanning();
           return;
         }
+        console.log('QuaggaJS initialized');
         Quagga.start();
       });
 
       Quagga.onDetected((result) => {
+        console.log('Barcode detected:', result);
         const scannedBarcode = result.codeResult.code;
         handleBarcode(scannedBarcode);
         Quagga.stop();
@@ -177,6 +191,7 @@ const BarcodeScanner = ({ orders, setOrders, outputs, setOutputs, onDataUpdate }
         stopScanning();
       });
     } catch (err) {
+      console.error('Scanner Error:', err);
       setError('Kamerafehler: ' + err.message);
       setIsScanning(false);
       stopScanning();
@@ -200,23 +215,29 @@ const BarcodeScanner = ({ orders, setOrders, outputs, setOutputs, onDataUpdate }
 
   // Handle barcode
   const handleBarcode = async (barcode) => {
-    const matchingAusgang = outputs.find(item => item.Artikelnummer === barcode);
-    const nextBestellID = await fetchNextBestellID();
-    setScanResult({
-      barcode,
-      ausgang: matchingAusgang,
-      bestellung: null,
-      newBestellungCreated: true,
-    });
-    setNewEntry(prev => ({
-      ...prev,
-      Artikelnummer: barcode,
-      BestellID: nextBestellID.toString(),
-      LagerbestandNach: entryType === 'Ausgang'
-        ? (parseInt(prev.LagerbestandVor) - parseInt(prev.VerbrauchteMenge)).toString()
-        : (parseInt(prev.LagerbestandVor) + parseInt(prev.Menge)).toString(),
-      AktuellerLagerbestand: entryType === 'Eingang' ? prev.Menge : prev.AktuellerLagerbestand,
-    }));
+    try {
+      console.log('Handling barcode:', barcode);
+      const matchingAusgang = outputs.find(item => item.Artikelnummer === barcode);
+      const nextBestellID = await fetchNextBestellID();
+      setScanResult({
+        barcode,
+        ausgang: matchingAusgang,
+        bestellung: null,
+        newBestellungCreated: true,
+      });
+      setNewEntry(prev => ({
+        ...prev,
+        Artikelnummer: barcode,
+        BestellID: nextBestellID.toString(),
+        LagerbestandNach: entryType === 'Ausgang'
+          ? (parseInt(prev.LagerbestandVor) - parseInt(prev.VerbrauchteMenge)).toString()
+          : (parseInt(prev.LagerbestandVor) + parseInt(prev.Menge)).toString(),
+        AktuellerLagerbestand: entryType === 'Eingang' ? prev.Menge : prev.AktuellerLagerbestand,
+      }));
+    } catch (err) {
+      console.error('Handle Barcode Error:', err);
+      setError('Fehler beim Verarbeiten des Barcodes: ' + err.message);
+    }
   };
 
   // Manual barcode input
@@ -261,35 +282,10 @@ const BarcodeScanner = ({ orders, setOrders, outputs, setOutputs, onDataUpdate }
     let updatedOrders = [...orders];
     let updatedOutputs = [...outputs];
 
-    console.log('New Record:', newRecord);
+    console.log('Submitting new record:', newRecord);
 
-    // Prepare new order data
-    const newOrder = {
-      BestellID: newRecord.BestellID,
-      Bestelldatum: newRecord.Bestelldatum,
-      Bestellart: newRecord.Bestellart,
-      Lieferant: newRecord.Lieferant,
-      Artikelnummer: newRecord.Artikelnummer,
-      Artikelbeschreibung: newRecord.Artikelbeschreibung,
-      Menge: newRecord.Menge,
-      Einheit: newRecord.Einheit,
-      PreisProEinheit: newRecord.PreisProEinheit,
-      Bestellstatus: newRecord.Bestellstatus,
-      GeplantesLieferdatum: newRecord.GeplantesLieferdatum,
-      TatsächlichesLieferdatum: newRecord.TatsächlichesLieferdatum,
-      AktuellerLagerbestand: newRecord.Menge,
-      Engpass: newRecord.Engpass,
-      KritischSeit: newRecord.KritischSeit,
-      Gesamtpreis: newRecord.Gesamtpreis,
-      Lieferdauer: newRecord.Lieferdauer,
-      JahrMonat: newRecord.JahrMonat,
-      Kategorie: newRecord.Kategorie,
-    };
-
-    // Save to backend
     try {
       if (process.env.NODE_ENV !== 'development') {
-        // Send only the new order as a single row
         const newOrderCsv = `${newRecord.BestellID},${newRecord.Bestelldatum},${newRecord.Bestellart},${newRecord.Lieferant},${newRecord.Artikelnummer},${newRecord.Artikelbeschreibung},${newRecord.Menge},${newRecord.Einheit},${newRecord.PreisProEinheit},${newRecord.Bestellstatus},${newRecord.GeplantesLieferdatum},${newRecord.TatsächlichesLieferdatum},${newRecord.AktuellerLagerbestand},${newRecord.Engpass},${newRecord.KritischSeit},${newRecord.Gesamtpreis},${newRecord.Lieferdauer},${newRecord.JahrMonat},${newRecord.Kategorie}`;
         console.log('POST Body:', { bestellungen: newOrderCsv.slice(0, 100) });
         const response = await fetch('/api/update-csv', {
@@ -304,9 +300,28 @@ const BarcodeScanner = ({ orders, setOrders, outputs, setOutputs, onDataUpdate }
           throw new Error(`Backend-Fehler: ${response.status} - ${JSON.stringify(errorText)}`);
         }
 
-        // Update local state only after successful backend save
         if (entryType === 'Eingang') {
-          updatedOrders.push(newOrder);
+          updatedOrders.push({
+            BestellID: newRecord.BestellID,
+            Bestelldatum: newRecord.Bestelldatum,
+            Bestellart: newRecord.Bestellart,
+            Lieferant: newRecord.Lieferant,
+            Artikelnummer: newRecord.Artikelnummer,
+            Artikelbeschreibung: newRecord.Artikelbeschreibung,
+            Menge: newRecord.Menge,
+            Einheit: newRecord.Einheit,
+            PreisProEinheit: newRecord.PreisProEinheit,
+            Bestellstatus: newRecord.Bestellstatus,
+            GeplantesLieferdatum: newRecord.GeplantesLieferdatum,
+            TatsächlichesLieferdatum: newRecord.TatsächlichesLieferdatum,
+            AktuellerLagerbestand: newRecord.Menge,
+            Engpass: newRecord.Engpass,
+            KritischSeit: newRecord.KritischSeit,
+            Gesamtpreis: newRecord.Gesamtpreis,
+            Lieferdauer: newRecord.Lieferdauer,
+            JahrMonat: newRecord.JahrMonat,
+            Kategorie: newRecord.Kategorie,
+          });
           setOrders(updatedOrders);
         } else {
           const ausgangRecord = {
@@ -340,15 +355,14 @@ const BarcodeScanner = ({ orders, setOrders, outputs, setOutputs, onDataUpdate }
           });
         }
 
-        // Trigger data reload in App.js
         if (onDataUpdate) {
+          console.log('Calling onDataUpdate after submit');
           onDataUpdate();
         }
 
         setSuccessMessage('Eintrag erfolgreich hinzugefügt!');
         setTimeout(() => setSuccessMessage(null), 3000);
 
-        // Fetch the next BestellID for the new form
         const nextBestellID = await fetchNextBestellID();
         const maxAusgangsID = parseInt(newRecord.AusgangsID) + 1;
         setNewEntry({
