@@ -24,49 +24,79 @@ const BarcodeScanner = ({ orders, setOrders, outputs, setOutputs, onDataUpdate }
   const [scanResult, setScanResult] = useState(null);
   const animationFrameRef = useRef(null);
 
-  // Initialize newEntry immediately
-  useEffect(() => {
-    const today = new Date();
-    const datum = today.toISOString().split('T')[0];
-    const monat = today.toISOString().slice(0, 7);
-    const geplantesLieferdatum = new Date(today.getTime());
-    geplantesLieferdatum.setDate(today.getDate() + 7);
-    const maxAusgangsID = outputs.length > 0 ? Math.max(...outputs.map(item => parseInt(item.AusgangsID || 0))) + 1 : 1;
-    const maxBestellID = orders.length > 0 ? Math.max(...orders.map(item => parseInt(item.BestellID || 0))) + 1 : 1000;
-    setNewEntry({
-      AusgangsID: maxAusgangsID.toString(),
-      BestellID: maxBestellID.toString(),
-      Ausgangsdatum: datum,
-      Bestelldatum: datum,
-      Artikelnummer: '',
-      VerbrauchteMenge: '1',
-      Menge: '1',
-      LagerbestandVor: '100',
-      LagerbestandNach: entryType === 'Ausgang' ? '99' : '101',
-      AktuellerLagerbestand: '0',
-      Bemerkungen: 'Neuer Eintrag',
-      Monat: monat,
-      JahrMonat: monat,
-      GeplantesLieferdatum: geplantesLieferdatum.toISOString().split('T')[0],
-      TatsächlichesLieferdatum: geplantesLieferdatum.toISOString().split('T')[0],
-      Bestellart: 'Standardbestellung',
-      Lieferant: 'Unbekannt',
-      Artikelbeschreibung: 'Neuer Artikel',
-      Einheit: 'Stück',
-      PreisProEinheit: '0.00',
-      Bestellstatus: 'Offen',
-      Engpass: 'false',
-      KritischSeit: '',
-      Gesamtpreis: '0.00',
-      Lieferdauer: '7',
-      Kategorie: 'Sonstiges',
-    });
-    // Check BarcodeDetector support
-    if (!('BarcodeDetector' in window)) {
-      setUseQuagga(true);
-      setError('Barcode-Scanner nicht verfügbar in diesem Browser. Bitte Barcode manuell eingeben.');
+  // Fetch bestellungen.csv to get the next available BestellID
+  const fetchNextBestellID = async () => {
+    try {
+      const response = await fetch('/api/update-csv?file=bestellungen.csv');
+      if (!response.ok) {
+        throw new Error('Fehler beim Abrufen von bestellungen.csv');
+      }
+      const csvText = await response.text();
+      if (!csvText) {
+        return 3000; // Start at 3000 if no data exists
+      }
+      const parsed = Papa.parse(csvText, { header: true, skipEmptyLines: true });
+      const existingIds = parsed.data
+        .map(row => parseInt(row.BestellID))
+        .filter(id => !isNaN(id));
+      const maxId = existingIds.length > 0 ? Math.max(...existingIds) : 2999;
+      return maxId + 1;
+    } catch (err) {
+      console.error('Fehler beim Abrufen der BestellID:', err);
+      setError('Fehler beim Abrufen der BestellID: ' + err.message);
+      return 3000; // Fallback
     }
-  }, [orders, outputs, entryType]);
+  };
+
+  // Initialize newEntry with dynamic BestellID
+  useEffect(() => {
+    const initializeNewEntry = async () => {
+      const today = new Date();
+      const datum = today.toISOString().split('T')[0];
+      const monat = today.toISOString().slice(0, 7);
+      const geplantesLieferdatum = new Date(today.getTime());
+      geplantesLieferdatum.setDate(today.getDate() + 7);
+      const maxAusgangsID = outputs.length > 0 ? Math.max(...outputs.map(item => parseInt(item.AusgangsID || 0))) + 1 : 1;
+      const nextBestellID = await fetchNextBestellID();
+
+      setNewEntry({
+        AusgangsID: maxAusgangsID.toString(),
+        BestellID: nextBestellID.toString(),
+        Ausgangsdatum: datum,
+        Bestelldatum: datum,
+        Artikelnummer: '',
+        VerbrauchteMenge: '1',
+        Menge: '1',
+        LagerbestandVor: '100',
+        LagerbestandNach: entryType === 'Ausgang' ? '99' : '101',
+        AktuellerLagerbestand: '0',
+        Bemerkungen: 'Neuer Eintrag',
+        Monat: monat,
+        JahrMonat: monat,
+        GeplantesLieferdatum: geplantesLieferdatum.toISOString().split('T')[0],
+        TatsächlichesLieferdatum: geplantesLieferdatum.toISOString().split('T')[0],
+        Bestellart: 'Standardbestellung',
+        Lieferant: 'Unbekannt',
+        Artikelbeschreibung: 'Neuer Artikel',
+        Einheit: 'Stück',
+        PreisProEinheit: '0.00',
+        Bestellstatus: 'Offen',
+        Engpass: 'false',
+        KritischSeit: '',
+        Gesamtpreis: '0.00',
+        Lieferdauer: '7',
+        Kategorie: 'Sonstiges',
+      });
+
+      // Check BarcodeDetector support
+      if (!('BarcodeDetector' in window)) {
+        setUseQuagga(true);
+        setError('Barcode-Scanner nicht verfügbar in diesem Browser. Bitte Barcode manuell eingeben.');
+      }
+    };
+
+    initializeNewEntry();
+  }, [entryType, outputs]);
 
   // Barcode scanning
   const startScanning = async () => {
@@ -172,33 +202,6 @@ const BarcodeScanner = ({ orders, setOrders, outputs, setOutputs, onDataUpdate }
     let newBestellungCreated = false;
 
     if (entryType === 'Eingang' && !matchingBestellung) {
-      const newBestellID = (Math.max(...orders.map(item => parseInt(item.BestellID || 0)), 999) + 1).toString();
-      const today = new Date();
-      const geplantesLieferdatum = new Date(today.getTime());
-      geplantesLieferdatum.setDate(today.getDate() + 7);
-      const newBestellung = {
-        BestellID: newBestellID,
-        Bestelldatum: today.toISOString().split('T')[0],
-        Bestellart: 'Standardbestellung',
-        Lieferant: 'Unbekannt',
-        Artikelnummer: barcode,
-        Artikelbeschreibung: 'Neuer Artikel',
-        Menge: '1',
-        Einheit: 'Stück',
-        PreisProEinheit: '0.00',
-        Bestellstatus: 'Offen',
-        GeplantesLieferdatum: geplantesLieferdatum.toISOString().split('T')[0],
-        TatsächlichesLieferdatum: geplantesLieferdatum.toISOString().split('T')[0],
-        AktuellerLagerbestand: '1',
-        Engpass: 'false',
-        KritischSeit: '',
-        Gesamtpreis: '0.00',
-        Lieferdauer: '7',
-        JahrMonat: today.toISOString().slice(0, 7),
-        Kategorie: 'Sonstiges',
-      };
-      setOrders(prev => [...prev, newBestellung]);
-      bestellID = newBestellID;
       newBestellungCreated = true;
     }
 
@@ -211,7 +214,7 @@ const BarcodeScanner = ({ orders, setOrders, outputs, setOutputs, onDataUpdate }
     setNewEntry(prev => ({
       ...prev,
       Artikelnummer: barcode,
-      BestellID: bestellID || prev.BestellID,
+      BestellID: bestellID || prev.BestellID, // Use existing or keep generated BestellID
       LagerbestandNach: entryType === 'Ausgang'
         ? (parseInt(prev.LagerbestandVor) - parseInt(prev.VerbrauchteMenge)).toString()
         : (parseInt(prev.LagerbestandVor) + parseInt(prev.Menge)).toString(),
@@ -283,27 +286,6 @@ const BarcodeScanner = ({ orders, setOrders, outputs, setOutputs, onDataUpdate }
           Kategorie: newRecord.Kategorie,
         };
       } else if (scanResult?.newBestellungCreated) {
-        const bestellungIndex = updatedOrders.findIndex(item => item.BestellID === newRecord.BestellID);
-        if (bestellungIndex !== -1) {
-          updatedOrders[bestellungIndex] = {
-            ...updatedOrders[bestellungIndex],
-            AktuellerLagerbestand: newRecord.Menge,
-            Menge: newRecord.Menge,
-            Bestelldatum: newRecord.Bestelldatum,
-            Bestellart: newRecord.Bestellart,
-            Lieferant: newRecord.Lieferant,
-            Artikelbeschreibung: newRecord.Artikelbeschreibung,
-            Einheit: newRecord.Einheit,
-            PreisProEinheit: newRecord.PreisProEinheit,
-            Bestellstatus: newRecord.Bestellstatus,
-            GeplantesLieferdatum: newRecord.GeplantesLieferdatum,
-            TatsächlichesLieferdatum: newRecord.TatsächlichesLieferdatum,
-            JahrMonat: newRecord.JahrMonat,
-            Kategorie: newRecord.Kategorie,
-          };
-        }
-      } else {
-        // Add new order if not already added
         updatedOrders.push({
           BestellID: newRecord.BestellID,
           Bestelldatum: newRecord.Bestelldatum,
@@ -386,12 +368,12 @@ const BarcodeScanner = ({ orders, setOrders, outputs, setOutputs, onDataUpdate }
       setSuccessMessage('Eintrag erfolgreich hinzugefügt!');
       setTimeout(() => setSuccessMessage(null), 3000);
 
-      // Reset form only after successful save
+      // Fetch the next BestellID for the new form
+      const nextBestellID = await fetchNextBestellID();
       const maxAusgangsID = parseInt(newRecord.AusgangsID) + 1;
-      const maxBestellID = parseInt(newRecord.BestellID) + 1;
       setNewEntry({
         AusgangsID: maxAusgangsID.toString(),
-        BestellID: maxBestellID.toString(),
+        BestellID: nextBestellID.toString(),
         Ausgangsdatum: new Date().toISOString().split('T')[0],
         Bestelldatum: new Date().toISOString().split('T')[0],
         Artikelnummer: '',
@@ -574,9 +556,8 @@ const BarcodeScanner = ({ orders, setOrders, outputs, setOutputs, onDataUpdate }
                       <input
                         type="text"
                         value={newEntry.BestellID}
-                        onChange={(e) => handleNewEntryChange('BestellID', e.target.value)}
-                        required
-                        style={{ padding: '5px', width: '100%' }}
+                        readOnly
+                        style={{ padding: '5px', width: '100%', background: '#e0e0e0' }}
                       />
                     </label>
                     <label>
@@ -699,7 +680,7 @@ const BarcodeScanner = ({ orders, setOrders, outputs, setOutputs, onDataUpdate }
                     type="number"
                     value={newEntry.LagerbestandNach}
                     readOnly
-                    style={{ padding: '5px', width: '100%' }}
+                    style={{ padding: '5px', width: '100%', background: '#e0e0e0' }}
                   />
                 </label>
                 <label>
