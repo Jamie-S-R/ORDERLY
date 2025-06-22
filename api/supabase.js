@@ -30,13 +30,13 @@ export default async function handler(req, res) {
       const { data, error } = await supabase.from(table).select('*');
       if (error) {
         console.error(`Supabase GET error for table ${table}:`, error);
-        return res.status(500).json({ error: `Supabase error: ${error.message}` });
+        return res.status(500).json({ error: `Supabase error: ${error.message}`, details: error });
       }
       console.log(`Supabase GET data for ${table}:`, data);
       return res.status(200).json(data || []);
     } catch (err) {
       console.error(`Server error for GET ${table}:`, err);
-      return res.status(500).json({ error: `Server error: ${err.message}` });
+      return res.status(500).json({ error: `Server error: ${err.message}`, details: err.stack });
     }
   }
 
@@ -56,13 +56,13 @@ export default async function handler(req, res) {
       const { data: insertedData, error } = await supabase.from(table).insert([data]).select();
       if (error) {
         console.error(`Supabase POST error for table ${table}:`, error);
-        return res.status(500).json({ error: `Supabase error: ${error.message}` });
+        return res.status(500).json({ error: `Supabase error: ${error.message}`, details: error });
       }
       console.log(`Supabase POST success for ${table}:`, insertedData);
       return res.status(200).json(insertedData);
     } catch (err) {
       console.error(`Server error for POST ${table}:`, err);
-      return res.status(500).json({ error: `Server error: ${err.message}` });
+      return res.status(500).json({ error: `Server error: ${err.message}`, details: err.stack });
     }
   }
 
