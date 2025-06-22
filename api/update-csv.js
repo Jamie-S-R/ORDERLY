@@ -1,4 +1,6 @@
-import { getBlob, putBlob } from '@vercel/blob';
+import { put, list } from '@vercel/blob';
+import fetch from 'node-fetch';
+import Papa from 'papaparse';
 
 export default async function handler(req, res) {
   console.log('API Request:', { method: req.method, query: req.query, body: req.body });
@@ -8,6 +10,12 @@ export default async function handler(req, res) {
 
   const { method, query, body } = req;
   const { file } = query;
+  const token = process.env.BLOB_READ_WRITE_TOKEN || process.env.VERCEL_BLOB_READ_WRITE_TOKEN;
+
+  if (!token) {
+    console.error('BLOB_READ_WRITE_TOKEN is not set');
+    return res.status(500).json({ error: 'Missing BLOB_READ_WRITE_TOKEN' });
+  }
 
   if (method === 'GET') {
     if (!['ausgaenge.csv', 'bestellungen.csv'].includes(file)) {
@@ -15,12 +23,14 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: 'Invalid file name', received: file });
     }
     try {
-      const blob = await getBlob({ pathname: file });
-      if (!blob) {
+      const blobs = await list({ token });
+      const targetBlob = blobs.blobs.find(blob => blob.pathname === file);
+      if (!targetBlob) {
         console.log('No blob found for:', file);
         return res.status(200).send('');
       }
-      const text = await blob.text();
+      const response = await fetch(targetBlob.downloadUrl);
+      const text = await response.text();
       res.status(200).send(text);
     } catch (err) {
       console.error('GET Error:', err);
@@ -33,14 +43,57 @@ export default async function handler(req, res) {
         console.error('No CSV data provided in body');
         return res.status(400).json({ error: 'No CSV data provided' });
       }
+
+      const blobs = await list({ token });
+
       if (ausgaenge) {
-        console.log('Saving ausgaenge.csv:', ausgaenge.slice(0, 100));
-        await putBlob({ pathname: 'ausgaenge.csv', body: ausgaenge });
+        console.log('Processing ausgaenge.csv:', ausgaenge.slice(0, 100));
+        const existingAusgaengeBlob = blobs.blobs.find(blob => blob.pathname === 'ausgaenge.csv');
+        let existingAusgaenge = '';
+        if (existingAusgaengeBlob) {
+          const response = await fetch(existingAusgaengeBlob.downloadUrl);
+          existingAusgaenge = await response.text();
+        }
+        const newAusgaenge = existingAusgaenge ? `${existingAusgaenge.trim()}\n${ausgaenge.trim()}` : ausgaenge;
+        await put('ausgaenge.csv', newAusgaenge, { access: 'public', token, addRandomSuffix: false });
       }
+
       if (bestellungen) {
-        console.log('Saving bestellungen.csv:', bestellungen.slice(0, 100));
-        await putBlob({ pathname: 'bestellungen.csv', body: bestellungen });
+        console.log('Processing bestellungen.csv:', bestellungen.slice(0, 100));
+        const existingBestellungenBlob = blobs.blobs.find(blob => blob.pathname === 'bestellungen.csv');
+        let existingBestellungen = '';
+        let existingIds = [];
+        if (existingBestellungenBlob) {
+          const response = await fetch(existingBestellungenBlob.downloadUrl);
+          existingBestellungen = await response.text();
+          const parsed = Papa.parse(existingBestellungen, { header: true, skipEmptyLines: true });
+          existingIds = parsed.data.map(row => parseInt(row.BestellID)).filter(id => !isNaN(id));
+        }
+
+        // Parse neue Daten ohne Kopfzeile
+        const newData = Papa.parse(bestellungen, { header: false, skipEmptyLines: true }).data;
+        for (const row of newData) {
+          const newId = parseInt(row[0]); // BestellID ist erste Spalte
+          if (isNaN(newId)) {
+            console.error('Invalid BestellID:', row[0]);
+            return res.status(400).json({ error: 'Invalid BestellID: ' + row[0] });
+          }
+          if (existingIds.includes(newId)) {
+            console.error('Duplicate BestellID:', newId);
+            return res.status(400).json({ error: 'Duplicate BestellID: ' + newId });
+          }
+          if (newId >= 1000 && newId <= 2999) {
+            console.error('BestellID in reserved range:', newId);
+            return res.status(400).json({ error: 'BestellID in reserved range (1000-2999): ' + newId });
+          }
+        }
+
+        // Anhängen ohne Kopfzeile
+        const newBestellungenRows = newData.map(row => row.join(',')).join('\n');
+        const newBestellungen = existingBestellungen ? `${existingBestellungen.trim()}\n${newBestellungenRows}` : `BestellID,Bestelldatum,Artikelnummer,Menge,AktuellerLagerbestand\n${newBestellungenRows}`;
+        await put('bestellungen.csv', newBestellungen, { access: 'public', token, addRandomSuffix: false });
       }
+
       res.status(200).json({ success: true });
     } catch (err) {
       console.error('POST Error:', err);
