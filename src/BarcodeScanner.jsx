@@ -122,9 +122,9 @@ const BarcodeScanner = ({ orders, setOrders, outputs, setOutputs, returns, setRe
       const constraints = {
         video: {
           facingMode: 'environment',
-          width: { ideal: 640 },
-          height: { ideal: 480 },
-          aspectRatio: { ideal: 4 / 3 },
+          width: { ideal: 1280 }, // Höhere Auflösung für bessere Erkennung
+          height: { ideal: 720 },
+          aspectRatio: { ideal: 16 / 9 },
         },
       };
       const stream = await navigator.mediaDevices.getUserMedia(constraints);
@@ -150,9 +150,9 @@ const BarcodeScanner = ({ orders, setOrders, outputs, setOutputs, returns, setRe
           target: video,
           constraints: {
             facingMode: 'environment',
-            width: { ideal: 640 },
-            height: { ideal: 480 },
-            aspectRatio: { ideal: 4 / 3 },
+            width: { ideal: 1280 },
+            height: { ideal: 720 },
+            aspectRatio: { ideal: 16 / 9 },
           },
         },
         decoder: {
@@ -166,11 +166,11 @@ const BarcodeScanner = ({ orders, setOrders, outputs, setOutputs, returns, setRe
           multiple: false,
         },
         locator: {
-          patchSize: 'small',
-          halfSample: false,
+          patchSize: 'medium', // Größere Patchgröße für bessere Erkennung
+          halfSample: true, // Optimierung für Performance
         },
-        numOfWorkers: 1,
-        frequency: 20,
+        numOfWorkers: navigator.hardwareConcurrency || 4, // Nutze verfügbare CPU-Kerne
+        frequency: 30, // Höhere Framerate
         locate: true,
       }, (err) => {
         if (err) {
@@ -303,43 +303,34 @@ const BarcodeScanner = ({ orders, setOrders, outputs, setOutputs, returns, setRe
     console.log('Submitting new record:', newRecord);
 
     try {
+      let tableName;
+      let data;
       if (entryType === 'Eingang') {
-        const response = await fetch('/api/supabase', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            table: 'bestellungen',
-            data: {
-              BestellID: newRecord.BestellID,
-              Bestelldatum: newRecord.Bestelldatum,
-              Bestellart: newRecord.Bestellart,
-              Lieferant: newRecord.Lieferant,
-              Artikelnummer: newRecord.Artikelnummer,
-              Artikelbeschreibung: newRecord.Artikelbeschreibung,
-              Menge: newRecord.Menge,
-              Einheit: newRecord.Einheit,
-              PreisProEinheit: newRecord.PreisProEinheit,
-              Bestellstatus: newRecord.Bestellstatus,
-              GeplantesLieferdatum: newRecord.GeplantesLieferdatum,
-              TatsächlichesLieferdatum: newRecord.TatsächlichesLieferdatum,
-              AktuellerLagerbestand: newRecord.Menge,
-              Engpass: newRecord.Engpass,
-              KritischSeit: newRecord.KritischSeit,
-              Gesamtpreis: newRecord.Gesamtpreis,
-              Lieferdauer: newRecord.Lieferdauer,
-              JahrMonat: newRecord.JahrMonat,
-              Kategorie: newRecord.Kategorie,
-            },
-          }),
-        });
-        if (!response.ok) {
-          const errorText = await response.json();
-          throw new Error(`Backend-Fehler: ${response.status} - ${JSON.stringify(errorText)}`);
-        }
-        updatedOrders.push(newRecord);
-        setOrders(updatedOrders);
+        tableName = 'bestellungen';
+        data = {
+          BestellID: newRecord.BestellID,
+          Bestelldatum: newRecord.Bestelldatum,
+          Bestellart: newRecord.Bestellart,
+          Lieferant: newRecord.Lieferant,
+          Artikelnummer: newRecord.Artikelnummer,
+          Artikelbeschreibung: newRecord.Artikelbeschreibung,
+          Menge: newRecord.Menge,
+          Einheit: newRecord.Einheit,
+          PreisProEinheit: newRecord.PreisProEinheit,
+          Bestellstatus: newRecord.Bestellstatus,
+          GeplantesLieferdatum: newRecord.GeplantesLieferdatum,
+          TatsächlichesLieferdatum: newRecord.TatsächlichesLieferdatum,
+          AktuellerLagerbestand: newRecord.Menge,
+          Engpass: newRecord.Engpass,
+          KritischSeit: newRecord.KritischSeit,
+          Gesamtpreis: newRecord.Gesamtpreis,
+          Lieferdauer: newRecord.Lieferdauer,
+          JahrMonat: newRecord.JahrMonat,
+          Kategorie: newRecord.Kategorie,
+        };
       } else if (entryType === 'Ausgang') {
-        const ausgangRecord = {
+        tableName = 'ausgaenge';
+        data = {
           AusgangsID: newRecord.AusgangsID,
           Ausgangsdatum: newRecord.Ausgangsdatum,
           BestellID: newRecord.BestellID,
@@ -352,19 +343,34 @@ const BarcodeScanner = ({ orders, setOrders, outputs, setOutputs, returns, setRe
           GeplantesLieferdatum: newRecord.GeplantesLieferdatum,
           TatsächlichesLieferdatum: newRecord.TatsächlichesLieferdatum,
         };
-        const response = await fetch('/api/supabase', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            table: 'ausgaenge',
-            data: ausgangRecord,
-          }),
-        });
-        if (!response.ok) {
-          const errorText = await response.json();
-          throw new Error(`Backend-Fehler: ${response.status} - ${JSON.stringify(errorText)}`);
-        }
-        updatedOutputs.push(ausgangRecord);
+      } else if (entryType === 'Retoure') {
+        tableName = 'retouren';
+        data = {
+          RetoureID: newRecord.RetoureID,
+          Datum: newRecord.Datum,
+          Artikelnummer: newRecord.Artikelnummer,
+          GrundDerRetoure: newRecord.GrundDerRetoure,
+          Menge: newRecord.Menge,
+          Lieferant: newRecord.Lieferant,
+        };
+      }
+
+      const response = await fetch('/api/supabase', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ table: tableName, data }),
+      });
+
+      if (!response.ok) {
+        const errorText = await response.json();
+        throw new Error(`Backend-Fehler: ${response.status} - ${JSON.stringify(errorText)}`);
+      }
+
+      if (entryType === 'Eingang') {
+        updatedOrders.push(newRecord);
+        setOrders(updatedOrders);
+      } else if (entryType === 'Ausgang') {
+        updatedOutputs.push(data);
         const bestellungIndex = updatedOrders.findIndex(item => item.Artikelnummer === newRecord.Artikelnummer);
         if (bestellungIndex !== -1) {
           updatedOrders[bestellungIndex] = {
@@ -376,39 +382,19 @@ const BarcodeScanner = ({ orders, setOrders, outputs, setOutputs, returns, setRe
         setOrders(updatedOrders);
         setScanResult({
           barcode: newRecord.Artikelnummer,
-          ausgang: ausgangRecord,
+          ausgang: data,
           bestellung: null,
           retoure: null,
           newAusgangCreated: true,
         });
       } else if (entryType === 'Retoure') {
-        const retoureRecord = {
-          RetoureID: newRecord.RetoureID,
-          Datum: newRecord.Datum,
-          Artikelnummer: newRecord.Artikelnummer,
-          GrundDerRetoure: newRecord.GrundDerRetoure,
-          Menge: newRecord.Menge,
-          Lieferant: newRecord.Lieferant,
-        };
-        const response = await fetch('/api/supabase', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            table: 'retouren',
-            data: retoureRecord,
-          }),
-        });
-        if (!response.ok) {
-          const errorText = await response.json();
-          throw new Error(`Backend-Fehler: ${response.status} - ${JSON.stringify(errorText)}`);
-        }
-        updatedReturns.push(retoureRecord);
+        updatedReturns.push(data);
         setReturns(updatedReturns);
         setScanResult({
           barcode: newRecord.Artikelnummer,
           ausgang: null,
           bestellung: null,
-          retoure: retoureRecord,
+          retoure: data,
           newRetoureCreated: true,
         });
       }

@@ -507,3 +507,13 @@ a.email-link:hover {
   color: #ffb15e;
   margin-bottom: 1rem;
 }
+
+.barcode-scanner {
+  padding: 1rem !important;
+  background-color: #1f2937 !important;
+  max-width: 32rem !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
+  border-left: 4px solid #f7a440 !important;
+  border-radius: 0.5rem !important;
+}
