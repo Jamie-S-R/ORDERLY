@@ -12,24 +12,25 @@ import {
   Tooltip, Legend, ResponsiveContainer
 } from 'recharts';
 import './App.css';
-import Sidebar from './Sidebar';
-import Retouren from './Retouren';
-import Lagerverlauf from './Lagerverlauf';
-import Engpaesse from './Engpaesse';
-import Finanzen from './Finanzen';
-import Lieferantenbewertung from './Lieferantenbewertung';
-import Tutorial from './Tutorial';
-import Termintreue from './Termintreue';
-import Automatisierung from './Automatisierung';
-import Feedback from './Feedback';
-import Help from './Help';
-import LagerverlaufPreview from './previews/LagerverlaufPreview';
-import TermintreuePreview from './previews/TermintreuePreview';
-import RetourenPreview from './previews/RetourenPreview';
-import BewertungPreview from './previews/RadarBewertungPreview';
-import AutomatisierungPreview from './previews/AutomatisierungPreview';
-import BarcodeScanner from './BarcodeScanner';
-import InvoiceScanner from './InvoiceScanner';
+
+import Sidebar from './Sidebar.jsx';
+import Retouren from './Retouren.jsx';
+import Lagerverlauf from './Lagerverlauf.jsx';
+import Engpaesse from './Engpaesse.jsx';
+import Finanzen from './Finanzen.jsx';
+import Lieferantenbewertung from './Lieferantenbewertung.jsx';
+import Tutorial from './Tutorial.jsx';
+import Termintreue from './Termintreue.jsx';
+import Automatisierung from './Automatisierung.jsx';
+import Feedback from './Feedback.jsx';
+import Help from './Help.jsx';
+import LagerverlaufPreview from './previews/LagerverlaufPreview.jsx';
+import TermintreuePreview from './previews/TermintreuePreview.jsx';
+import RetourenPreview from './previews/RetourenPreview.jsx';
+import BewertungPreview from './previews/RadarBewertungPreview.jsx';
+import AutomatisierungPreview from './previews/AutomatisierungPreview.jsx';
+import BarcodeScanner from './BarcodeScanner.jsx';
+import InvoiceScanner from './InvoiceScanner.jsx';
 
 const parseCSV = async (filePath, idField) =>
   new Promise((resolve) => {
