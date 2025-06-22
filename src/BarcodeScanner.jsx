@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useCallback } from 'react';
 import Papa from 'papaparse';
 import Quagga from 'quagga';
 
@@ -13,7 +13,6 @@ const AccordionSection = ({ title, children }) => (
 
 const BarcodeScanner = ({ orders, setOrders, outputs, setOutputs, onDataUpdate }) => {
   const videoRef = useRef(null);
-  const quaggaRef = useRef(null);
   const [error, setError] = useState(null);
   const [entryType, setEntryType] = useState('');
   const [newEntry, setNewEntry] = useState(null);
@@ -21,19 +20,19 @@ const BarcodeScanner = ({ orders, setOrders, outputs, setOutputs, onDataUpdate }
   const [successMessage, setSuccessMessage] = useState(null);
   const [manualBarcode, setManualBarcode] = useState('');
   const [scanResult, setScanResult] = useState(null);
-  const [useQuagga, setUseQuagga] = useState(false);
   const animationFrameRef = useRef(null);
 
-  const fetchNextBestellID = async () => {
+  // Fetch bestellungen.csv to get the next available BestellID
+  const fetchNextBestellID = useCallback(async () => {
     try {
       console.log('Fetching next BestellID...');
-      const response = await fetch('/api/update-csv?file=bestellungen.csv');
+      const response = await fetch(`/api/update-csv?file=bestellungen.csv&_t=${Date.now()}`);
       if (!response.ok) {
         throw new Error(`Fehler beim Abrufen von bestellungen.csv: ${response.status}`);
       }
       const csvText = await response.text();
       if (!csvText) {
-        return 3000;
+        return 3000; // Start at 3000 if no data exists
       }
       const parsed = Papa.parse(csvText, { header: true, skipEmptyLines: true });
       const existingIds = parsed.data
@@ -45,14 +44,17 @@ const BarcodeScanner = ({ orders, setOrders, outputs, setOutputs, onDataUpdate }
     } catch (err) {
       console.error('Fehler beim Abrufen der BestellID:', err);
       setError('Fehler beim Abrufen der BestellID: ' + err.message);
-      return 3000;
+      return 3000; // Fallback
     }
-  };
+  }, []);
 
+  // Initialize newEntry with dynamic BestellID
   useEffect(() => {
     let isMounted = true;
     const initializeNewEntry = async () => {
+      if (!entryType) return; // Only initialize if entryType is set
       try {
+        console.log('Initializing newEntry for entryType:', entryType);
         const today = new Date();
         const datum = today.toISOString().split('T')[0];
         const monat = today.toISOString().slice(0, 7);
@@ -102,8 +104,9 @@ const BarcodeScanner = ({ orders, setOrders, outputs, setOutputs, onDataUpdate }
     return () => {
       isMounted = false;
     };
-  }, [entryType, outputs]);
+  }, [entryType, fetchNextBestellID]);
 
+  // Barcode scanning with optimized QuaggaJS
   const startScanning = async () => {
     if (!entryType) {
       setError('Bitte wählen Sie zuerst Eingang oder Ausgang.');
@@ -118,94 +121,85 @@ const BarcodeScanner = ({ orders, setOrders, outputs, setOutputs, onDataUpdate }
 
     try {
       console.log('Starting barcode scanner...');
-      if (useQuagga) {
-        const video = videoRef.current;
-        quaggaRef.current = document.getElementById('quagga-video');
-        if (!video || !quaggaRef.current) {
-          throw new Error('Video oder Quagga-Referenz nicht gefunden.');
-        }
+      const constraints = {
+        video: {
+          facingMode: 'environment',
+          width: { ideal: 640 },
+          height: { ideal: 480 },
+          aspectRatio: { ideal: 4 / 3 },
+        },
+      };
+      const stream = await navigator.mediaDevices.getUserMedia(constraints);
+      const video = videoRef.current;
+      if (!video) {
+        setError('Videoreferenz nicht gefunden.');
+        setIsScanning(false);
+        return;
+      }
 
-        Quagga.init({
-          inputStream: {
-            name: 'Live',
-            type: 'LiveStream',
-            target: quaggaRef.current,
-            constraints: {
-              facingMode: 'environment',
-              width: { ideal: 640 },
-              height: { ideal: 480 },
-              aspectRatio: { ideal: 4 / 3 },
-            },
-          },
-          decoder: {
-            readers: ['ean_reader', 'code_128_reader', 'ean_8_reader', 'upc_reader', 'upc_e_reader'],
-          },
-          locator: {
-            patchSize: 'medium',
-            halfSample: true,
-          },
-          numOfWorkers: navigator.hardwareConcurrency || 4,
-          frequency: 10,
-          locate: true,
-        }, (err) => {
-          if (err) {
-            console.error('QuaggaJS Init Error:', err);
-            setError('QuaggaJS Fehler: ' + err.message);
-            setIsScanning(false);
-            stopScanning();
-            return;
-          }
-          console.log('QuaggaJS initialized');
-          Quagga.start();
-        });
+      video.srcObject = stream;
+      await new Promise((resolve) => {
+        video.onloadedmetadata = resolve;
+      });
+      await video.play().catch(err => {
+        throw new Error('Kamerafehler: ' + err.message);
+      });
 
-        Quagga.onDetected((result) => {
-          console.log('Barcode detected:', result);
-          const scannedBarcode = result.codeResult.code;
-          handleBarcode(scannedBarcode);
-          Quagga.stop();
+      Quagga.init({
+        inputStream: {
+          name: 'Live',
+          type: 'LiveStream',
+          target: video,
+          constraints: {
+            facingMode: 'environment',
+            width: { ideal: 640 },
+            height: { ideal: 480 },
+            aspectRatio: { ideal: 4 / 3 },
+          },
+        },
+        decoder: {
+          readers: [
+            'ean_reader',
+            'code_128_reader',
+            'ean_8_reader',
+            'upc_reader',
+            'upc_e_reader',
+          ],
+          multiple: false,
+        },
+        locator: {
+          patchSize: 'small',
+          halfSample: false,
+        },
+        numOfWorkers: 1,
+        frequency: 20,
+        locate: true,
+      }, (err) => {
+        if (err) {
+          console.error('QuaggaJS Init Error:', err);
+          setError('QuaggaJS Fehler: ' + err.message);
           setIsScanning(false);
           stopScanning();
-        });
-      } else if ('BarcodeDetector' in window) {
-        const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
-        const video = videoRef.current;
-        if (!video) {
-          throw new Error('Videoreferenz nicht gefunden.');
+          return;
         }
+        console.log('QuaggaJS initialized');
+        Quagga.start();
+      });
 
-        video.srcObject = stream;
-        await video.play().catch(err => {
-          throw new Error('Kamerafehler: ' + err.message);
-        });
+      Quagga.onDetected((result) => {
+        console.log('Barcode detected:', result);
+        const scannedBarcode = result.codeResult.code;
+        handleBarcode(scannedBarcode);
+        Quagga.stop();
+        setIsScanning(false);
+        stopScanning();
+      });
 
-        const barcodeDetector = new BarcodeDetector({
-          formats: ['ean_13', 'code_128', 'ean_8', 'upc_a', 'upc_e'],
-        });
-
-        const detectBarcode = async () => {
-          if (!isScanning) return;
-          try {
-            const barcodes = await barcodeDetector.detect(video);
-            if (barcodes.length > 0) {
-              console.log('Barcode detected (BarcodeDetector):', barcodes[0]);
-              handleBarcode(barcodes[0].rawValue);
-              setIsScanning(false);
-              stopScanning();
-              return;
-            }
-          } catch (err) {
-            console.error('BarcodeDetector Error:', err);
-            setError('Barcode-Erkennungsfehler: ' + err.message);
-          }
-          animationFrameRef.current = requestAnimationFrame(detectBarcode);
-        };
-
-        detectBarcode();
-      } else {
-        setUseQuagga(true);
-        startScanning();
-      }
+      Quagga.onProcessed((result) => {
+        if (result) {
+          console.log('QuaggaJS processing frame:', result);
+        }
+      });
     } catch (err) {
       console.error('Scanner Error:', err);
       setError('Kamerafehler: ' + err.message);
@@ -217,7 +211,7 @@ const BarcodeScanner = ({ orders, setOrders, outputs, setOutputs, onDataUpdate }
   const stopScanning = () => {
     console.log('Stopping scanner...');
     setIsScanning(false);
-    if (useQuagga && Quagga) {
+    if (Quagga) {
       Quagga.stop();
     }
     if (videoRef.current && videoRef.current.srcObject) {
@@ -230,32 +224,35 @@ const BarcodeScanner = ({ orders, setOrders, outputs, setOutputs, onDataUpdate }
     }
   };
 
+  // Handle barcode
   const handleBarcode = async (barcode) => {
     try {
       console.log('Handling barcode:', barcode);
       const matchingAusgang = outputs.find(item => item.Artikelnummer === barcode);
       const nextBestellID = await fetchNextBestellID();
+      const newRecord = {
+        ...newEntry,
+        Artikelnummer: barcode,
+        BestellID: nextBestellID.toString(),
+        LagerbestandNach: entryType === 'Ausgang'
+          ? (parseInt(newEntry.LagerbestandVor) - parseInt(newEntry.VerbrauchteMenge)).toString()
+          : (parseInt(newEntry.LagerbestandVor) + parseInt(newEntry.Menge)).toString(),
+        AktuellerLagerbestand: entryType === 'Eingang' ? newEntry.Menge : newEntry.AktuellerLagerbestand,
+      };
+      setNewEntry(newRecord);
       setScanResult({
         barcode,
         ausgang: matchingAusgang,
         bestellung: null,
         newBestellungCreated: true,
       });
-      setNewEntry(prev => ({
-        ...prev,
-        Artikelnummer: barcode,
-        BestellID: nextBestellID.toString(),
-        LagerbestandNach: entryType === 'Ausgang'
-          ? (parseInt(prev.LagerbestandVor) - parseInt(prev.VerbrauchteMenge)).toString()
-          : (parseInt(prev.LagerbestandVor) + parseInt(prev.Menge)).toString(),
-        AktuellerLagerbestand: entryType === 'Eingang' ? prev.Menge : prev.AktuellerLagerbestand,
-      }));
     } catch (err) {
       console.error('Handle Barcode Error:', err);
       setError('Fehler beim Verarbeiten des Barcodes: ' + err.message);
     }
   };
 
+  // Manual barcode input
   const handleManualSubmit = async (e) => {
     e.preventDefault();
     if (!entryType) {
@@ -270,6 +267,7 @@ const BarcodeScanner = ({ orders, setOrders, outputs, setOutputs, onDataUpdate }
     setManualBarcode('');
   };
 
+  // Update LagerbestandNach
   const handleNewEntryChange = (field, value) => {
     setNewEntry(prev => {
       const updated = { ...prev, [field]: value };
@@ -285,6 +283,7 @@ const BarcodeScanner = ({ orders, setOrders, outputs, setOutputs, onDataUpdate }
     });
   };
 
+  // Handle new entry form submission
   const handleNewEntrySubmit = async (e) => {
     e.preventDefault();
     if (!newEntry?.Artikelnummer) {
@@ -368,11 +367,6 @@ const BarcodeScanner = ({ orders, setOrders, outputs, setOutputs, onDataUpdate }
           });
         }
 
-        if (onDataUpdate) {
-          console.log('Calling onDataUpdate after submit');
-          onDataUpdate();
-        }
-
         setSuccessMessage('Eintrag erfolgreich hinzugefügt!');
         setTimeout(() => setSuccessMessage(null), 3000);
 
@@ -407,6 +401,11 @@ const BarcodeScanner = ({ orders, setOrders, outputs, setOutputs, onDataUpdate }
           Kategorie: 'Sonstiges',
         });
         setScanResult(null);
+
+        setTimeout(() => {
+          console.log('Calling onDataUpdate after submit');
+          onDataUpdate();
+        }, 500);
       }
     } catch (err) {
       console.error('Submit Error:', err);
@@ -414,6 +413,7 @@ const BarcodeScanner = ({ orders, setOrders, outputs, setOutputs, onDataUpdate }
     }
   };
 
+  // Download all CSVs
   const downloadAllCsvs = () => {
     const ausgaengeFields = [
       'AusgangsID', 'Ausgangsdatum', 'BestellID', 'Artikelnummer', 'VerbrauchteMenge',
@@ -430,6 +430,7 @@ const BarcodeScanner = ({ orders, setOrders, outputs, setOutputs, onDataUpdate }
     downloadCsv(orders, 'bestellungen.csv', bestellungenFields);
   };
 
+  // Download CSV file
   const downloadCsv = (data, filename, fields) => {
     const csv = Papa.unparse(data, { header: true, columns: fields });
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
@@ -441,6 +442,7 @@ const BarcodeScanner = ({ orders, setOrders, outputs, setOutputs, onDataUpdate }
     document.body.removeChild(link);
   };
 
+  // Sort logs by date (newest first)
   const sortedLogs = [...outputs.map(item => ({
     ...item,
     type: 'Ausgang',
@@ -479,8 +481,20 @@ const BarcodeScanner = ({ orders, setOrders, outputs, setOutputs, onDataUpdate }
           )}
         </div>
       )}
-      <video ref={videoRef} style={{ width: '100%', border: '1px solid #ccc', display: isScanning && !useQuagga ? 'block' : 'none' }} muted playsInline />
-      <div id="quagga-video" ref={quaggaRef} style={{ width: '100%', border: '1px solid #ccc', display: isScanning && useQuagga ? 'block' : 'none' }}></div>
+      <video
+        ref={videoRef}
+        style={{
+          width: '100%',
+          maxWidth: '100%',
+          height: 'auto',
+          maxHeight: '50vh',
+          objectFit: 'contain',
+          border: '1px solid #ccc',
+          display: isScanning ? 'block' : 'none'
+        }}
+        muted
+        playsInline
+      />
       {error && <p style={{ color: 'red', textAlign: 'center' }}>{error}</p>}
       {successMessage && <p style={{ color: 'green', textAlign: 'center' }}>{successMessage}</p>}
       {entryType && (

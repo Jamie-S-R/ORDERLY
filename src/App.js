@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   BrowserRouter as Router,
   Routes,
@@ -33,9 +33,9 @@ import BarcodeScanner from './BarcodeScanner.jsx';
 import InvoiceScanner from './InvoiceScanner.jsx';
 
 const parseCSV = async (filePath, idField) =>
-  new Promise((resolve) => {
+  new Promise((resolve, reject) => {
     const isLocal = process.env.NODE_ENV === 'development';
-    const url = isLocal ? `/data/${filePath.split('/').pop()}` : `/api/update-csv?file=${filePath.split('/').pop()}`;
+    const url = isLocal ? `/data/${filePath.split('/').pop()}` : `/api/update-csv?file=${filePath.split('/').pop()}&_t=${Date.now()}`;
     Papa.parse(url, {
       download: true,
       header: true,
@@ -45,7 +45,7 @@ const parseCSV = async (filePath, idField) =>
       },
       error: (err) => {
         console.error('CSV Parse Error:', err);
-        resolve([]);
+        reject(err);
       }
     });
   });
@@ -81,6 +81,7 @@ const OutputLog = ({ outputs, setOutputs, onDataUpdate }) => {
   const [sortOrder, setSortOrder] = useState('newest');
   const [selected, setSelected] = useState(null);
   const [error, setError] = useState(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const sortOutputs = (data) => {
     return [...data].sort((a, b) => {
@@ -92,7 +93,11 @@ const OutputLog = ({ outputs, setOutputs, onDataUpdate }) => {
 
   const handleDelete = async (ausgangsID) => {
     if (!window.confirm('Ausgang wirklich löschen?')) return;
+    if (isDeleting) return;
+
+    setIsDeleting(true);
     setError(null);
+
     try {
       console.log('Deleting AusgangsID:', ausgangsID);
       const response = await fetch('/api/update-csv', {
@@ -106,11 +111,16 @@ const OutputLog = ({ outputs, setOutputs, onDataUpdate }) => {
         throw new Error(`Löschfehler: ${response.status} - ${JSON.stringify(errorText)}`);
       }
 
-      setOutputs(outputs.filter(o => o.AusgangsID !== ausgangsID));
-      onDataUpdate();
+      setOutputs(prev => prev.filter(o => o.AusgangsID !== ausgangsID));
+      setTimeout(() => {
+        console.log('Calling onDataUpdate after delete (OutputLog)');
+        onDataUpdate();
+      }, 500);
     } catch (err) {
       console.error('Delete Error:', err);
       setError('Fehler beim Löschen: ' + err.message);
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -118,6 +128,7 @@ const OutputLog = ({ outputs, setOutputs, onDataUpdate }) => {
     <div className="detail-view">
       <h2>📤 Ausgangshistorie</h2>
       {error && <p style={{ color: 'red', textAlign: 'center' }}>{error}</p>}
+      {isDeleting && <p style={{ color: 'yellow', textAlign: 'center' }}>Löschen...</p>}
       <label style={{ marginBottom: '10px', display: 'block' }}>
         Sortieren nach:
         <select value={sortOrder} onChange={(e) => setSortOrder(e.target.value)} style={{ marginLeft: '10px', padding: '5px' }}>
@@ -126,7 +137,7 @@ const OutputLog = ({ outputs, setOutputs, onDataUpdate }) => {
         </select>
       </label>
       <ul className="order-list">
-        {sortOutputs(outputs).map((a, i) => (
+        {sortOutputs(outputs).map((a) => (
           <li key={a.AusgangsID} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <Link to={`/outputlog/${a.AusgangsID}`} className="section-link">
               <strong>{a.Ausgangsdatum}</strong> – {a.Artikelnummer} – {a.VerbrauchteMenge} Stück<br />
@@ -134,7 +145,8 @@ const OutputLog = ({ outputs, setOutputs, onDataUpdate }) => {
             </Link>
             <button
               onClick={() => handleDelete(a.AusgangsID)}
-              style={{ padding: '5px 10px', background: '#f44336', color: 'white', border: 'none', cursor: 'pointer', borderRadius: '4px' }}
+              disabled={isDeleting}
+              style={{ padding: '5px 10px', background: '#f44336', color: 'white', border: 'none', cursor: isDeleting ? 'not-allowed' : 'pointer', borderRadius: '4px' }}
             >
               Löschen
             </button>
@@ -166,6 +178,7 @@ const OrderLog = ({ orders, setOrders, onDataUpdate }) => {
   const [sortOrder, setSortOrder] = useState('newest');
   const [selected, setSelected] = useState(null);
   const [error, setError] = useState(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const sortOrders = (data) => {
     return [...data].sort((a, b) => {
@@ -177,7 +190,11 @@ const OrderLog = ({ orders, setOrders, onDataUpdate }) => {
 
   const handleDelete = async (bestellID) => {
     if (!window.confirm('Bestellung wirklich löschen?')) return;
+    if (isDeleting) return;
+
+    setIsDeleting(true);
     setError(null);
+
     try {
       console.log('Deleting BestellID:', bestellID);
       const response = await fetch('/api/update-csv', {
@@ -191,11 +208,16 @@ const OrderLog = ({ orders, setOrders, onDataUpdate }) => {
         throw new Error(`Löschfehler: ${response.status} - ${JSON.stringify(errorText)}`);
       }
 
-      setOrders(orders.filter(o => o.BestellID !== bestellID));
-      onDataUpdate();
+      setOrders(prev => prev.filter(o => o.BestellID !== bestellID));
+      setTimeout(() => {
+        console.log('Calling onDataUpdate after delete (OrderLog)');
+        onDataUpdate();
+      }, 500);
     } catch (err) {
       console.error('Delete Error:', err);
       setError('Fehler beim Löschen: ' + err.message);
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -203,6 +225,7 @@ const OrderLog = ({ orders, setOrders, onDataUpdate }) => {
     <div className="detail-view">
       <h2>📦 Bestellhistorie</h2>
       {error && <p style={{ color: 'red', textAlign: 'center' }}>{error}</p>}
+      {isDeleting && <p style={{ color: 'yellow', textAlign: 'center' }}>Löschen...</p>}
       <label style={{ marginBottom: '10px', display: 'block' }}>
         Sortieren nach:
         <select value={sortOrder} onChange={(e) => setSortOrder(e.target.value)} style={{ marginLeft: '10px', padding: '5px' }}>
@@ -211,7 +234,7 @@ const OrderLog = ({ orders, setOrders, onDataUpdate }) => {
         </select>
       </label>
       <ul className="order-list">
-        {sortOrders(orders).map((o, i) => (
+        {sortOrders(orders).map((o) => (
           <li key={o.BestellID} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <Link to={`/orderlog/${o.BestellID}`} className="section-link">
               <strong>{o.Bestelldatum}</strong> – {o.Lieferant} – {o.Menge} {o.Einheit}<br />
@@ -219,7 +242,8 @@ const OrderLog = ({ orders, setOrders, onDataUpdate }) => {
             </Link>
             <button
               onClick={() => handleDelete(o.BestellID)}
-              style={{ padding: '5px 10px', background: '#f44336', color: 'white', border: 'none', cursor: 'pointer', borderRadius: '4px' }}
+              disabled={isDeleting}
+              style={{ padding: '5px 10px', background: '#f44336', color: 'white', border: 'none', cursor: isDeleting ? 'not-allowed' : 'pointer', borderRadius: '4px' }}
             >
               Löschen
             </button>
@@ -318,28 +342,32 @@ const App = () => {
   const [menuOpen, setMenuOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
 
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     console.log('Loading data...');
     try {
-      const loadedOrders = await parseCSV('/data/bestellungen.csv', 'BestellID');
-      const loadedOutputs = await parseCSV('/data/ausgaenge.csv', 'AusgangsID');
+      const [loadedOrders, loadedOutputs] = await Promise.all([
+        parseCSV('/data/bestellungen.csv', 'BestellID'),
+        parseCSV('/data/ausgaenge.csv', 'AusgangsID'),
+      ]);
       setOrders(loadedOrders);
       setOutputs(loadedOutputs);
       console.log('Data loaded:', { orders: loadedOrders.length, outputs: loadedOutputs.length });
     } catch (err) {
       console.error('Error loading CSV data:', err);
     }
-  };
+  }, []);
 
   useEffect(() => {
     console.log('Initial loadData call');
     loadData();
-  }, []); // Run only on mount
+  }, [loadData]);
 
-  const handleDataUpdate = () => {
+  const handleDataUpdate = useCallback(() => {
     console.log('handleDataUpdate called');
-    loadData();
-  };
+    setTimeout(() => {
+      loadData();
+    }, 500);
+  }, [loadData]);
 
   useEffect(() => {
     const handleResize = () => {
