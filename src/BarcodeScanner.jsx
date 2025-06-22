@@ -25,6 +25,7 @@ const BarcodeScanner = ({ orders, setOrders, outputs, setOutputs, returns, setRe
     try {
       console.log(`Fetching next ${idField} for ${table}...`);
       const response = await fetch(`/api/supabase?table=${table}&_t=${Date.now()}`);
+      console.log('API response status:', response.status);
       if (!response.ok) {
         throw new Error(`Fehler beim Abrufen von ${table}: ${response.status}`);
       }
@@ -33,13 +34,14 @@ const BarcodeScanner = ({ orders, setOrders, outputs, setOutputs, returns, setRe
       const existingIds = data
         .map(row => parseInt(row[idField]))
         .filter(id => !isNaN(id));
+      console.log('Existing IDs:', existingIds);
       const maxId = existingIds.length > 0 ? Math.max(...existingIds) : (table === 'bestellungen' ? 2999 : table === 'ausgaenge' ? 0 : 4999);
       console.log(`Next ${idField}:`, maxId + 1);
       return maxId + 1;
     } catch (err) {
       console.error(`Fehler beim Abrufen der ${idField}:`, err);
       setError(`Fehler beim Abrufen der ${idField}: ` + err.message);
-      return table === 'bestellungen' ? 3000 : table === 'ausgaenge' ? 1 : 5000; // Fallback
+      return table === 'bestellungen' ? 3000 : table === 'ausgaenge' ? 1 : 5000;
     }
   }, []);
 
@@ -47,7 +49,10 @@ const BarcodeScanner = ({ orders, setOrders, outputs, setOutputs, returns, setRe
   useEffect(() => {
     let isMounted = true;
     const initializeNewEntry = async () => {
-      if (!entryType) return;
+      if (!entryType) {
+        console.log('No entryType selected, skipping initialization');
+        return;
+      }
       try {
         console.log('Initializing newEntry for entryType:', entryType);
         const today = new Date();
@@ -109,10 +114,12 @@ const BarcodeScanner = ({ orders, setOrders, outputs, setOutputs, returns, setRe
   const startScanning = async () => {
     if (!entryType) {
       setError('Bitte wählen Sie zuerst Eingang, Ausgang oder Retoure.');
+      console.log('startScanning: No entryType selected');
       return;
     }
     if (!newEntry) {
       setError('Formular wird geladen, bitte warten.');
+      console.log('startScanning: newEntry not initialized');
       return;
     }
     setIsScanning(true);
@@ -135,6 +142,7 @@ const BarcodeScanner = ({ orders, setOrders, outputs, setOutputs, returns, setRe
       if (!video) {
         setError('Videoreferenz nicht gefunden.');
         setIsScanning(false);
+        console.log('startScanning: Video ref not found');
         return;
       }
 
@@ -269,10 +277,12 @@ const BarcodeScanner = ({ orders, setOrders, outputs, setOutputs, returns, setRe
     e.preventDefault();
     if (!entryType) {
       setError('Bitte wählen Sie zuerst Eingang, Ausgang oder Retoure.');
+      console.log('handleManualSubmit: No entryType selected');
       return;
     }
     if (!manualBarcode) {
       setError('Bitte geben Sie einen Barcode ein.');
+      console.log('handleManualSubmit: No barcode entered');
       return;
     }
     await handleBarcode(manualBarcode);
@@ -298,8 +308,15 @@ const BarcodeScanner = ({ orders, setOrders, outputs, setOutputs, returns, setRe
   // Handle new entry form submission
   const handleNewEntrySubmit = async (e) => {
     e.preventDefault();
+    console.log('handleNewEntrySubmit: entryType=', entryType);
+    if (!entryType || !['Eingang', 'Ausgang', 'Retoure'].includes(entryType)) {
+      setError('Ungültiger Typ ausgewählt. Bitte wählen Sie Eingang, Ausgang oder Retoure.');
+      console.log('handleNewEntrySubmit: Invalid entryType:', entryType);
+      return;
+    }
     if (!newEntry?.Artikelnummer) {
       setError('Artikelnummer darf nicht leer sein.');
+      console.log('handleNewEntrySubmit: Artikelnummer missing');
       return;
     }
     const newRecord = { ...newEntry };
