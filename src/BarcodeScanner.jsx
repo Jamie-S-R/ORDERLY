@@ -29,6 +29,7 @@ const BarcodeScanner = ({ orders, setOrders, outputs, setOutputs, returns, setRe
         throw new Error(`Fehler beim Abrufen von ${table}: ${response.status}`);
       }
       const data = await response.json();
+      console.log(`Raw response for ${table}:`, data);
       const existingIds = data
         .map(row => parseInt(row[idField]))
         .filter(id => !isNaN(id));
@@ -119,15 +120,17 @@ const BarcodeScanner = ({ orders, setOrders, outputs, setOutputs, returns, setRe
 
     try {
       console.log('Starting barcode scanner...');
+      console.log('Requesting camera access...');
       const constraints = {
         video: {
           facingMode: 'environment',
-          width: { ideal: 1280 }, // Höhere Auflösung für bessere Erkennung
+          width: { ideal: 1280 },
           height: { ideal: 720 },
           aspectRatio: { ideal: 16 / 9 },
         },
       };
       const stream = await navigator.mediaDevices.getUserMedia(constraints);
+      console.log('Camera access granted:', stream.getVideoTracks()[0].getSettings());
       const video = videoRef.current;
       if (!video) {
         setError('Videoreferenz nicht gefunden.');
@@ -137,11 +140,15 @@ const BarcodeScanner = ({ orders, setOrders, outputs, setOutputs, returns, setRe
 
       video.srcObject = stream;
       await new Promise((resolve) => {
-        video.onloadedmetadata = resolve;
+        video.onloadedmetadata = () => {
+          console.log('Video metadata loaded:', video.videoWidth, 'x', video.videoHeight);
+          resolve();
+        };
       });
       await video.play().catch(err => {
         throw new Error('Kamerafehler: ' + err.message);
       });
+      console.log('Video playback started');
 
       Quagga.init({
         inputStream: {
@@ -166,11 +173,11 @@ const BarcodeScanner = ({ orders, setOrders, outputs, setOutputs, returns, setRe
           multiple: false,
         },
         locator: {
-          patchSize: 'medium', // Größere Patchgröße für bessere Erkennung
-          halfSample: true, // Optimierung für Performance
+          patchSize: 'medium',
+          halfSample: true,
         },
-        numOfWorkers: navigator.hardwareConcurrency || 4, // Nutze verfügbare CPU-Kerne
-        frequency: 30, // Höhere Framerate
+        numOfWorkers: navigator.hardwareConcurrency || 4,
+        frequency: 30,
         locate: true,
       }, (err) => {
         if (err) {
@@ -355,6 +362,8 @@ const BarcodeScanner = ({ orders, setOrders, outputs, setOutputs, returns, setRe
         };
       }
 
+      console.log('POST request body:', { table: tableName, data });
+
       const response = await fetch('/api/supabase', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -500,7 +509,7 @@ const BarcodeScanner = ({ orders, setOrders, outputs, setOutputs, returns, setRe
   }))].sort((a, b) => new Date(b.date) - new Date(a.date)).slice(0, 10);
 
   return (
-    <div className="p-4 bg-gray-900 rounded-lg border-l-4 border-yellow-500 max-w-lg mx-auto">
+    <div className="barcode-scanner p-4 bg-gray-900 rounded-lg border-l-4 border-yellow-500 max-w-lg mx-auto">
       <h2 className="text-xl font-bold text-yellow-400 mb-4">📷 Barcode-Scanner</h2>
       <label className="block mb-4">
         Typ auswählen:
@@ -703,9 +712,8 @@ const BarcodeScanner = ({ orders, setOrders, outputs, setOutputs, returns, setRe
                       <input
                         type="text"
                         value={newEntry.AusgangsID}
-                        onChange={(e) => handleNewEntryChange('AusgangsID', e.target.value)}
-                        required
-                        className="p-2 mt-1 bg-gray-700 text-white rounded"
+                        readOnly
+                        className="p-2 mt-1 bg-gray-600 text-white rounded"
                       />
                     </label>
                     <label className="flex flex-col">

@@ -386,7 +386,7 @@ a.email-link:hover {
 }
 
 .sidebar-icon-only .icon {
-  color: #f7a440; /* Angepasst, um Sichtbarkeit zu gewährleisten */
+  color: #f7a440;
 }
 
 .active-category-collapsed .sidebar-icon-only .icon {
@@ -425,8 +425,6 @@ a.email-link:hover {
 }
 
 /* Responsive Design */
-
-/* Mobile (iOS-kompatibel) */
 @media (max-width: 768px) {
   .sidebar {
     transform: translate3d(-100%, 0, 0);
@@ -451,15 +449,14 @@ a.email-link:hover {
   }
 
   .sidebar-icon-only {
-    display: none; /* Verhindert, dass nur Icons auf Mobile angezeigt werden */
+    display: none;
   }
 
   .sidebar--open .sidebar-main {
-    display: block; /* Sicherstellen, dass Links sichtbar sind */
+    display: block;
   }
 }
 
-/* Desktop */
 @media (min-width: 769px) {
   .sidebar {
     transform: translateX(0);
@@ -487,38 +484,44 @@ a.email-link:hover {
   }
 }
 
-
-/* App.css (Ausschnitt) */
+/* Live-Scannen Seite */
 .live-scannen {
   padding: 20px;
+  max-width: 1200px;
+  margin: 0 auto;
 }
 
-.barcode-scanner,
-.invoice-scanner {
-  background: #2e3b4e;
-  padding: 20px;
-  border-radius: 10px;
-  border-left: 5px solid #f7a440;
-  margin-bottom: 20px;
+.grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
 }
 
-.barcode-scanner h2,
-.invoice-scanner h2 {
+@media (min-width: 768px) {
+  .grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+/* Barcode-Scanner */
+.barcode-scanner {
+  padding: 1rem;
+  background-color: #1f2937;
+  max-width: 32rem;
+  margin-left: auto;
+  margin-right: auto;
+  border-left: 4px solid #f7a440;
+  border-radius: 0.5rem;
+}
+
+.barcode-scanner h2 {
   color: #ffb15e;
   margin-bottom: 1rem;
+  font-size: 1.25rem;
+  font-weight: bold;
 }
 
-.barcode-scanner {
-  padding: 1rem !important;
-  background-color: #1f2937 !important;
-  max-width: 32rem !important;
-  margin-left: auto !important;
-  margin-right: auto !important;
-  border-left: 4px solid #f7a440 !important;
-  border-radius: 0.5rem !important;
-}
-
-/* Formular-Styling für BarcodeScanner */
+/* Formular-Styling */
 .barcode-scanner form {
   display: flex;
   flex-direction: column;
@@ -549,7 +552,8 @@ a.email-link:hover {
   cursor: not-allowed;
 }
 
-.barcode-scanner button[type="submit"] {
+.barcode-scanner button[type="submit"],
+.barcode-scanner button {
   padding: 0.5rem 1rem;
   background-color: #3b82f6;
   color: #ffffff;
@@ -559,8 +563,16 @@ a.email-link:hover {
   font-weight: 600;
 }
 
-.barcode-scanner button[type="submit"]:hover {
-  background-color: #2563eb;
+.barcode-scanner button.bg-green-500 {
+  background-color: #10b981;
+}
+
+.barcode-scanner button.bg-red-500 {
+  background-color: #ef4444;
+}
+
+.barcode-scanner button:hover {
+  filter: brightness(90%);
 }
 
 /* Video-Styling */
@@ -582,4 +594,45 @@ a.email-link:hover {
   color: #10b981;
   text-align: center;
   margin-top: 1rem;
+}
+
+/* Accordion */
+.barcode-scanner .mb-6 {
+  margin-bottom: 1.5rem;
+}
+
+.barcode-scanner .border-gray-600 {
+  border-color: #4b5563;
+}
+
+.barcode-scanner .p-3 {
+  padding: 0.75rem;
+}
+
+.barcode-scanner .bg-gray-700 {
+  background-color: #374151;
+}
+
+.barcode-scanner .bg-gray-800 {
+  background-color: #1f2937;
+}
+
+.barcode-scanner table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.barcode-scanner th,
+.barcode-scanner td {
+  padding: 0.5rem;
+  border-bottom: 1px solid #4b5563;
+}
+
+.barcode-scanner th {
+  text-align: left;
+  color: #9ca3af;
+}
+
+.barcode-scanner td {
+  color: #d1d5db;
 }
