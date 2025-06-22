@@ -7,7 +7,7 @@ export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, DELETE');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate'); // Prevent caching
+  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
 
   const { method, query, body } = req;
   const { file } = query;
@@ -24,6 +24,7 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: 'Invalid file name', received: file });
     }
     try {
+      console.log('GET request for:', file);
       const blobs = await list({ token });
       const targetBlob = blobs.blobs.find(blob => blob.pathname === file);
       if (!targetBlob) {
@@ -112,6 +113,7 @@ export default async function handler(req, res) {
         return res.status(400).json({ error: 'Missing id or idField' });
       }
 
+      console.log('DELETE request for:', file, id, idField);
       const blobs = await list({ token });
       const targetBlob = blobs.blobs.find(blob => blob.pathname === file);
       if (!targetBlob) {

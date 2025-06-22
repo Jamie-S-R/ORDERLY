@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useCallback } from 'react';
 import Tesseract from 'tesseract.js';
 import Modal from 'react-modal';
 import Papa from 'papaparse';
@@ -14,7 +14,8 @@ const InvoiceScanner = ({ onDataUpdate }) => {
   const fileInputRef = useRef(null);
 
   // Preprocess image for better OCR
-  const preprocessImage = (canvas) => {
+  const preprocessImage = useCallback((canvas) => {
+    console.log('Preprocessing image...');
     const ctx = canvas.getContext('2d');
     const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
     const data = imageData.data;
@@ -22,19 +23,20 @@ const InvoiceScanner = ({ onDataUpdate }) => {
     // Convert to grayscale and apply adaptive thresholding
     for (let i = 0; i < data.length; i += 4) {
       const avg = (data[i] + data[i + 1] + data[i + 2]) / 3;
-      const threshold = avg > 150 ? 255 : 0; // Adaptive threshold
+      const threshold = avg > 150 ? 255 : 0;
       data[i] = data[i + 1] = data[i + 2] = threshold;
     }
 
     ctx.putImageData(imageData, 0, 0);
     return canvas.toDataURL('image/png');
-  };
+  }, []);
 
   // Start camera for invoice scanning
   const startScanner = async () => {
     setIsScanning(true);
     setError(null);
     try {
+      console.log('Starting invoice scanner...');
       const stream = await navigator.mediaDevices.getUserMedia({
         video: { facingMode: 'environment', width: { ideal: 640 }, height: { ideal: 480 } }
       });
@@ -49,6 +51,7 @@ const InvoiceScanner = ({ onDataUpdate }) => {
 
   // Capture image
   const captureImage = () => {
+    console.log('Capturing image...');
     const canvas = canvasRef.current;
     const video = videoRef.current;
     canvas.width = video.videoWidth;
@@ -64,6 +67,7 @@ const InvoiceScanner = ({ onDataUpdate }) => {
   const handleFileUpload = (e) => {
     const file = e.target.files[0];
     if (file) {
+      console.log('Uploading image:', file.name);
       const reader = new FileReader();
       reader.onload = (event) => {
         const imageData = event.target.result;
@@ -76,6 +80,7 @@ const InvoiceScanner = ({ onDataUpdate }) => {
 
   // Stop camera
   const stopScanner = () => {
+    console.log('Stopping invoice scanner...');
     setIsScanning(false);
     const stream = videoRef.current?.srcObject;
     if (stream) {
@@ -87,20 +92,24 @@ const InvoiceScanner = ({ onDataUpdate }) => {
   // Extract text with Tesseract.js
   const extractText = async (imageData) => {
     try {
+      console.log('Extracting text with Tesseract...');
       const { data: { text } } = await Tesseract.recognize(imageData, 'eng+deu', {
         tessedit_char_whitelist: '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz.,€-/: ',
-        tessedit_pageseg_mode: Tesseract.PSM.SINGLE_BLOCK, // Better for structured documents
+        tessedit_pageseg_mode: Tesseract.PSM.SINGLE_BLOCK,
       });
+      console.log('Extracted text:', text.slice(0, 100) + '...');
       const parsedData = parseInvoiceText(text);
       setExtractedData(parsedData);
       setModalIsOpen(true);
     } catch (err) {
+      console.error('Texterkennungsfehler:', err);
       setError('Texterkennungsfehler: ' + err.message);
     }
   };
 
   // Parse invoice text with robust heuristics
   const parseInvoiceText = (text) => {
+    console.log('Parsing invoice text...');
     const lines = text.split('\n').map(line => line.trim()).filter(line => line);
     const data = {
       Lieferant: '',
@@ -140,11 +149,11 @@ const InvoiceScanner = ({ onDataUpdate }) => {
         currentProduct.PreisProEinheit = line.match(priceRegex)[1].replace(',', '.');
         lastLineWasProduct = false;
       } else if (lastLineWasProduct && currentProduct && line.match(/\w+/)) {
-        // Append to description if next line is not a price
         currentProduct.Artikelbeschreibung += ' ' + line.trim();
       }
     });
 
+    console.log('Parsed invoice data:', data);
     return data;
   };
 
@@ -164,6 +173,7 @@ const InvoiceScanner = ({ onDataUpdate }) => {
   // Save invoice data
   const handleSubmit = async () => {
     try {
+      console.log('Saving invoice data:', extractedData);
       const newOrder = {
         BestellID: extractedData.BestellID,
         Bestelldatum: extractedData.Datum || new Date().toISOString().split('T')[0],
@@ -200,6 +210,7 @@ const InvoiceScanner = ({ onDataUpdate }) => {
       }
 
       if (onDataUpdate) {
+        console.log('Calling onDataUpdate after invoice submit');
         onDataUpdate();
       }
 
@@ -207,6 +218,7 @@ const InvoiceScanner = ({ onDataUpdate }) => {
       setImage(null);
       setExtractedData(null);
     } catch (err) {
+      console.error('Submit Error:', err);
       setError('Fehler beim Speichern: ' + err.message);
     }
   };

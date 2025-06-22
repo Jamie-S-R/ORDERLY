@@ -111,6 +111,7 @@ const OutputLog = ({ outputs, setOutputs, onDataUpdate }) => {
       }
 
       setOutputs(prev => prev.filter(o => o.AusgangsID !== ausgangsID));
+      console.log('Calling onDataUpdate after delete (OutputLog)');
       onDataUpdate();
     } catch (err) {
       setError('Fehler beim Löschen: ' + err.message);
@@ -203,6 +204,7 @@ const OrderLog = ({ orders, setOrders, onDataUpdate }) => {
       }
 
       setOrders(prev => prev.filter(o => o.BestellID !== bestellID));
+      console.log('Calling onDataUpdate after delete (OrderLog)');
       onDataUpdate();
     } catch (err) {
       setError('Fehler beim Löschen: ' + err.message);
@@ -331,7 +333,7 @@ const App = () => {
   const [outputs, setOutputs] = useState([]);
   const [menuOpen, setMenuOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
-  const [dataVersion, setDataVersion] = useState(0); // Renamed to avoid confusion
+  const [dataVersion, setDataVersion] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
 
   const loadData = useCallback(async () => {
@@ -357,13 +359,24 @@ const App = () => {
   }, [isLoading]);
 
   useEffect(() => {
+    console.log('Initial loadData call');
     loadData();
-  }, [dataVersion, loadData]);
+  }, [loadData]); // Only run on mount
 
   const handleDataUpdate = useCallback(() => {
     console.log('handleDataUpdate called');
-    setDataVersion(prev => prev + 1);
+    setDataVersion(prev => {
+      console.log('Updating dataVersion to:', prev + 1);
+      return prev + 1;
+    });
   }, []);
+
+  useEffect(() => {
+    if (dataVersion > 0) {
+      console.log('dataVersion changed, triggering loadData:', dataVersion);
+      loadData();
+    }
+  }, [dataVersion, loadData]);
 
   useEffect(() => {
     const handleResize = () => {

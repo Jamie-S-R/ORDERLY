@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useCallback } from 'react';
 import Papa from 'papaparse';
 import Quagga from 'quagga';
 
@@ -23,8 +23,9 @@ const BarcodeScanner = ({ orders, setOrders, outputs, setOutputs, onDataUpdate }
   const animationFrameRef = useRef(null);
 
   // Fetch bestellungen.csv to get the next available BestellID
-  const fetchNextBestellID = async () => {
+  const fetchNextBestellID = useCallback(async () => {
     try {
+      console.log('Fetching next BestellID...');
       const response = await fetch('/api/update-csv?file=bestellungen.csv');
       if (!response.ok) {
         throw new Error(`Fehler beim Abrufen von bestellungen.csv: ${response.status}`);
@@ -38,19 +39,22 @@ const BarcodeScanner = ({ orders, setOrders, outputs, setOutputs, onDataUpdate }
         .map(row => parseInt(row.BestellID))
         .filter(id => !isNaN(id));
       const maxId = existingIds.length > 0 ? Math.max(...existingIds) : 2999;
+      console.log('Next BestellID:', maxId + 1);
       return maxId + 1;
     } catch (err) {
       console.error('Fehler beim Abrufen der BestellID:', err);
       setError('Fehler beim Abrufen der BestellID: ' + err.message);
       return 3000; // Fallback
     }
-  };
+  }, []);
 
   // Initialize newEntry with dynamic BestellID
   useEffect(() => {
     let isMounted = true;
     const initializeNewEntry = async () => {
+      if (!entryType) return; // Only initialize if entryType is set
       try {
+        console.log('Initializing newEntry for entryType:', entryType);
         const today = new Date();
         const datum = today.toISOString().split('T')[0];
         const monat = today.toISOString().slice(0, 7);
@@ -100,7 +104,7 @@ const BarcodeScanner = ({ orders, setOrders, outputs, setOutputs, onDataUpdate }
     return () => {
       isMounted = false;
     };
-  }, [entryType, outputs]);
+  }, [entryType, fetchNextBestellID]); // Removed outputs to prevent loop
 
   // Barcode scanning with optimized QuaggaJS
   const startScanning = async () => {
@@ -190,6 +194,12 @@ const BarcodeScanner = ({ orders, setOrders, outputs, setOutputs, onDataUpdate }
         setIsScanning(false);
         stopScanning();
       });
+
+      Quagga.onProcessed((result) => {
+        if (result) {
+          console.log('QuaggaJS processing frame:', result);
+        }
+      });
     } catch (err) {
       console.error('Scanner Error:', err);
       setError('Kamerafehler: ' + err.message);
@@ -199,6 +209,7 @@ const BarcodeScanner = ({ orders, setOrders, outputs, setOutputs, onDataUpdate }
   };
 
   const stopScanning = () => {
+    console.log('Stopping scanner...');
     setIsScanning(false);
     if (Quagga) {
       Quagga.stop();
