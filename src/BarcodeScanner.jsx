@@ -13,7 +13,7 @@ const AccordionSection = ({ title, children }) => (
 const BarcodeScanner = ({ orders, setOrders, outputs, setOutputs, returns, setReturns, onDataUpdate }) => {
   const videoRef = useRef(null);
   const [error, setError] = useState(null);
-  const [entryType, setEntryType] = useState('Eingang'); // Default to 'Eingang'
+  const [entryType, setEntryType] = useState('Eingang');
   const [newEntry, setNewEntry] = useState(null);
   const [isScanning, setIsScanning] = useState(false);
   const [successMessage, setSuccessMessage] = useState(null);
@@ -28,7 +28,9 @@ const BarcodeScanner = ({ orders, setOrders, outputs, setOutputs, returns, setRe
       console.log('API response status:', response.status);
       console.log('API response headers:', [...response.headers]);
       if (!response.ok) {
-        throw new Error(`Fehler beim Abrufen von ${table}: ${response.status}`);
+        const errorText = await response.text();
+        console.error(`Error fetching ${table}:`, errorText);
+        throw new Error(`Fehler beim Abrufen von ${table}: ${response.status} - ${errorText}`);
       }
       const data = await response.json();
       console.log(`Raw response for ${table}:`, data);
@@ -42,7 +44,7 @@ const BarcodeScanner = ({ orders, setOrders, outputs, setOutputs, returns, setRe
       return maxId + 1;
     } catch (err) {
       console.error(`Fehler beim Abrufen der ${idField}:`, err);
-      setError(`Fehler beim Abrufen der ${idField}: ` + err.message);
+      setError(`Fehler beim Abrufen der ${idField}: ${err.message}`);
       return table === 'bestellungen' ? 3000 : table === 'ausgaenge' ? 1 : 5000;
     }
   }, []);
@@ -396,6 +398,9 @@ const BarcodeScanner = ({ orders, setOrders, outputs, setOutputs, returns, setRe
         console.error('Backend error response:', errorText);
         throw new Error(`Backend-Fehler: ${response.status} - ${JSON.stringify(errorText)}`);
       }
+
+      const insertedData = await response.json();
+      console.log('POST success:', insertedData);
 
       if (entryType === 'Eingang') {
         updatedOrders.push(newRecord);
