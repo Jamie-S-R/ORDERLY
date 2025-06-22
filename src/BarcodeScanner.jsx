@@ -13,7 +13,7 @@ const AccordionSection = ({ title, children }) => (
 const BarcodeScanner = ({ orders, setOrders, outputs, setOutputs, returns, setReturns, onDataUpdate }) => {
   const videoRef = useRef(null);
   const [error, setError] = useState(null);
-  const [entryType, setEntryType] = useState('');
+  const [entryType, setEntryType] = useState('Eingang'); // Default to 'Eingang'
   const [newEntry, setNewEntry] = useState(null);
   const [isScanning, setIsScanning] = useState(false);
   const [successMessage, setSuccessMessage] = useState(null);
@@ -26,6 +26,7 @@ const BarcodeScanner = ({ orders, setOrders, outputs, setOutputs, returns, setRe
       console.log(`Fetching next ${idField} for ${table}...`);
       const response = await fetch(`/api/supabase?table=${table}&_t=${Date.now()}`);
       console.log('API response status:', response.status);
+      console.log('API response headers:', [...response.headers]);
       if (!response.ok) {
         throw new Error(`Fehler beim Abrufen von ${table}: ${response.status}`);
       }
@@ -36,6 +37,7 @@ const BarcodeScanner = ({ orders, setOrders, outputs, setOutputs, returns, setRe
         .filter(id => !isNaN(id));
       console.log('Existing IDs:', existingIds);
       const maxId = existingIds.length > 0 ? Math.max(...existingIds) : (table === 'bestellungen' ? 2999 : table === 'ausgaenge' ? 0 : 4999);
+      console.log(`Calculated maxId for ${table}:`, maxId);
       console.log(`Next ${idField}:`, maxId + 1);
       return maxId + 1;
     } catch (err) {
@@ -53,8 +55,8 @@ const BarcodeScanner = ({ orders, setOrders, outputs, setOutputs, returns, setRe
         console.log('No entryType selected, skipping initialization');
         return;
       }
+      console.log('Initializing newEntry for entryType:', entryType);
       try {
-        console.log('Initializing newEntry for entryType:', entryType);
         const today = new Date();
         const datum = today.toISOString().split('T')[0];
         const monat = today.toISOString().slice(0, 7);
@@ -100,6 +102,7 @@ const BarcodeScanner = ({ orders, setOrders, outputs, setOutputs, returns, setRe
       } catch (err) {
         if (isMounted) {
           setError('Initialisierungsfehler: ' + err.message);
+          console.error('Initialize newEntry error:', err);
         }
       }
     };
@@ -126,7 +129,7 @@ const BarcodeScanner = ({ orders, setOrders, outputs, setOutputs, returns, setRe
     setError(null);
 
     try {
-      console.log('Starting barcode scanner...');
+      console.log('Starting barcode scanner for entryType:', entryType);
       console.log('Requesting camera access...');
       const constraints = {
         video: {
@@ -236,7 +239,7 @@ const BarcodeScanner = ({ orders, setOrders, outputs, setOutputs, returns, setRe
   // Handle barcode
   const handleBarcode = async (barcode) => {
     try {
-      console.log('Handling barcode:', barcode);
+      console.log('Handling barcode:', barcode, 'with entryType:', entryType);
       const matchingAusgang = outputs.find(item => item.Artikelnummer === barcode);
       const matchingBestellung = orders.find(item => item.Artikelnummer === barcode);
       const matchingRetoure = returns.find(item => item.Artikelnummer === barcode);
@@ -275,6 +278,7 @@ const BarcodeScanner = ({ orders, setOrders, outputs, setOutputs, returns, setRe
   // Manual barcode input
   const handleManualSubmit = async (e) => {
     e.preventDefault();
+    console.log('handleManualSubmit: entryType=', entryType, 'manualBarcode=', manualBarcode);
     if (!entryType) {
       setError('Bitte wählen Sie zuerst Eingang, Ausgang oder Retoure.');
       console.log('handleManualSubmit: No entryType selected');
@@ -389,6 +393,7 @@ const BarcodeScanner = ({ orders, setOrders, outputs, setOutputs, returns, setRe
 
       if (!response.ok) {
         const errorText = await response.json();
+        console.error('Backend error response:', errorText);
         throw new Error(`Backend-Fehler: ${response.status} - ${JSON.stringify(errorText)}`);
       }
 
@@ -426,6 +431,7 @@ const BarcodeScanner = ({ orders, setOrders, outputs, setOutputs, returns, setRe
       }
 
       setSuccessMessage('Eintrag erfolgreich hinzugefügt!');
+      console.log('Success: Eintrag hinzugefügt für', entryType);
       setTimeout(() => setSuccessMessage(null), 3000);
 
       const nextBestellID = await fetchNextID('bestellungen', 'BestellID');
@@ -532,10 +538,12 @@ const BarcodeScanner = ({ orders, setOrders, outputs, setOutputs, returns, setRe
         Typ auswählen:
         <select
           value={entryType}
-          onChange={(e) => setEntryType(e.target.value)}
+          onChange={(e) => {
+            console.log('Select changed: new entryType=', e.target.value);
+            setEntryType(e.target.value);
+          }}
           className="mt-1 p-2 w-full bg-gray-700 text-white rounded"
         >
-          <option value="">-- Bitte wählen --</option>
           <option value="Eingang">Eingang</option>
           <option value="Ausgang">Ausgang</option>
           <option value="Retoure">Retoure</option>
