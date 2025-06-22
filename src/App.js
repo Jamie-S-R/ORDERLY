@@ -33,7 +33,7 @@ import BarcodeScanner from './BarcodeScanner.jsx';
 import InvoiceScanner from './InvoiceScanner.jsx';
 
 const parseCSV = async (filePath, idField) =>
-  new Promise((resolve) => {
+  new Promise((resolve, reject) => {
     const isLocal = process.env.NODE_ENV === 'development';
     const url = isLocal ? `/data/${filePath.split('/').pop()}` : `/api/update-csv?file=${filePath.split('/').pop()}`;
     Papa.parse(url, {
@@ -45,7 +45,7 @@ const parseCSV = async (filePath, idField) =>
       },
       error: (err) => {
         console.error('CSV Parse Error:', err);
-        resolve([]);
+        reject(err);
       }
     });
   });
@@ -93,7 +93,7 @@ const OutputLog = ({ outputs, setOutputs, onDataUpdate }) => {
 
   const handleDelete = async (ausgangsID) => {
     if (!window.confirm('Ausgang wirklich löschen?')) return;
-    if (isDeleting) return; // Prevent multiple deletions
+    if (isDeleting) return;
 
     setIsDeleting(true);
     setError(null);
@@ -112,10 +112,12 @@ const OutputLog = ({ outputs, setOutputs, onDataUpdate }) => {
 
       // Update local state immediately
       setOutputs(prev => prev.filter(o => o.AusgangsID !== ausgangsID));
-      // Trigger data reload
-      if (onDataUpdate) {
-        onDataUpdate();
-      }
+      // Trigger data reload with delay to ensure server sync
+      setTimeout(() => {
+        if (onDataUpdate) {
+          onDataUpdate();
+        }
+      }, 1000);
     } catch (err) {
       setError('Fehler beim Löschen: ' + err.message);
     } finally {
@@ -135,7 +137,7 @@ const OutputLog = ({ outputs, setOutputs, onDataUpdate }) => {
         </select>
       </label>
       <ul className="order-list">
-        {sortOutputs(outputs).map((a, i) => (
+        {sortOutputs(outputs).map((a) => (
           <li key={a.AusgangsID} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <Link to={`/outputlog/${a.AusgangsID}`} className="section-link">
               <strong>{a.Ausgangsdatum}</strong> – {a.Artikelnummer} – {a.VerbrauchteMenge} Stück<br />
@@ -188,7 +190,7 @@ const OrderLog = ({ orders, setOrders, onDataUpdate }) => {
 
   const handleDelete = async (bestellID) => {
     if (!window.confirm('Bestellung wirklich löschen?')) return;
-    if (isDeleting) return; // Prevent multiple deletions
+    if (isDeleting) return;
 
     setIsDeleting(true);
     setError(null);
@@ -207,10 +209,12 @@ const OrderLog = ({ orders, setOrders, onDataUpdate }) => {
 
       // Update local state immediately
       setOrders(prev => prev.filter(o => o.BestellID !== bestellID));
-      // Trigger data reload
-      if (onDataUpdate) {
-        onDataUpdate();
-      }
+      // Trigger data reload with delay to ensure server sync
+      setTimeout(() => {
+        if (onDataUpdate) {
+          onDataUpdate();
+        }
+      }, 1000);
     } catch (err) {
       setError('Fehler beim Löschen: ' + err.message);
     } finally {
@@ -230,7 +234,7 @@ const OrderLog = ({ orders, setOrders, onDataUpdate }) => {
         </select>
       </label>
       <ul className="order-list">
-        {sortOrders(orders).map((o, i) => (
+        {sortOrders(orders).map((o) => (
           <li key={o.BestellID} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <Link to={`/orderlog/${o.BestellID}`} className="section-link">
               <strong>{o.Bestelldatum}</strong> – {o.Lieferant} – {o.Menge} {o.Einheit}<br />
@@ -341,11 +345,13 @@ const App = () => {
   const [isLoading, setIsLoading] = useState(false);
 
   const loadData = useCallback(async () => {
-    if (isLoading) return; // Prevent multiple simultaneous loads
+    if (isLoading) return;
     setIsLoading(true);
     try {
-      const loadedOrders = await parseCSV('/data/bestellungen.csv', 'BestellID');
-      const loadedOutputs = await parseCSV('/data/ausgaenge.csv', 'AusgangsID');
+      const [loadedOrders, loadedOutputs] = await Promise.all([
+        parseCSV('/data/bestellungen.csv', 'BestellID'),
+        parseCSV('/data/ausgaenge.csv', 'AusgangsID'),
+      ]);
       setOrders(loadedOrders);
       setOutputs(loadedOutputs);
     } catch (err) {
@@ -359,10 +365,10 @@ const App = () => {
     loadData();
   }, [dataUpdated, loadData]);
 
-  // Trigger data reload after orders/outputs change
-  const handleDataUpdate = () => {
+  // Trigger data reload with debouncing
+  const handleDataUpdate = useCallback(() => {
     setDataUpdated(prev => prev + 1);
-  };
+  }, []);
 
   useEffect(() => {
     const handleResize = () => {

@@ -11,6 +11,7 @@ const InvoiceScanner = ({ onDataUpdate }) => {
   const [error, setError] = useState(null);
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
+  const fileInputRef = useRef(null);
 
   // Preprocess image for better OCR
   const preprocessImage = (canvas) => {
@@ -18,11 +19,11 @@ const InvoiceScanner = ({ onDataUpdate }) => {
     const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
     const data = imageData.data;
 
-    // Convert to grayscale and increase contrast
+    // Convert to grayscale and apply adaptive thresholding
     for (let i = 0; i < data.length; i += 4) {
       const avg = (data[i] + data[i + 1] + data[i + 2]) / 3;
-      const value = avg > 128 ? 255 : 0; // Binarization
-      data[i] = data[i + 1] = data[i + 2] = value;
+      const threshold = avg > 150 ? 255 : 0; // Adaptive threshold
+      data[i] = data[i + 1] = data[i + 2] = threshold;
     }
 
     ctx.putImageData(imageData, 0, 0);
@@ -35,7 +36,7 @@ const InvoiceScanner = ({ onDataUpdate }) => {
     setError(null);
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 720 } }
+        video: { facingMode: 'environment', width: { ideal: 640 }, height: { ideal: 480 } }
       });
       videoRef.current.srcObject = stream;
       videoRef.current.play();
@@ -59,6 +60,20 @@ const InvoiceScanner = ({ onDataUpdate }) => {
     extractText(imageData);
   };
 
+  // Handle file upload
+  const handleFileUpload = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const imageData = event.target.result;
+        setImage(imageData);
+        extractText(imageData);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   // Stop camera
   const stopScanner = () => {
     setIsScanning(false);
@@ -74,7 +89,7 @@ const InvoiceScanner = ({ onDataUpdate }) => {
     try {
       const { data: { text } } = await Tesseract.recognize(imageData, 'eng+deu', {
         tessedit_char_whitelist: '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz.,€-/: ',
-        tessedit_pageseg_mode: Tesseract.PSM.AUTO, // Auto page segmentation
+        tessedit_pageseg_mode: Tesseract.PSM.SINGLE_BLOCK, // Better for structured documents
       });
       const parsedData = parseInvoiceText(text);
       setExtractedData(parsedData);
@@ -97,13 +112,15 @@ const InvoiceScanner = ({ onDataUpdate }) => {
     };
 
     const quantityRegex = /^(\d+)\s*(?:Stück|Stk|Einheiten|x)\s*(.*)$/i;
-    const priceRegex = /(\d+[,.]\d{2})\s*(?:€|EUR)/;
+    const priceRegex = /(\d+[,.]\d{2})\s*(?:€|EUR|CHF|USD)/;
     const dateRegex = /\b(\d{2}\.\d{2}\.\d{4})\b/;
-    const supplierRegex = /(?:Lieferant|Rechnung von|Von|Supplier)\s*[:|-]?\s*([^\n]+)/i;
-    const invoiceIdRegex = /(?:Rechnungsnummer|Invoice No\.|Nr\.)\s*[:|-]?\s*(\w+)/i;
-    const totalRegex = /(?:Gesamt|Total|Summe)\s*[:|-]?\s*(\d+[,.]\d{2})\s*(?:€|EUR)/i;
+    const supplierRegex = /(?:Lieferant|Rechnung von|Von|Supplier|Anbieter)\s*[:|-]?\s*([^\n]+)/i;
+    const invoiceIdRegex = /(?:Rechnungsnummer|Invoice No\.|Nr\.|Rechnung)\s*[:|-]?\s*(\w+)/i;
+    const totalRegex = /(?:Gesamt|Total|Summe|Netto|Brutto)\s*[:|-]?\s*(\d+[,.]\d{2})\s*(?:€|EUR|CHF|USD)/i;
 
     let currentProduct = null;
+    let lastLineWasProduct = false;
+
     lines.forEach(line => {
       if (supplierRegex.test(line)) {
         data.Lieferant = line.match(supplierRegex)[1].trim();
@@ -118,8 +135,13 @@ const InvoiceScanner = ({ onDataUpdate }) => {
         const [, quantity, description] = line.match(quantityRegex);
         currentProduct = { Menge: quantity, Artikelbeschreibung: description.trim(), PreisProEinheit: '' };
         data.Produkte.push(currentProduct);
-      } else if (currentProduct && priceRegex.test(line)) {
+        lastLineWasProduct = true;
+      } else if (lastLineWasProduct && priceRegex.test(line)) {
         currentProduct.PreisProEinheit = line.match(priceRegex)[1].replace(',', '.');
+        lastLineWasProduct = false;
+      } else if (lastLineWasProduct && currentProduct && line.match(/\w+/)) {
+        // Append to description if next line is not a price
+        currentProduct.Artikelbeschreibung += ' ' + line.trim();
       }
     });
 
@@ -190,104 +212,134 @@ const InvoiceScanner = ({ onDataUpdate }) => {
   };
 
   return (
-    <div className="invoice-scanner">
-      <h2>📄 Rechnungsscanner</h2>
-      {error && <p style={{ color: 'red', textAlign: 'center' }}>{error}</p>}
+    <div className="invoice-scanner p-4 bg-gray-900 rounded-lg border-l-4 border-yellow-500">
+      <h2 className="text-xl font-bold text-yellow-400 mb-4">📄 Rechnungsscanner</h2>
+      {error && <p className="text-red-500 text-center mb-4">{error}</p>}
       {!isScanning && (
-        <button className="bg-yellow-500 text-white px-4 py-2 rounded" onClick={startScanner}>
-          Scanner starten
-        </button>
+        <div className="flex flex-col gap-2">
+          <button
+            className="bg-yellow-500 text-white px-4 py-2 rounded-lg w-full max-w-xs mx-auto"
+            onClick={startScanner}
+          >
+            Kamera starten
+          </button>
+          <button
+            className="bg-blue-500 text-white px-4 py-2 rounded-lg w-full max-w-xs mx-auto"
+            onClick={() => fileInputRef.current.click()}
+          >
+            Bild hochladen
+          </button>
+          <input
+            type="file"
+            ref={fileInputRef}
+            accept="image/*"
+            onChange={handleFileUpload}
+            className="hidden"
+          />
+        </div>
       )}
       {isScanning && (
-        <>
-          <video ref={videoRef} className="w-full max-w-md border-2 border-yellow-500 rounded" muted playsInline />
-          <button className="bg-blue-500 text-white px-4 py-2 rounded mt-2" onClick={captureImage}>
+        <div className="flex flex-col gap-2">
+          <video
+            ref={videoRef}
+            className="w-full max-w-md mx-auto border-2 border-yellow-500 rounded-lg"
+            muted
+            playsInline
+            style={{ height: 'auto', maxHeight: '50vh' }}
+          />
+          <button
+            className="bg-blue-500 text-white px-4 py-2 rounded-lg w-full max-w-xs mx-auto"
+            onClick={captureImage}
+          >
             Bild aufnehmen
           </button>
-          <button className="bg-red-500 text-white px-4 py-2 rounded mt-2" onClick={stopScanner}>
+          <button
+            className="bg-red-500 text-white px-4 py-2 rounded-lg w-full max-w-xs mx-auto"
+            onClick={stopScanner}
+          >
             Scanner stoppen
           </button>
           <canvas ref={canvasRef} style={{ display: 'none' }} />
-        </>
+        </div>
       )}
       <Modal
         isOpen={modalIsOpen}
         onRequestClose={() => setModalIsOpen(false)}
-        className="bg-gray-800 p-6 rounded-lg max-w-md mx-auto mt-20 text-white"
+        className="bg-gray-800 p-4 rounded-lg max-w-md mx-auto mt-10 text-white overflow-y-auto max-h-[80vh]"
         overlayClassName="fixed inset-0 bg-black bg-opacity-50"
       >
         {extractedData && (
-          <>
-            <h3 className="text-lg font-bold mb-4">Rechnungsdaten bearbeiten</h3>
-            <label className="block mb-2">
+          <div className="flex flex-col gap-4">
+            <h3 className="text-lg font-bold">Rechnungsdaten bearbeiten</h3>
+            <label className="flex flex-col">
               Lieferant:
               <input
                 type="text"
                 value={extractedData.Lieferant}
                 onChange={(e) => handleFormChange('Lieferant', e.target.value)}
-                className="w-full p-2 mt-1 bg-gray-700 text-white rounded"
+                className="p-2 mt-1 bg-gray-700 text-white rounded"
               />
             </label>
-            <label className="block mb-2">
+            <label className="flex flex-col">
               Datum (DD.MM.YYYY):
               <input
                 type="text"
                 value={extractedData.Datum}
                 onChange={(e) => handleFormChange('Datum', e.target.value)}
-                className="w-full p-2 mt-1 bg-gray-700 text-white rounded"
+                className="p-2 mt-1 bg-gray-700 text-white rounded"
               />
             </label>
-            <label className="block mb-2">
+            <label className="flex flex-col">
               Rechnungsnummer:
               <input
                 type="text"
                 value={extractedData.Rechnungsnummer}
                 onChange={(e) => handleFormChange('Rechnungsnummer', e.target.value)}
-                className="w-full p-2 mt-1 bg-gray-700 text-white rounded"
+                className="p-2 mt-1 bg-gray-700 text-white rounded"
               />
             </label>
-            <label className="block mb-2">
+            <label className="flex flex-col">
               Gesamtpreis (€):
               <input
                 type="text"
                 value={extractedData.Gesamtpreis}
                 onChange={(e) => handleFormChange('Gesamtpreis', e.target.value)}
-                className="w-full p-2 mt-1 bg-gray-700 text-white rounded"
+                className="p-2 mt-1 bg-gray-700 text-white rounded"
               />
             </label>
-            <h4 className="mt-4 font-bold">Produkte:</h4>
+            <h4 className="font-bold">Produkte:</h4>
             {extractedData.Produkte.map((p, i) => (
-              <div key={i} className="mb-2">
-                <label className="block">
+              <div key={i} className="flex flex-col gap-2 border-t border-gray-600 pt-2">
+                <label className="flex flex-col">
                   Beschreibung:
                   <input
                     type="text"
                     value={p.Artikelbeschreibung}
                     onChange={(e) => handleFormChange('Artikelbeschreibung', e.target.value, i)}
-                    className="w-full p-2 mt-1 bg-gray-700 text-white rounded"
+                    className="p-2 mt-1 bg-gray-700 text-white rounded"
                   />
                 </label>
-                <label className="block">
+                <label className="flex flex-col">
                   Menge:
                   <input
                     type="number"
                     value={p.Menge}
                     onChange={(e) => handleFormChange('Menge', e.target.value, i)}
-                    className="w-full p-2 mt-1 bg-gray-700 text-white rounded"
+                    className="p-2 mt-1 bg-gray-700 text-white rounded"
                   />
                 </label>
-                <label className="block">
+                <label className="flex flex-col">
                   Preis pro Einheit (€):
                   <input
                     type="text"
                     value={p.PreisProEinheit}
                     onChange={(e) => handleFormChange('PreisProEinheit', e.target.value, i)}
-                    className="w-full p-2 mt-1 bg-gray-700 text-white rounded"
+                    className="p-2 mt-1 bg-gray-700 text-white rounded"
                   />
                 </label>
               </div>
             ))}
-            <div className="mt-6 flex justify-end gap-2">
+            <div className="flex justify-end gap-2 mt-4">
               <button
                 className="bg-green-500 text-white px-4 py-2 rounded"
                 onClick={handleSubmit}
@@ -301,7 +353,7 @@ const InvoiceScanner = ({ onDataUpdate }) => {
                 Abbrechen
               </button>
             </div>
-          </>
+          </div>
         )}
       </Modal>
     </div>
