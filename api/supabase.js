@@ -8,7 +8,10 @@ console.log('Supabase Key:', supabaseKey ? 'Set' : 'Missing');
 
 if (!supabaseUrl || !supabaseKey) {
   console.error('Supabase configuration missing');
-  throw new Error('REACT_APP_SUPABASE_URL and REACT_APP_SUPABASE_ANON_KEY must be set');
+  return {
+    status: 500,
+    body: JSON.stringify({ error: 'Supabase configuration missing' }),
+  };
 }
 
 const supabase = createClient(supabaseUrl, supabaseKey);
@@ -27,16 +30,25 @@ export default async function handler(req, res) {
     }
 
     try {
+      console.log(`Attempting to fetch data from ${table}...`);
       const { data, error } = await supabase.from(table).select('*');
       if (error) {
         console.error(`Supabase GET error for table ${table}:`, error);
-        return res.status(500).json({ error: `Supabase error: ${error.message}`, details: error });
+        return res.status(500).json({
+          error: `Supabase error: ${error.message}`,
+          details: error,
+          table,
+        });
       }
       console.log(`Supabase GET data for ${table}:`, data);
       return res.status(200).json(data || []);
     } catch (err) {
       console.error(`Server error for GET ${table}:`, err);
-      return res.status(500).json({ error: `Server error: ${err.message}`, details: err.stack });
+      return res.status(500).json({
+        error: `Server error: ${err.message}`,
+        details: err.stack,
+        table,
+      });
     }
   }
 
@@ -53,16 +65,25 @@ export default async function handler(req, res) {
     }
 
     try {
+      console.log(`Attempting to insert data into ${table}:`, data);
       const { data: insertedData, error } = await supabase.from(table).insert([data]).select();
       if (error) {
         console.error(`Supabase POST error for table ${table}:`, error);
-        return res.status(500).json({ error: `Supabase error: ${error.message}`, details: error });
+        return res.status(500).json({
+          error: `Supabase error: ${error.message}`,
+          details: error,
+          table,
+        });
       }
       console.log(`Supabase POST success for ${table}:`, insertedData);
       return res.status(200).json(insertedData);
     } catch (err) {
       console.error(`Server error for POST ${table}:`, err);
-      return res.status(500).json({ error: `Server error: ${err.message}`, details: err.stack });
+      return res.status(500).json({
+        error: `Server error: ${err.message}`,
+        details: err.stack,
+        table,
+      });
     }
   }
 
