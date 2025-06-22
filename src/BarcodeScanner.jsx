@@ -13,7 +13,6 @@ const AccordionSection = ({ title, children }) => (
 
 const BarcodeScanner = ({ orders, setOrders, outputs, setOutputs, onDataUpdate }) => {
   const videoRef = useRef(null);
-  const quaggaRef = useRef(null);
   const [error, setError] = useState(null);
   const [entryType, setEntryType] = useState('');
   const [newEntry, setNewEntry] = useState(null);
@@ -91,7 +90,7 @@ const BarcodeScanner = ({ orders, setOrders, outputs, setOutputs, onDataUpdate }
     initializeNewEntry();
   }, [entryType, outputs]);
 
-  // Barcode scanning with QuaggaJS
+  // Barcode scanning with optimized QuaggaJS
   const startScanning = async () => {
     if (!entryType) {
       setError('Bitte wählen Sie zuerst Eingang oder Ausgang.');
@@ -105,13 +104,13 @@ const BarcodeScanner = ({ orders, setOrders, outputs, setOutputs, onDataUpdate }
     setError(null);
 
     try {
-      // Kamera-Zugriff mit optimierten Constraints für Safari/iOS
+      // Optimierte Constraints für schnellere Verarbeitung
       const constraints = {
         video: {
           facingMode: 'environment',
-          width: { ideal: 1280 },
-          height: { ideal: 720 },
-          aspectRatio: { ideal: 16 / 9 },
+          width: { ideal: 640 },
+          height: { ideal: 480 },
+          aspectRatio: { ideal: 4 / 3 },
         },
       };
       const stream = await navigator.mediaDevices.getUserMedia(constraints);
@@ -130,18 +129,17 @@ const BarcodeScanner = ({ orders, setOrders, outputs, setOutputs, onDataUpdate }
         throw new Error('Kamerafehler: ' + err.message);
       });
 
-      // QuaggaJS initialisieren
-      quaggaRef.current = video;
+      // Optimierte QuaggaJS-Konfiguration
       Quagga.init({
         inputStream: {
           name: 'Live',
           type: 'LiveStream',
-          target: quaggaRef.current,
+          target: video,
           constraints: {
             facingMode: 'environment',
-            width: { ideal: 1280 },
-            height: { ideal: 720 },
-            aspectRatio: { ideal: 16 / 9 },
+            width: { ideal: 640 },
+            height: { ideal: 480 },
+            aspectRatio: { ideal: 4 / 3 },
           },
         },
         decoder: {
@@ -152,13 +150,14 @@ const BarcodeScanner = ({ orders, setOrders, outputs, setOutputs, onDataUpdate }
             'upc_reader',
             'upc_e_reader',
           ],
+          multiple: true, // Erlaubt Erkennung mehrerer Barcodes
         },
         locator: {
-          patchSize: 'medium',
-          halfSample: true,
+          patchSize: 'small', // Schnellere Erkennung
+          halfSample: false, // Verbessert Orientierungstoleranz
         },
-        numOfWorkers: navigator.hardwareConcurrency > 0 ? Math.min(navigator.hardwareConcurrency, 2) : 2, // Begrenze Workers für iOS
-        frequency: 10,
+        numOfWorkers: 1, // Einzelner Worker für bessere iOS-Performance
+        frequency: 20, // Häufigere Scans
         locate: true,
       }, (err) => {
         if (err) {

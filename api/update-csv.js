@@ -5,7 +5,7 @@ import Papa from 'papaparse';
 export default async function handler(req, res) {
   console.log('API Request:', { method: req.method, query: req.query, body: req.body });
   res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, DELETE');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
   const { method, query, body } = req;
@@ -90,7 +90,7 @@ export default async function handler(req, res) {
 
         // Anhängen ohne Kopfzeile
         const newBestellungenRows = newData.map(row => row.join(',')).join('\n');
-        const newBestellungen = existingBestellungen ? `${existingBestellungen.trim()}\n${newBestellungenRows}` : `BestellID,Bestelldatum,Artikelnummer,Menge,AktuellerLagerbestand\n${newBestellungenRows}`;
+        const newBestellungen = existingBestellungen ? `${existingBestellungen.trim()}\n${newBestellungenRows}` : `BestellID,Bestelldatum,Bestellart,Lieferant,Artikelnummer,Artikelbeschreibung,Menge,Einheit,PreisProEinheit,Bestellstatus,GeplantesLieferdatum,TatsächlichesLieferdatum,AktuellerLagerbestand,Engpass,KritischSeit,Gesamtpreis,Lieferdauer,JahrMonat,Kategorie\n${newBestellungenRows}`;
         await put('bestellungen.csv', newBestellungen, { access: 'public', token, addRandomSuffix: false });
       }
 
@@ -98,6 +98,49 @@ export default async function handler(req, res) {
     } catch (err) {
       console.error('POST Error:', err);
       res.status(500).json({ error: 'Error writing file: ' + err.message });
+    }
+  } else if (method === 'DELETE') {
+    try {
+      const { file, id, idField } = body;
+      if (!['ausgaenge.csv', 'bestellungen.csv'].includes(file)) {
+        console.error('Invalid file name:', file);
+        return res.status(400).json({ error: 'Invalid file name', received: file });
+      }
+      if (!id || !idField) {
+        console.error('Missing id or idField');
+        return res.status(400).json({ error: 'Missing id or idField' });
+      }
+
+      const blobs = await list({ token });
+      const targetBlob = blobs.blobs.find(blob => blob.pathname === file);
+      if (!targetBlob) {
+        console.log('No blob found for:', file);
+        return res.status(404).json({ error: 'File not found' });
+      }
+
+      // Fetch existing CSV
+      const response = await fetch(targetBlob.downloadUrl);
+      const existingCsv = await response.text();
+      if (!existingCsv) {
+        return res.status(404).json({ error: 'No data in file' });
+      }
+
+      // Parse CSV and remove the row with the specified ID
+      const parsed = Papa.parse(existingCsv, { header: true, skipEmptyLines: true });
+      const filteredData = parsed.data.filter(row => row[idField] !== id.toString());
+      if (parsed.data.length === filteredData.length) {
+        console.log(`No entry found with ${idField}: ${id}`);
+        return res.status(404).json({ error: `No entry found with ${idField}: ${id}` });
+      }
+
+      // Convert back to CSV
+      const newCsv = Papa.unparse(filteredData, { header: true });
+      await put(file, newCsv, { access: 'public', token, addRandomSuffix: false });
+
+      res.status(200).json({ success: true });
+    } catch (err) {
+      console.error('DELETE Error:', err);
+      res.status(500).json({ error: 'Error deleting data: ' + err.message });
     }
   } else {
     console.error('Method not allowed:', method);
