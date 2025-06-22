@@ -6,11 +6,6 @@ import {
   Link,
   useParams
 } from 'react-router-dom';
-import Papa from 'papaparse';
-import {
-  LineChart, Line, XAxis, YAxis, CartesianGrid,
-  Tooltip, Legend, ResponsiveContainer
-} from 'recharts';
 import './App.css';
 
 import Sidebar from './Sidebar.jsx';
@@ -32,25 +27,23 @@ import AutomatisierungPreview from './previews/AutomatisierungPreview.jsx';
 import BarcodeScanner from './BarcodeScanner.jsx';
 import InvoiceScanner from './InvoiceScanner.jsx';
 
-const parseCSV = async (filePath, idField) =>
-  new Promise((resolve, reject) => {
-    const isLocal = process.env.NODE_ENV === 'development';
-    const url = isLocal ? `/data/${filePath.split('/').pop()}` : `/api/update-csv?file=${filePath.split('/').pop()}&_t=${Date.now()}`;
-    Papa.parse(url, {
-      download: true,
-      header: true,
-      complete: (results) => {
-        const cleaned = results.data.filter(row => row[idField]);
-        resolve(cleaned);
-      },
-      error: (err) => {
-        console.error('CSV Parse Error:', err);
-        reject(err);
-      }
-    });
-  });
+const fetchData = async (table) => {
+  try {
+    console.log(`Fetching data from ${table}...`);
+    const response = await fetch(`/api/supabase?table=${table}&_t=${Date.now()}`);
+    if (!response.ok) {
+      throw new Error(`Fehler beim Abrufen von ${table}: ${response.status}`);
+    }
+    const data = await response.json();
+    console.log(`Data loaded from ${table}:`, data.length);
+    return data;
+  } catch (err) {
+    console.error(`Error fetching ${table}:`, err);
+    return [];
+  }
+};
 
-const generateMonthlyData = (orders, outputs) => {
+const generateMonthlyData = (orders, outputs, returns) => {
   const monthlyData = {};
   const getMonth = (dateStr) => {
     if (!dateStr) return null;
@@ -62,7 +55,7 @@ const generateMonthlyData = (orders, outputs) => {
     const month = getMonth(o.Bestelldatum);
     if (!month) return;
     const menge = parseFloat(o.Menge) || 0;
-    monthlyData[month] = monthlyData[month] || { month, Bestellungen: 0, Ausgänge: 0 };
+    monthlyData[month] = monthlyData[month] || { month, Bestellungen: 0, Ausgänge: 0, Retouren: 0 };
     monthlyData[month].Bestellungen += menge;
   });
 
@@ -70,8 +63,16 @@ const generateMonthlyData = (orders, outputs) => {
     const month = getMonth(o.Ausgangsdatum);
     if (!month) return;
     const menge = parseFloat(o.VerbrauchteMenge) || 0;
-    monthlyData[month] = monthlyData[month] || { month, Bestellungen: 0, Ausgänge: 0 };
+    monthlyData[month] = monthlyData[month] || { month, Bestellungen: 0, Ausgänge: 0, Retouren: 0 };
     monthlyData[month].Ausgänge += menge;
+  });
+
+  returns.forEach(r => {
+    const month = getMonth(r.Datum);
+    if (!month) return;
+    const menge = parseFloat(r.Menge) || 0;
+    monthlyData[month] = monthlyData[month] || { month, Bestellungen: 0, Ausgänge: 0, Retouren: 0 };
+    monthlyData[month].Retouren += menge;
   });
 
   return Object.values(monthlyData).sort((a, b) => a.month.localeCompare(b.month));
@@ -100,10 +101,10 @@ const OutputLog = ({ outputs, setOutputs, onDataUpdate }) => {
 
     try {
       console.log('Deleting AusgangsID:', ausgangsID);
-      const response = await fetch('/api/update-csv', {
+      const response = await fetch('/api/supabase', {
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ file: 'ausgaenge.csv', id: ausgangsID, idField: 'AusgangsID' }),
+        body: JSON.stringify({ table: 'ausgaenge', id: ausgangsID, idField: 'AusgangsID' }),
       });
 
       if (!response.ok) {
@@ -164,7 +165,8 @@ const OutputLog = ({ outputs, setOutputs, onDataUpdate }) => {
           <h3>📋 Ausgabendetails</h3>
           <p><strong>Artikelnummer:</strong> {selected.Artikelnummer}</p>
           <p><strong>Menge:</strong> {selected.VerbrauchteMenge}</p>
-          <p><strong>Abteilung:</strong> {selected.Abteilung || 'Unbekannt'}</p>
+          <p><strong>Lagerbestand Vor:</strong> {selected.LagerbestandVor}</p>
+          <p><strong>Lagerbestand Nach:</strong> {selected.LagerbestandNach}</p>
           <p><strong>Datum:</strong> {selected.Ausgangsdatum}</p>
           <p><strong>Bemerkung:</strong> {selected.Bemerkungen}</p>
           <button onClick={() => setSelected(null)}>Schließen</button>
@@ -197,10 +199,10 @@ const OrderLog = ({ orders, setOrders, onDataUpdate }) => {
 
     try {
       console.log('Deleting BestellID:', bestellID);
-      const response = await fetch('/api/update-csv', {
+      const response = await fetch('/api/supabase', {
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ file: 'bestellungen.csv', id: bestellID, idField: 'BestellID' }),
+        body: JSON.stringify({ table: 'bestellungen', id: bestellID, idField: 'BestellID' }),
       });
 
       if (!response.ok) {
@@ -275,6 +277,103 @@ const OrderLog = ({ orders, setOrders, onDataUpdate }) => {
   );
 };
 
+const ReturnLog = ({ returns, setReturns, onDataUpdate }) => {
+  const [sortOrder, setSortOrder] = useState('newest');
+  const [selected, setSelected] = useState(null);
+  const [error, setError] = useState(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  const sortReturns = (data) => {
+    return [...data].sort((a, b) => {
+      const dateA = new Date(a.Datum);
+      const dateB = new Date(b.Datum);
+      return sortOrder === 'newest' ? dateB - dateA : dateA - dateB;
+    });
+  };
+
+  const handleDelete = async (retoureID) => {
+    if (!window.confirm('Retoure wirklich löschen?')) return;
+    if (isDeleting) return;
+
+    setIsDeleting(true);
+    setError(null);
+
+    try {
+      console.log('Deleting RetoureID:', retoureID);
+      const response = await fetch('/api/supabase', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ table: 'retouren', id: retoureID, idField: 'RetoureID' }),
+      });
+
+      if (!response.ok) {
+        const errorText = await response.json();
+        throw new Error(`Löschfehler: ${response.status} - ${JSON.stringify(errorText)}`);
+      }
+
+      setReturns(prev => prev.filter(r => r.RetoureID !== retoureID));
+      setTimeout(() => {
+        console.log('Calling onDataUpdate after delete (ReturnLog)');
+        onDataUpdate();
+      }, 500);
+    } catch (err) {
+      console.error('Delete Error:', err);
+      setError('Fehler beim Löschen: ' + err.message);
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  return (
+    <div className="detail-view">
+      <h2>📦 Retourenhistorie</h2>
+      {error && <p style={{ color: 'red', textAlign: 'center' }}>{error}</p>}
+      {isDeleting && <p style={{ color: 'yellow', textAlign: 'center' }}>Löschen...</p>}
+      <label style={{ marginBottom: '10px', display: 'block' }}>
+        Sortieren nach:
+        <select value={sortOrder} onChange={(e) => setSortOrder(e.target.value)} style={{ marginLeft: '10px', padding: '5px' }}>
+          <option value="newest">Neueste zuerst</option>
+          <option value="oldest">Älteste zuerst</option>
+        </select>
+      </label>
+      <ul className="order-list">
+        {sortReturns(returns).map((r) => (
+          <li key={r.RetoureID} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <Link to={`/returnlog/${r.RetoureID}`} className="section-link">
+              <strong>{r.Datum}</strong> – {r.Artikelnummer} – {r.Menge} Stück<br />
+              <em>{r.GrundDerRetoure}</em>
+            </Link>
+            <button
+              onClick={() => handleDelete(r.RetoureID)}
+              disabled={isDeleting}
+              style={{ padding: '5px 10px', background: '#f44336', color: 'white', border: 'none', cursor: isDeleting ? 'not-allowed' : 'pointer', borderRadius: '4px' }}
+            >
+              Löschen
+            </button>
+          </li>
+        ))}
+      </ul>
+      {selected && (
+        <div style={{
+          marginTop: '2rem',
+          background: '#1f1f1f',
+          padding: '1rem',
+          borderRadius: '8px',
+          border: '1px solid #444'
+        }}>
+          <h3>📋 Retourendetails</h3>
+          <p><strong>Artikelnummer:</strong> {selected.Artikelnummer}</p>
+          <p><strong>Menge:</strong> {selected.Menge}</p>
+          <p><strong>Grund:</strong> {selected.GrundDerRetoure}</p>
+          <p><strong>Lieferant:</strong> {selected.Lieferant}</p>
+          <p><strong>Datum:</strong> {selected.Datum}</p>
+          <button onClick={() => setSelected(null)}>Schließen</button>
+        </div>
+      )}
+    </div>
+  );
+};
+
 const OrderDetails = ({ orders }) => {
   const { id } = useParams();
   const order = orders.find(o => o.BestellID === id);
@@ -309,10 +408,30 @@ const OutputDetails = ({ outputs }) => {
       <h2>📋 Ausgabendetails</h2>
       <p><strong>Artikelnummer:</strong> {output.Artikelnummer}</p>
       <p><strong>Menge:</strong> {output.VerbrauchteMenge}</p>
-      <p><strong>Abteilung:</strong> {output.Abteilung || 'Unbekannt'}</p>
+      <p><strong>Lagerbestand Vor:</strong> {output.LagerbestandVor}</p>
+      <p><strong>Lagerbestand Nach:</strong> {output.LagerbestandNach}</p>
       <p><strong>Datum:</strong> {output.Ausgangsdatum}</p>
       <p><strong>Bemerkung:</strong> {output.Bemerkungen}</p>
       <Link to="/outputlog" className="section-link">← Zurück zur Liste</Link>
+    </div>
+  );
+};
+
+const ReturnDetails = ({ returns }) => {
+  const { id } = useParams();
+  const returnItem = returns.find(r => r.RetoureID === id);
+
+  if (!returnItem) return <div className="detail-view">❌ Retoure nicht gefunden.</div>;
+
+  return (
+    <div className="detail-view">
+      <h2>📋 Retourendetails</h2>
+      <p><strong>Artikelnummer:</strong> {returnItem.Artikelnummer}</p>
+      <p><strong>Menge:</strong> {returnItem.Menge}</p>
+      <p><strong>Grund:</strong> {returnItem.GrundDerRetoure}</p>
+      <p><strong>Lieferant:</strong> {returnItem.Lieferant}</p>
+      <p><strong>Datum:</strong> {returnItem.Datum}</p>
+      <Link to="/returnlog" className="section-link">← Zurück zur Liste</Link>
     </div>
   );
 };
@@ -339,21 +458,24 @@ const PreviewCard = ({ title, path, children }) => (
 const App = () => {
   const [orders, setOrders] = useState([]);
   const [outputs, setOutputs] = useState([]);
+  const [returns, setReturns] = useState([]);
   const [menuOpen, setMenuOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
 
   const loadData = useCallback(async () => {
     console.log('Loading data...');
     try {
-      const [loadedOrders, loadedOutputs] = await Promise.all([
-        parseCSV('/data/bestellungen.csv', 'BestellID'),
-        parseCSV('/data/ausgaenge.csv', 'AusgangsID'),
+      const [loadedOrders, loadedOutputs, loadedReturns] = await Promise.all([
+        fetchData('bestellungen'),
+        fetchData('ausgaenge'),
+        fetchData('retouren'),
       ]);
       setOrders(loadedOrders);
       setOutputs(loadedOutputs);
-      console.log('Data loaded:', { orders: loadedOrders.length, outputs: loadedOutputs.length });
+      setReturns(loadedReturns);
+      console.log('Data loaded:', { orders: loadedOrders.length, outputs: loadedOutputs.length, returns: loadedReturns.length });
     } catch (err) {
-      console.error('Error loading CSV data:', err);
+      console.error('Error loading data:', err);
     }
   }, []);
 
@@ -419,13 +541,13 @@ const App = () => {
               <div className="live-scannen">
                 <h1 style={{ color: '#f7a440', marginBottom: '2rem' }}>📷 Live-Scannen</h1>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <BarcodeScanner orders={orders} setOrders={setOrders} outputs={outputs} setOutputs={setOutputs} onDataUpdate={handleDataUpdate} />
+                  <BarcodeScanner orders={orders} setOrders={setOrders} outputs={outputs} setOutputs={setOutputs} returns={returns} setReturns={setReturns} onDataUpdate={handleDataUpdate} />
                   <InvoiceScanner onDataUpdate={handleDataUpdate} />
                 </div>
               </div>
             } />
-            <Route path="/lagerverlauf" element={<Lagerverlauf orders={orders} outputs={outputs} />} />
-            <Route path="/retouren" element={<Retouren />} />
+            <Route path="/lagerverlauf" element={<Lagerverlauf orders={orders} outputs={outputs} returns={returns} />} />
+            <Route path="/retouren" element={<Retouren returns={returns} />} />
             <Route path="/termintreue" element={<Termintreue orders={orders} />} />
             <Route path="/lieferantenbewertung" element={<Lieferantenbewertung />} />
             <Route path="/automatisierung" element={<Automatisierung />} />
@@ -436,6 +558,8 @@ const App = () => {
             <Route path="/orderlog/:id" element={<OrderDetails orders={orders} />} />
             <Route path="/outputlog" element={<OutputLog outputs={outputs} setOutputs={setOutputs} onDataUpdate={handleDataUpdate} />} />
             <Route path="/outputlog/:id" element={<OutputDetails outputs={outputs} />} />
+            <Route path="/returnlog" element={<ReturnLog returns={returns} setReturns={setReturns} onDataUpdate={handleDataUpdate} />} />
+            <Route path="/returnlog/:id" element={<ReturnDetails returns={returns} />} />
             <Route path="/feedback" element={<Feedback />} />
             <Route path="/help" element={<Help />} />
           </Routes>
