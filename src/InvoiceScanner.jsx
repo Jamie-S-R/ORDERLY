@@ -34,7 +34,9 @@ const InvoiceScanner = ({ onDataUpdate }) => {
     setIsScanning(true);
     setError(null);
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 720 } }
+      });
       videoRef.current.srcObject = stream;
       videoRef.current.play();
     } catch (err) {
@@ -72,6 +74,7 @@ const InvoiceScanner = ({ onDataUpdate }) => {
     try {
       const { data: { text } } = await Tesseract.recognize(imageData, 'eng+deu', {
         tessedit_char_whitelist: '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz.,€-/: ',
+        tessedit_pageseg_mode: Tesseract.PSM.AUTO, // Auto page segmentation
       });
       const parsedData = parseInvoiceText(text);
       setExtractedData(parsedData);
@@ -90,13 +93,15 @@ const InvoiceScanner = ({ onDataUpdate }) => {
       Gesamtpreis: '',
       Datum: '',
       BestellID: '',
+      Rechnungsnummer: '',
     };
 
     const quantityRegex = /^(\d+)\s*(?:Stück|Stk|Einheiten|x)\s*(.*)$/i;
-    const priceRegex = /(\d+,\d{2})\s*(?:€|EUR)/;
+    const priceRegex = /(\d+[,.]\d{2})\s*(?:€|EUR)/;
     const dateRegex = /\b(\d{2}\.\d{2}\.\d{4})\b/;
     const supplierRegex = /(?:Lieferant|Rechnung von|Von|Supplier)\s*[:|-]?\s*([^\n]+)/i;
-    const invoiceIdRegex = /(?:Rechnungsnummer|Invoice No\.|Nr\.)\s*[:|-]?\s*(\d+)/i;
+    const invoiceIdRegex = /(?:Rechnungsnummer|Invoice No\.|Nr\.)\s*[:|-]?\s*(\w+)/i;
+    const totalRegex = /(?:Gesamt|Total|Summe)\s*[:|-]?\s*(\d+[,.]\d{2})\s*(?:€|EUR)/i;
 
     let currentProduct = null;
     lines.forEach(line => {
@@ -105,22 +110,18 @@ const InvoiceScanner = ({ onDataUpdate }) => {
       } else if (dateRegex.test(line)) {
         data.Datum = line.match(dateRegex)[1];
       } else if (invoiceIdRegex.test(line)) {
-        data.BestellID = line.match(invoiceIdRegex)[1];
-      } else if (priceRegex.test(line) && !currentProduct) {
-        data.Gesamtpreis = line.match(priceRegex)[1];
+        data.Rechnungsnummer = line.match(invoiceIdRegex)[1];
+        data.BestellID = data.Rechnungsnummer || Math.floor(3000 + Math.random() * 10000).toString();
+      } else if (totalRegex.test(line)) {
+        data.Gesamtpreis = line.match(totalRegex)[1].replace(',', '.');
       } else if (quantityRegex.test(line)) {
         const [, quantity, description] = line.match(quantityRegex);
         currentProduct = { Menge: quantity, Artikelbeschreibung: description.trim(), PreisProEinheit: '' };
         data.Produkte.push(currentProduct);
       } else if (currentProduct && priceRegex.test(line)) {
-        currentProduct.PreisProEinheit = line.match(priceRegex)[1];
+        currentProduct.PreisProEinheit = line.match(priceRegex)[1].replace(',', '.');
       }
     });
-
-    // Generate unique BestellID if not found
-    if (!data.BestellID) {
-      data.BestellID = Math.floor(3000 + Math.random() * 10000).toString();
-    }
 
     return data;
   };
@@ -228,11 +229,20 @@ const InvoiceScanner = ({ onDataUpdate }) => {
               />
             </label>
             <label className="block mb-2">
-              Datum:
+              Datum (DD.MM.YYYY):
               <input
                 type="text"
                 value={extractedData.Datum}
                 onChange={(e) => handleFormChange('Datum', e.target.value)}
+                className="w-full p-2 mt-1 bg-gray-700 text-white rounded"
+              />
+            </label>
+            <label className="block mb-2">
+              Rechnungsnummer:
+              <input
+                type="text"
+                value={extractedData.Rechnungsnummer}
+                onChange={(e) => handleFormChange('Rechnungsnummer', e.target.value)}
                 className="w-full p-2 mt-1 bg-gray-700 text-white rounded"
               />
             </label>

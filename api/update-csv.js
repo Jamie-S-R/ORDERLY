@@ -133,8 +133,8 @@ export default async function handler(req, res) {
         return res.status(404).json({ error: `No entry found with ${idField}: ${id}` });
       }
 
-      // Convert back to CSV
-      const newCsv = Papa.unparse(filteredData, { header: true });
+      // Convert back to CSV, ensuring no trailing empty lines
+      const newCsv = Papa.unparse(filteredData, { header: true }).trim();
       await put(file, newCsv, { access: 'public', token, addRandomSuffix: false });
 
       res.status(200).json({ success: true });
