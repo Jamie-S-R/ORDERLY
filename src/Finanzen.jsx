@@ -1,5 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
-import Papa from 'papaparse';
+import React, { useState, useMemo } from 'react';
 import {
   ResponsiveContainer,
   BarChart,
@@ -17,34 +16,16 @@ import {
 const COLORS = ['#4caf50', '#2196f3', '#ffc107', '#f44336', '#9c27b0', '#ff9800'];
 
 const AccordionSection = ({ title, children }) => (
-  <section style={{ marginBottom: '1.5rem', border: '1px solid #444', borderRadius: '6px' }}>
-    <header
-      style={{ padding: '0.8rem 1rem', background: '#333', color: '#fff' }}
-    >
-      <strong>▼ {title}</strong>
+  <section className="mb-6 border border-gray-600 rounded-lg overflow-hidden">
+    <header className="p-3 bg-gray-700 text-white font-semibold cursor-pointer">
+      ▼ {title}
     </header>
-    <div style={{ padding: '1rem', background: '#1e1e1e' }}>{children}</div>
+    <div className="p-4 bg-gray-800">{children}</div>
   </section>
 );
 
-const Finanzen = () => {
-  const [orders, setOrders] = useState([]);
+const Finanzen = ({ orders = [] }) => {
   const [selectedSupplier, setSelectedSupplier] = useState('');
-
-  useEffect(() => {
-    Papa.parse('/data/bestellungen.csv', {
-      download: true,
-      header: true,
-      complete: (results) => {
-        const cleaned = results.data.filter(row =>
-          row.BestellID &&
-          !isNaN(parseFloat(row.Gesamtpreis)) &&
-          !isNaN(parseInt(row.Lieferdauer))
-        );
-        setOrders(cleaned);
-      }
-    });
-  }, []);
 
   const filteredOrders = useMemo(() => {
     return selectedSupplier
@@ -103,16 +84,16 @@ const Finanzen = () => {
   }, [filteredOrders]);
 
   return (
-    <div className="detail-view">
-      <h2>💰 Finanzanalyse</h2>
+    <div className="detail-view p-4">
+      <h2 className="text-2xl font-bold text-[#f7a440] mb-4">💰 Finanzanalyse</h2>
 
-      {/* Lieferantenfilter */}
-      <div style={{ marginBottom: '20px' }}>
-        <label>
-          Lieferant:&nbsp;
+      <div className="mb-6">
+        <label className="flex items-center text-white">
+          Lieferant:
           <select
             value={selectedSupplier}
             onChange={e => setSelectedSupplier(e.target.value)}
+            className="ml-2 p-2 bg-gray-700 text-white rounded-lg"
           >
             <option value="">Alle</option>
             {lieferanten.map((s, i) => (
@@ -127,7 +108,7 @@ const Finanzen = () => {
           <ResponsiveContainer width="100%" height={300}>
             <BarChart data={ausgabenProLieferant}>
               <CartesianGrid strokeDasharray="3 3" stroke="#444" />
-              <XAxis dataKey="lieferant" stroke="#ccc" interval={0} angle={0} tick={{ fontSize: 12 }} />
+              <XAxis dataKey="lieferant" stroke="#ccc" interval={0} tick={{ fontSize: 12 }} />
               <YAxis stroke="#ccc" />
               <Tooltip />
               <Legend />
@@ -172,11 +153,11 @@ const Finanzen = () => {
         </ResponsiveContainer>
       </AccordionSection>
 
-      <AccordionSection title="4. Durchschnittliche Lieferdauer pro Lieferant">
+      <AccordionSection title="Durchschnittliche Lieferdauer pro Lieferant">
         <ResponsiveContainer width="100%" height={300}>
           <BarChart data={lieferdauerStats}>
             <CartesianGrid strokeDasharray="3 3" stroke="#444" />
-            <XAxis dataKey="lieferant" stroke="#ccc" interval={0} angle={0} tick={{ fontSize: 12 }} />
+            <XAxis dataKey="lieferant" stroke="#ccc" interval={0} tick={{ fontSize: 12 }} />
             <YAxis stroke="#ccc" label={{ value: "Tage", angle: -90, position: "insideLeft" }} />
             <Tooltip />
             <Legend />
@@ -185,11 +166,11 @@ const Finanzen = () => {
         </ResponsiveContainer>
       </AccordionSection>
 
-      <AccordionSection title="5. Bestellungen im Detail">
-        <ul className="order-list">
+      <AccordionSection title="Bestellungen im Detail">
+        <ul className="order-list space-y-2">
           {filteredOrders.map((o, i) => (
-            <li key={i}>
-              <strong>{o.Bestelldatum}</strong> – {o.Artikelbeschreibung} ({o.Menge} × {parseFloat(o.PreisProEinheit).toFixed(2)} €) → <strong>{parseFloat(o.Gesamtpreis).toFixed(2)} €</strong><br />
+            <li key={i} className="bg-gray-800 p-3 rounded-lg">
+              <strong className="text-[#f7a440]">{o.Bestelldatum}</strong> – {o.Artikelbeschreibung} ({o.Menge} × {parseFloat(o.PreisProEinheit).toFixed(2)} €) → <strong>{parseFloat(o.Gesamtpreis).toFixed(2)} €</strong><br />
               Lieferant: {o.Lieferant} | Kategorie: {o.Kategorie} | Lieferdauer: {o.Lieferdauer} Tage
             </li>
           ))}

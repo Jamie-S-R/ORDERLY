@@ -37,7 +37,6 @@ const fetchData = async (table) => {
       },
     });
     console.log(`Response status for ${table}:`, response.status);
-    console.log(`Response headers for ${table}:`, [...response.headers]);
     const text = await response.text();
     if (!response.ok) {
       console.error(`Error fetching ${table}:`, text);
@@ -68,152 +67,16 @@ const fetchData = async (table) => {
   }
 };
 
-const generateMonthlyData = (orders, outputs, returns) => {
-  const monthlyData = {};
-  const getMonth = (dateStr) => {
-    if (!dateStr) return null;
-    const date = new Date(dateStr);
-    return isNaN(date) ? null : date.toISOString().slice(0, 7);
-  };
-
-  orders.forEach(o => {
-    const month = getMonth(o.Bestelldatum);
-    if (!month) return;
-    const menge = parseFloat(o.Menge) || 0;
-    monthlyData[month] = monthlyData[month] || { month, Bestellungen: 0, Ausgänge: 0, Retouren: 0 };
-    monthlyData[month].Bestellungen += menge;
-  });
-
-  outputs.forEach(o => {
-    const month = getMonth(o.Ausgangsdatum);
-    if (!month) return;
-    const menge = parseFloat(o.VerbrauchteMenge) || 0;
-    monthlyData[month] = monthlyData[month] || { month, Bestellungen: 0, Ausgänge: 0, Retouren: 0 };
-    monthlyData[month].Ausgänge += menge;
-  });
-
-  returns.forEach(r => {
-    const month = getMonth(r.Datum);
-    if (!month) return;
-    const menge = parseFloat(r.Menge) || 0;
-    monthlyData[month] = monthlyData[month] || { month, Bestellungen: 0, Ausgänge: 0, Retouren: 0 };
-    monthlyData[month].Retouren += menge;
-  });
-
-  return Object.values(monthlyData).sort((a, b) => a.month.localeCompare(b.month));
-};
-
-const OutputLog = ({ outputs, setOutputs, onDataUpdate }) => {
-  const [sortOrder, setSortOrder] = useState('newest');
-  const [selected, setSelected] = useState(null);
-  const [error, setError] = useState(null);
-  const [isDeleting, setIsDeleting] = useState(false);
-
-  const sortOutputs = (data) => {
-    return [...data].sort((a, b) => {
-      const dateA = new Date(a.Ausgangsdatum);
-      const dateB = new Date(b.Ausgangsdatum);
-      return sortOrder === 'newest' ? dateB - dateA : dateA - dateB;
-    });
-  };
-
-  const handleDelete = async (ausgangsID) => {
-    if (!window.confirm('Ausgang wirklich löschen?')) return;
-    if (isDeleting) return;
-
-    setIsDeleting(true);
-    setError(null);
-
-    try {
-      console.log('Deleting AusgangsID:', ausgangsID);
-      const response = await fetch('/api/supabase', {
-        method: 'DELETE',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ table: 'ausgaenge', id: ausgangsID, idField: 'AusgangsID' }),
-      });
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error('Delete error response:', errorText);
-        throw new Error(`Löschfehler: ${response.status} - ${errorText}`);
-      }
-
-      const data = await response.json();
-      console.log('Delete success:', data);
-
-      setOutputs(prev => prev.filter(o => o.AusgangsID !== ausgangsID));
-      setTimeout(() => {
-        console.log('Calling onDataUpdate after delete (OutputLog)');
-        onDataUpdate({ type: 'Ausgang', deletedID: ausgangsID });
-      }, 500);
-    } catch (err) {
-      console.error('Delete Error:', err);
-      setError('Fehler beim Löschen: ' + err.message);
-    } finally {
-      setIsDeleting(false);
-    }
-  };
-
-  return (
-    <div className="detail-view p-4">
-      <h2 className="text-2xl font-bold text-yellow-400 mb-4">📤 Ausgangshistorie</h2>
-      {error && <p className="text-red-500 text-center mb-4">{error}</p>}
-      {isDeleting && <p className="text-yellow-500 text-center mb-4">Löschen...</p>}
-      <div className="flex items-center space-x-2 mb-4">
-        <label className="text-white">Sortieren nach:</label>
-        <div className="relative inline-block">
-          <select
-            value={sortOrder}
-            onChange={(e) => setSortOrder(e.target.value)}
-            className="appearance-none bg-gray-700 text-white p-2 rounded-lg pr-8 focus:outline-none focus:ring-2 focus:ring-yellow-500"
-          >
-            <option value="newest">Neueste zuerst</option>
-            <option value="oldest">Älteste zuerst</option>
-          </select>
-          <div className="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
-            <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
-            </svg>
-          </div>
-        </div>
+const PreviewCard = ({ title, path, children }) => (
+  <div className="graph-container mb-6 transition-all hover:shadow-lg hover:-translate-y-1">
+    <h3 className="text-lg font-bold text-[#f7a440] mb-2">{title}</h3>
+    <Link to={path} className="block">
+      <div className="bg-gray-900 p-4 rounded-lg border border-gray-600 hover:border-[#f7a440] transition-all duration-200">
+        {children}
       </div>
-      <ul className="space-y-2">
-        {sortOutputs(outputs).map((a) => (
-          <li key={a.AusgangsID} className="flex justify-between items-center bg-gray-800 p-3 rounded-lg">
-            <Link to={`/outputlog/${a.AusgangsID}`} className="text-yellow-400 hover:underline flex-1">
-              <strong>{a.Ausgangsdatum}</strong> – {a.Artikelnummer} – {a.VerbrauchteMenge} Stück<br />
-              <em className="text-gray-400">{a.Bemerkungen}</em>
-            </Link>
-            <button
-              onClick={() => handleDelete(a.AusgangsID)}
-              disabled={isDeleting}
-              className={`bg-red-500 text-white px-3 py-1 rounded-lg ${isDeleting ? 'opacity-50 cursor-not-allowed' : 'hover:bg-red-600'}`}
-            >
-              Löschen
-            </button>
-          </li>
-        ))}
-      </ul>
-      {selected && (
-        <div className="mt-6 bg-gray-900 p-4 rounded-lg border border-gray-600">
-          <h3 className="text-xl font-bold text-white mb-2">📋 Ausgabendetails</h3>
-          <p className="text-gray-300"><strong>Artikelnummer:</strong> {selected.Artikelnummer}</p>
-          <p className="text-gray-300"><strong>Menge:</strong> {selected.VerbrauchteMenge}</p>
-          <p className="text-gray-300"><strong>Lagerbestand Vor:</strong> {selected.LagerbestandVor}</p>
-          <p className="text-gray-300"><strong>Lagerbestand Nach:</strong> {selected.LagerbestandNach}</p>
-          <p className="text-gray-300"><strong>Datum:</strong> {selected.Ausgangsdatum}</p>
-          <p className="text-gray-300"><strong>Bemerkung:</strong> {selected.Bemerkungen}</p>
-          <button
-            onClick={() => setSelected(null)}
-            className="mt-2 bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600"
-          >
-            Schließen
-          </button>
-        </div>
-      )}
-    </div>
-  );
-};
+    </Link>
+  </div>
+);
 
 const OrderLog = ({ orders, setOrders, onDataUpdate }) => {
   const [sortOrder, setSortOrder] = useState('newest');
@@ -318,6 +181,118 @@ const OrderLog = ({ orders, setOrders, onDataUpdate }) => {
           <p className="text-gray-300"><strong>Geplant:</strong> {selected.GeplantesLieferdatum}</p>
           <p className="text-gray-300"><strong>Tatsächlich:</strong> {selected.TatsächlichesLieferdatum}</p>
           <p className="text-gray-300"><strong>Lieferdauer:</strong> {selected.Lieferdauer} Tage</p>
+          <button
+            onClick={() => setSelected(null)}
+            className="mt-2 bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600"
+          >
+            Schließen
+          </button>
+        </div>
+      )}
+    </div>
+  );
+};
+
+const OutputLog = ({ outputs, setOutputs, onDataUpdate }) => {
+  const [sortOrder, setSortOrder] = useState('newest');
+  const [selected, setSelected] = useState(null);
+  const [error, setError] = useState(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  const sortOutputs = (data) => {
+    return [...data].sort((a, b) => {
+      const dateA = new Date(a.Ausgangsdatum);
+      const dateB = new Date(b.Ausgangsdatum);
+      return sortOrder === 'newest' ? dateB - dateA : dateA - dateB;
+    });
+  };
+
+  const handleDelete = async (ausgangsID) => {
+    if (!window.confirm('Ausgang wirklich löschen?')) return;
+    if (isDeleting) return;
+
+    setIsDeleting(true);
+    setError(null);
+
+    try {
+      console.log('Deleting AusgangsID:', ausgangsID);
+      const response = await fetch('/api/supabase', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ table: 'ausgaenge', id: ausgangsID, idField: 'AusgangsID' }),
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Delete error response:', errorText);
+        throw new Error(`Löschfehler: ${response.status} - ${errorText}`);
+      }
+
+      const data = await response.json();
+      console.log('Delete success:', data);
+
+      setOutputs(prev => prev.filter(o => o.AusgangsID !== ausgangsID));
+      setTimeout(() => {
+        console.log('Calling onDataUpdate after delete (OutputLog)');
+        onDataUpdate({ type: 'Ausgang', deletedID: ausgangsID });
+      }, 500);
+    } catch (err) {
+      console.error('Delete Error:', err);
+      setError('Fehler beim Löschen: ' + err.message);
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  return (
+    <div className="detail-view p-4">
+      <h2 className="text-2xl font-bold text-yellow-400 mb-4">📤 Ausgangshistorie</h2>
+      {error && <p className="text-red-500 text-center mb-4">{error}</p>}
+      {isDeleting && <p className="text-yellow-500 text-center mb-4">Löschen...</p>}
+      <div className="flex items-center space-x-2 mb-4">
+        <label className="text-white">Sortieren nach:</label>
+        <div className="relative inline-block">
+          <select
+            value={sortOrder}
+            onChange={(e) => setSortOrder(e.target.value)}
+            className="appearance-none bg-gray-700 text-white p-2 rounded-lg pr-8 focus:outline-none focus:ring-2 focus:ring-yellow-500"
+          >
+            <option value="newest">Neueste zuerst</option>
+            <option value="oldest">Älteste zuerst</option>
+          </select>
+          <div className="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
+            <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+            </svg>
+          </div>
+        </div>
+      </div>
+      <ul className="space-y-2">
+        {sortOutputs(outputs).map((a) => (
+          <li key={a.AusgangsID} className="flex justify-between items-center bg-gray-800 p-3 rounded-lg">
+            <Link to={`/outputlog/${a.AusgangsID}`} className="text-yellow-400 hover:underline flex-1">
+              <strong>{a.Ausgangsdatum}</strong> – {a.Artikelnummer} – {a.VerbrauchteMenge} Stück<br />
+              <em className="text-gray-400">{a.Bemerkungen}</em>
+            </Link>
+            <button
+              onClick={() => handleDelete(a.AusgangsID)}
+              disabled={isDeleting}
+              className={`bg-red-500 text-white px-3 py-1 rounded-lg ${isDeleting ? 'opacity-50 cursor-not-allowed' : 'hover:bg-red-600'}`}
+            >
+              Löschen
+            </button>
+          </li>
+        ))}
+      </ul>
+      {selected && (
+        <div className="mt-6 bg-gray-900 p-4 rounded-lg border border-gray-600">
+          <h3 className="text-xl font-bold text-white mb-2">📋 Ausgabendetails</h3>
+          <p className="text-gray-300"><strong>Artikelnummer:</strong> {selected.Artikelnummer}</p>
+          <p className="text-gray-300"><strong>Menge:</strong> {selected.VerbrauchteMenge}</p>
+          <p className="text-gray-300"><strong>Lagerbestand Vor:</strong> {selected.LagerbestandVor}</p>
+          <p className="text-gray-300"><strong>Lagerbestand Nach:</strong> {selected.LagerbestandNach}</p>
+          <p className="text-gray-300"><strong>Datum:</strong> {selected.Ausgangsdatum}</p>
+          <p className="text-gray-300"><strong>Bemerkung:</strong> {selected.Bemerkungen}</p>
           <button
             onClick={() => setSelected(null)}
             className="mt-2 bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600"
@@ -509,19 +484,6 @@ const ReturnDetails = ({ returns }) => {
   );
 };
 
-const PreviewCard = ({ title, path, children }) => (
-  <div className="graph-container mb-6 transition-all hover:shadow-lg hover:-translate-y-1">
-    <h3 className="text-lg font-bold text-[#f7a440] mb-2">{title}</h3>
-    <Link to={path} className="block">
-      <div
-        className="bg-gray-900 p-4 rounded-lg border border-gray-600 hover:border-[#f7a440] transition-all duration-200"
-      >
-        {children}
-      </div>
-    </Link>
-  </div>
-);
-
 const App = () => {
   const [orders, setOrders] = useState([]);
   const [outputs, setOutputs] = useState([]);
@@ -529,8 +491,10 @@ const App = () => {
   const [menuOpen, setMenuOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
   const [dataError, setDataError] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   const loadData = useCallback(async () => {
+    setIsLoading(true);
     console.log('Loading data...');
     try {
       const [ordersResult, outputsResult, returnsResult] = await Promise.all([
@@ -560,7 +524,7 @@ const App = () => {
         outputs: (outputsResult.data || []).length,
         returns: (returnsResult.data || []).length,
         newestOrder: (ordersResult.data || []).slice(-1)[0]?.BestellID,
-        newestOutput: (ordersResult.data || []).slice(-1)[0]?.AusgangsID,
+        newestOutput: (outputsResult.data || []).slice(-1)[0]?.AusgangsID,
         newestReturn: (returnsResult.data || []).slice(-1)[0]?.RetoureID,
       });
     } catch (err) {
@@ -569,6 +533,8 @@ const App = () => {
       setOrders([]);
       setOutputs([]);
       setReturns([]);
+    } finally {
+      setIsLoading(false);
     }
   }, []);
 
@@ -680,6 +646,11 @@ const App = () => {
               {dataError}
             </div>
           )}
+          {isLoading && (
+            <div className="text-yellow-500 text-center p-4 mb-4 bg-yellow-100 rounded-lg">
+              Daten werden geladen...
+            </div>
+          )}
           <button
             onClick={loadData}
             className="mb-4 bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-400"
@@ -692,23 +663,27 @@ const App = () => {
               element={
                 <div className="home space-y-8">
                   <h1 className="text-3xl md:text-4xl font-bold text-yellow-400 mb-6">📊 Dashboard</h1>
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    <PreviewCard title="Lagerentwicklung" path="/lagerverlauf">
-                      <LagerverlaufPreview />
-                    </PreviewCard>
-                    <PreviewCard title="Retourenübersicht" path="/retouren">
-                      <RetourenPreview />
-                    </PreviewCard>
-                    <PreviewCard title="Liefertermintreue" path="/termintreue">
-                      <TermintreuePreview />
-                    </PreviewCard>
-                    <PreviewCard title="Lieferantenbewertung" path="/lieferantenbewertung">
-                      <BewertungPreview />
-                    </PreviewCard>
-                    <PreviewCard title="Automatisierung" path="/automatisierung">
-                      <AutomatisierungPreview />
-                    </PreviewCard>
-                  </div>
+                  {isLoading ? (
+                    <div className="text-gray-400 text-center">Lade Vorschauen...</div>
+                  ) : (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                      <PreviewCard title="Lagerentwicklung" path="/lagerverlauf">
+                        <LagerverlaufPreview orders={orders} outputs={outputs} />
+                      </PreviewCard>
+                      <PreviewCard title="Retourenübersicht" path="/retouren">
+                        <RetourenPreview retouren={returns} />
+                      </PreviewCard>
+                      <PreviewCard title="Liefertermintreue" path="/termintreue">
+                        <TermintreuePreview orders={orders} />
+                      </PreviewCard>
+                      <PreviewCard title="Lieferantenbewertung" path="/lieferantenbewertung">
+                        <BewertungPreview orders={orders} retouren={returns} />
+                      </PreviewCard>
+                      <PreviewCard title="Automatisierung" path="/automatisierung">
+                        <AutomatisierungPreview orders={orders} />
+                      </PreviewCard>
+                    </div>
+                  )}
                 </div>
               }
             />
@@ -734,14 +709,14 @@ const App = () => {
             />
             <Route
               path="/lagerverlauf"
-              element={<Lagerverlauf orders={orders} outputs={outputs} returns={returns} />}
+              element={<Lagerverlauf orders={orders} outputs={outputs} />}
             />
             <Route path="/retouren" element={<Retouren returns={returns} />} />
             <Route path="/termintreue" element={<Termintreue orders={orders} />} />
-            <Route path="/lieferantenbewertung" element={<Lieferantenbewertung />} />
-            <Route path="/automatisierung" element={<Automatisierung />} />
-            <Route path="/engpaesse" element={<Engpaesse />} />
-            <Route path="/finanzen" element={<Finanzen />} />
+            <Route path="/lieferantenbewertung" element={<Lieferantenbewertung orders={orders} retouren={returns} />} />
+            <Route path="/automatisierung" element={<Automatisierung orders={orders} />} />
+            <Route path="/engpaesse" element={<Engpaesse orders={orders} />} />
+            <Route path="/finanzen" element={<Finanzen orders={orders} />} />
             <Route path="/tutorial" element={<Tutorial />} />
             <Route
               path="/orderlog"

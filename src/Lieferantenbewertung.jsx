@@ -1,5 +1,4 @@
-import React, { useEffect, useState, useMemo } from 'react';
-import Papa from 'papaparse';
+import React, { useMemo } from 'react';
 import {
   ResponsiveContainer,
   RadarChart,
@@ -17,42 +16,21 @@ import {
 } from 'recharts';
 
 const AccordionSection = ({ title, children }) => (
-  <section style={{ marginBottom: '1.5rem', border: '1px solid #444', borderRadius: '6px' }}>
-    <header style={{ padding: '0.8rem 1rem', background: '#333', color: '#fff' }}>
-      <strong>▼ {title}</strong>
+  <section className="mb-6 border border-gray-600 rounded-lg overflow-hidden">
+    <header className="p-3 bg-gray-700 text-white font-semibold cursor-pointer">
+      ▼ {title}
     </header>
-    <div style={{ padding: '1rem', background: '#1e1e1e' }}>{children}</div>
+    <div className="p-4 bg-gray-800">{children}</div>
   </section>
 );
 
-const Lieferantenbewertung = () => {
-  const [orders, setOrders] = useState([]);
-  const [retouren, setRetouren] = useState([]);
-
-  useEffect(() => {
-    Papa.parse('/data/bestellungen.csv', {
-      download: true,
-      header: true,
-      complete: (results) => {
-        setOrders(results.data.filter(r => r.BestellID));
-      }
-    });
-    Papa.parse('/data/retouren.csv', {
-      download: true,
-      header: true,
-      complete: (results) => {
-        setRetouren(results.data.filter(r => r.RetoureID));
-      }
-    });
-  }, []);
-
+const Lieferantenbewertung = ({ orders = [], retouren = [] }) => {
   const lieferanten = useMemo(() => {
     return [...new Set(orders.map(o => o.Lieferant).filter(Boolean))];
   }, [orders]);
 
   const bewertungen = useMemo(() => {
     const map = {};
-
     lieferanten.forEach(lieferant => {
       const relevantOrders = orders.filter(o => o.Lieferant === lieferant);
       const relevantRetouren = retouren.filter(r => r.Lieferant === lieferant);
@@ -69,13 +47,12 @@ const Lieferantenbewertung = () => {
         engpaesse
       };
     });
-
     return Object.values(map);
   }, [orders, retouren, lieferanten]);
 
   return (
-    <div className="detail-view">
-      <h2>📈 Lieferantenbewertung</h2>
+    <div className="detail-view p-4">
+      <h2 className="text-2xl font-bold text-[#f7a440] mb-4">📈 Lieferantenbewertung</h2>
 
       <AccordionSection title="Radar-Diagramm: Vergleich">
         <ResponsiveContainer width="100%" height={400}>
@@ -105,24 +82,24 @@ const Lieferantenbewertung = () => {
       </AccordionSection>
 
       <AccordionSection title="Detailtabelle">
-        <table style={{ width: '100%', color: '#ccc', borderCollapse: 'collapse' }}>
+        <table className="w-full text-gray-300 text-sm">
           <thead>
-            <tr>
-              <th style={{ textAlign: 'left', padding: '8px', borderBottom: '1px solid #555' }}>Lieferant</th>
-              <th style={{ textAlign: 'right', padding: '8px', borderBottom: '1px solid #555' }}>Pünktlich (%)</th>
-              <th style={{ textAlign: 'right', padding: '8px', borderBottom: '1px solid #555' }}>Ø Lieferdauer</th>
-              <th style={{ textAlign: 'right', padding: '8px', borderBottom: '1px solid #555' }}>Retouren</th>
-              <th style={{ textAlign: 'right', padding: '8px', borderBottom: '1px solid #555' }}>Engpässe</th>
+            <tr className="bg-gray-700">
+              <th className="p-2 text-left border-b border-gray-500">Lieferant</th>
+              <th className="p-2 text-right border-b border-gray-500">Pünktlich (%)</th>
+              <th className="p-2 text-right border-b border-gray-500">Ø Lieferdauer</th>
+              <th className="p-2 text-right border-b border-gray-500">Retouren</th>
+              <th className="p-2 text-right border-b border-gray-500">Engpässe</th>
             </tr>
           </thead>
           <tbody>
             {bewertungen.map((b, i) => (
-              <tr key={i}>
-                <td style={{ padding: '8px', borderBottom: '1px solid #333' }}>{b.lieferant}</td>
-                <td style={{ padding: '8px', textAlign: 'right' }}>{b.puenktlichkeit}</td>
-                <td style={{ padding: '8px', textAlign: 'right' }}>{b.lieferdauer}</td>
-                <td style={{ padding: '8px', textAlign: 'right' }}>{b.retouren}</td>
-                <td style={{ padding: '8px', textAlign: 'right' }}>{b.engpaesse}</td>
+              <tr key={i} className="hover:bg-gray-700">
+                <td className="p-2 border-b border-gray-600">{b.lieferant}</td>
+                <td className="p-2 text-right border-b border-gray-600">{b.puenktlichkeit}</td>
+                <td className="p-2 text-right border-b border-gray-600">{b.lieferdauer}</td>
+                <td className="p-2 text-right border-b border-gray-600">{b.retouren}</td>
+                <td className="p-2 text-right border-b border-gray-600">{b.engpaesse}</td>
               </tr>
             ))}
           </tbody>

@@ -1,5 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
-import Papa from 'papaparse';
+import React, { useState, useMemo } from 'react';
 import {
   ResponsiveContainer,
   BarChart,
@@ -12,31 +11,17 @@ import {
 } from 'recharts';
 
 const AccordionSection = ({ title, children }) => (
-  <section style={{ marginBottom: '1.5rem', border: '1px solid #444', borderRadius: '6px' }}>
-    <header style={{ padding: '0.8rem 1rem', background: '#333', color: '#fff' }}>
-      <strong>▼ {title}</strong>
+  <section className="mb-6 border border-gray-600 rounded-lg overflow-hidden">
+    <header className="p-3 bg-gray-700 text-white font-semibold cursor-pointer">
+      ▼ {title}
     </header>
-    <div style={{ padding: '1rem', background: '#1e1e1e' }}>
-      {children}
-    </div>
+    <div className="p-4 bg-gray-800">{children}</div>
   </section>
 );
 
-const Engpaesse = () => {
-  const [orders, setOrders] = useState([]);
+const Engpaesse = ({ orders = [] }) => {
   const [selectedSupplier, setSelectedSupplier] = useState('');
   const [zeigeVergangene, setZeigeVergangene] = useState(false);
-
-  useEffect(() => {
-    Papa.parse('/data/bestellungen.csv', {
-      download: true,
-      header: true,
-      complete: (results) => {
-        const cleaned = results.data.filter(r => r.BestellID);
-        setOrders(cleaned);
-      }
-    });
-  }, []);
 
   const aktuelleMonate = useMemo(() => {
     const now = new Date();
@@ -66,8 +51,7 @@ const Engpaesse = () => {
     const map = {};
     engpaesse.forEach(r => {
       const name = r.Lieferant || 'Unbekannt';
-      if (!map[name]) map[name] = 0;
-      map[name] += 1;
+      map[name] = (map[name] || 0) + 1;
     });
     return Object.entries(map).map(([lieferant, count]) => ({ lieferant, count }));
   }, [engpaesse]);
@@ -76,24 +60,23 @@ const Engpaesse = () => {
     const map = {};
     filteredEngpaesse.forEach(r => {
       const art = r.Artikelnummer || 'Unbekannt';
-      if (!map[art]) map[art] = 0;
-      map[art] += 1;
+      map[art] = (map[art] || 0) + 1;
     });
     return Object.entries(map).map(([artikel, count]) => ({ artikel, count }));
   }, [filteredEngpaesse]);
 
   return (
-    <div className="detail-view">
-      <h2>⚠️ Engpassanalyse</h2>
-      <p>Analyse kritischer Lagerengpässe</p>
+    <div className="detail-view p-4">
+      <h2 className="text-2xl font-bold text-[#f7a440] mb-4">⚠️ Engpassanalyse</h2>
+      <p className="text-gray-300 mb-4">Analyse kritischer Lagerengpässe</p>
 
-      {/* Filter & Optionen */}
-      <div style={{ marginBottom: '20px', display: 'flex', gap: '20px', alignItems: 'center' }}>
-        <label>
-          Lieferant:&nbsp;
+      <div className="flex flex-col sm:flex-row gap-4 mb-6">
+        <label className="flex items-center text-white">
+          Lieferant:
           <select
             value={selectedSupplier}
             onChange={e => setSelectedSupplier(e.target.value)}
+            className="ml-2 p-2 bg-gray-700 text-white rounded-lg"
           >
             <option value="">Alle</option>
             {lieferanten.map((s, i) => (
@@ -102,31 +85,30 @@ const Engpaesse = () => {
           </select>
         </label>
 
-        <label>
+        <label className="flex items-center text-white">
           <input
             type="checkbox"
             checked={zeigeVergangene}
             onChange={e => setZeigeVergangene(e.target.checked)}
+            className="mr-2"
           />
-          &nbsp;Vergangene Engpässe anzeigen
+          Vergangene Engpässe anzeigen
         </label>
       </div>
 
-      {/* Anzeige, falls keine Daten */}
       {engpaesse.length === 0 ? (
-        <p style={{ color: '#aaa' }}>
+        <p className="text-gray-400">
           ✅ Keine aktuellen Engpässe vorhanden.
-          {zeigeVergangene ? ' Auch keine vergangenen Engpässe in den Daten gefunden.' : ''}
+          {zeigeVergangene ? ' Auch keine vergangenen Engpässe gefunden.' : ''}
         </p>
       ) : (
         <>
-          {/* Diagramm je Lieferant */}
           {!selectedSupplier && (
             <AccordionSection title="Anzahl Engpässe je Lieferant">
               <ResponsiveContainer width="100%" height={300}>
                 <BarChart data={lieferantenStats}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#444" />
-                  <XAxis dataKey="lieferant" stroke="#ccc" interval={0} angle={0} tick={{ fontSize: 12 }} />
+                  <XAxis dataKey="lieferant" stroke="#ccc" interval={0} tick={{ fontSize: 12 }} />
                   <YAxis stroke="#ccc" />
                   <Tooltip />
                   <Legend />
@@ -136,20 +118,12 @@ const Engpaesse = () => {
             </AccordionSection>
           )}
 
-          {/* Diagramm nach Artikel */}
           {selectedSupplier && (
             <AccordionSection title="Engpässe nach Artikel">
               <ResponsiveContainer width="100%" height={300}>
                 <BarChart data={artikelStats}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#444" />
-                  <XAxis
-                    dataKey="artikel"
-                    stroke="#ccc"
-                    interval={0}
-                    angle={0}
-                    tick={{ fontSize: 12 }}
-                    height={60}
-                  />
+                  <XAxis dataKey="artikel" stroke="#ccc" interval={0} tick={{ fontSize: 12 }} height={60} />
                   <YAxis stroke="#ccc" />
                   <Tooltip />
                   <Legend />
@@ -159,12 +133,11 @@ const Engpaesse = () => {
             </AccordionSection>
           )}
 
-          {/* Detailansicht */}
           <AccordionSection title="Engpässe im Detail">
-            <ul className="order-list">
+            <ul className="order-list space-y-2">
               {filteredEngpaesse.map((r, i) => (
-                <li key={i}>
-                  <strong>{r.KritischSeit || 'Unbekannt'}</strong> – {r.Artikelbeschreibung} ({r.Artikelnummer}) – Lager: {r.AktuellerLagerbestand || 'n/a'}
+                <li key={i} className="bg-gray-800 p-3 rounded-lg">
+                  <strong className="text-[#f7a440]">{r.KritischSeit || 'Unbekannt'}</strong> – {r.Artikelbeschreibung} ({r.Artikelnummer}) – Lager: {r.AktuellerLagerbestand || 'n/a'}
                 </li>
               ))}
             </ul>

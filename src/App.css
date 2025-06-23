@@ -20,12 +20,13 @@
   left: 0;
   z-index: 1000;
   transition: width 0.3s ease, transform 0.3s ease;
-  box-shadow: 2px 0 8px rgba(0, 0, 0, 0.2);
+  box-shadow: none;
 }
 
 .sidebar--open {
   width: 240px;
   transform: translateX(0);
+  box-shadow: 2px 0 8px rgba(0, 0, 0, 0.2);
 }
 
 .sidebar-content {
@@ -126,6 +127,9 @@
   overflow-y: auto;
   transition: margin-left 0.3s ease;
   margin-left: 64px;
+  max-width: 1200px;
+  margin-right: auto;
+  margin-left: auto;
 }
 
 .sidebar--open ~ .main-content {
@@ -138,6 +142,8 @@
   flex-direction: column;
   align-items: center;
   padding-top: 32px;
+  max-width: 1200px;
+  margin: 0 auto;
 }
 
 .graph-container {

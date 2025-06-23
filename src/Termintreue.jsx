@@ -17,20 +17,16 @@ import {
 
 const COLORS = ['#4caf50', '#f44336'];
 
-const AccordionSection = ({ title, children }) => {
-  return (
-    <section style={{ marginBottom: '1.5rem', border: '1px solid #444', borderRadius: '6px' }}>
-      <header style={{ padding: '0.8rem 1rem', background: '#333', color: '#fff' }}>
-        <strong>▼ {title}</strong>
-      </header>
-      <div style={{ padding: '1rem', background: '#1e1e1e' }}>
-        {children}
-      </div>
-    </section>
-  );
-};
+const AccordionSection = ({ title, children }) => (
+  <section className="mb-6 border border-gray-600 rounded-lg overflow-hidden">
+    <header className="p-3 bg-gray-700 text-white font-semibold cursor-pointer">
+      ▼ {title}
+    </header>
+    <div className="p-4 bg-gray-800">{children}</div>
+  </section>
+);
 
-const Termintreue = ({ orders }) => {
+const Termintreue = ({ orders = [] }) => {
   const [selectedSupplier, setSelectedSupplier] = useState('');
 
   const filteredOrders = useMemo(() =>
@@ -96,13 +92,17 @@ const Termintreue = ({ orders }) => {
   const lieferanten = [...new Set(orders.map(o => o.Lieferant))];
 
   return (
-    <div className="detail-view">
-      <h2>📊 Liefertermintreue</h2>
+    <div className="detail-view p-4">
+      <h2 className="text-2xl font-bold text-[#f7a440] mb-4">📊 Liefertermintreue</h2>
 
-      <div style={{ marginBottom: '20px' }}>
-        <label>
-          Lieferant:&nbsp;
-          <select value={selectedSupplier} onChange={e => setSelectedSupplier(e.target.value)}>
+      <div className="mb-6">
+        <label className="flex items-center text-white">
+          Lieferant:
+          <select
+            value={selectedSupplier}
+            onChange={e => setSelectedSupplier(e.target.value)}
+            className="ml-2 p-2 bg-gray-700 text-white rounded-lg"
+          >
             <option value="">Alle</option>
             {lieferanten.map((s, i) => (
               <option key={i} value={s}>{s}</option>

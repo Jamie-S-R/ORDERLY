@@ -1,23 +1,40 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
-const data = [
-  { name: 'Shimano GmbH', Pünktlich: 14, Verspätet: 2 },
-  { name: 'SRAM Corp.', Pünktlich: 11, Verspätet: 5 },
-  { name: 'Magura GmbH', Pünktlich: 16, Verspätet: 0 },
-];
+const TermintreuePreview = ({ orders = [] }) => {
+  const data = useMemo(() => {
+    const lieferanten = [...new Set(orders.map(o => o.Lieferant).filter(Boolean))];
+    if (lieferanten.length === 0) return [];
 
-const TermintreuePreview = () => (
-  <ResponsiveContainer width="100%" height="100%">
-    <BarChart data={data}>
-      <CartesianGrid strokeDasharray="3 3" stroke="#444" />
-      <XAxis dataKey="name" stroke="#ccc" />
-      <YAxis stroke="#ccc" />
-      <Tooltip />
-      <Bar dataKey="Pünktlich" fill="#4caf50" />
-      <Bar dataKey="Verspätet" fill="#f44336" />
-    </BarChart>
-  </ResponsiveContainer>
-);
+    return lieferanten.map(lieferant => {
+      const relevantOrders = orders.filter(o => o.Lieferant === lieferant);
+      const puenktlich = relevantOrders.filter(o => {
+        if (!o.TatsächlichesLieferdatum || !o.GeplantesLieferdatum) return false;
+        return o.TatsächlichesLieferdatum <= o.GeplantesLieferdatum;
+      }).length;
+      const verspaetet = relevantOrders.length - puenktlich;
+      return { name: lieferant, Pünktlich: puenktlich, Verspätet: verspaetet };
+    });
+  }, [orders]);
+
+  return (
+    <div className="relative w-full h-full">
+      {data.length === 0 ? (
+        <div className="text-gray-400 text-center py-4">Keine Daten verfügbar</div>
+      ) : (
+        <ResponsiveContainer width="100%" height="100%">
+          <BarChart data={data}>
+            <CartesianGrid strokeDasharray="3 3" stroke="#444" />
+            <XAxis dataKey="name" stroke="#ccc" tick={{ fontSize: 10 }} />
+            <YAxis stroke="#ccc" />
+            <Tooltip contentStyle={{ backgroundColor: '#222', borderColor: '#666', color: '#fff' }} />
+            <Bar dataKey="Pünktlich" fill="#4caf50" />
+            <Bar dataKey="Verspätet" fill="#f44336" />
+          </BarChart>
+        </ResponsiveContainer>
+      )}
+    </div>
+  );
+};
 
 export default TermintreuePreview;

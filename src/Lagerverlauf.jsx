@@ -10,11 +10,10 @@ import {
   ResponsiveContainer
 } from 'recharts';
 
-const Lagerverlauf = ({ orders, outputs }) => {
+const Lagerverlauf = ({ orders = [], outputs = [] }) => {
   const [selectedSupplier, setSelectedSupplier] = useState('');
   const [selectedArticle, setSelectedArticle] = useState('');
 
-  // Map Lieferant → Set(Artikelbeschreibung)
   const artikelMap = useMemo(() => {
     const map = {};
     orders.forEach(o => {
@@ -24,7 +23,6 @@ const Lagerverlauf = ({ orders, outputs }) => {
     return map;
   }, [orders]);
 
-  // Filtered Orders
   const filteredOrders = useMemo(() => {
     return orders.filter(o =>
       (!selectedSupplier || o.Lieferant === selectedSupplier) &&
@@ -32,7 +30,6 @@ const Lagerverlauf = ({ orders, outputs }) => {
     );
   }, [orders, selectedSupplier, selectedArticle]);
 
-  // Artikelnummern für die ausgewählten Orders (relevant für Ausgänge)
   const relevantArtikelnummern = useMemo(() => {
     const artikelnummern = new Set();
     filteredOrders.forEach(o => {
@@ -41,7 +38,6 @@ const Lagerverlauf = ({ orders, outputs }) => {
     return artikelnummern;
   }, [filteredOrders]);
 
-  // Filtered Outputs
   const filteredOutputs = useMemo(() => {
     return outputs.filter(o =>
       (!selectedArticle && relevantArtikelnummern.has(o.Artikelnummer)) ||
@@ -53,21 +49,18 @@ const Lagerverlauf = ({ orders, outputs }) => {
     const data = {};
     const formatMonth = (dateStr) => new Date(dateStr).toISOString().slice(0, 7);
 
-    // Bestellungen (Zugänge)
     filteredOrders.forEach(o => {
       const month = formatMonth(o.Bestelldatum);
       if (!data[month]) data[month] = { month, zugang: 0, abgang: 0 };
       data[month].zugang += parseInt(o.Menge || 0);
     });
 
-    // Ausgänge
     filteredOutputs.forEach(a => {
       const month = formatMonth(a.Ausgangsdatum);
       if (!data[month]) data[month] = { month, zugang: 0, abgang: 0 };
       data[month].abgang += parseInt(a.VerbrauchteMenge || 0);
     });
 
-    // Bestandsentwicklung berechnen
     const sorted = Object.values(data).sort((a, b) => a.month.localeCompare(b.month));
     let bestand = 0;
     return sorted.map(d => {
@@ -77,15 +70,18 @@ const Lagerverlauf = ({ orders, outputs }) => {
   }, [filteredOrders, filteredOutputs]);
 
   return (
-    <div className="detail-view">
-      <h2>📦 Lagerbestandsverlauf</h2>
+    <div className="detail-view p-4">
+      <h2 className="text-2xl font-bold text-[#f7a440] mb-4">📦 Lagerbestandsverlauf</h2>
 
-      {/* Filter Dropdowns */}
-      <div style={{ display: 'flex', gap: '10px', marginBottom: '20px' }}>
-        <select value={selectedSupplier} onChange={e => {
-          setSelectedSupplier(e.target.value);
-          setSelectedArticle('');
-        }}>
+      <div className="flex flex-col sm:flex-row gap-4 mb-6">
+        <select
+          value={selectedSupplier}
+          onChange={e => {
+            setSelectedSupplier(e.target.value);
+            setSelectedArticle('');
+          }}
+          className="p-2 bg-gray-700 text-white rounded-lg"
+        >
           <option value="">Lieferant wählen</option>
           {[...new Set(orders.map(o => o.Lieferant))].map((s, i) => (
             <option key={i} value={s}>{s}</option>
@@ -96,6 +92,7 @@ const Lagerverlauf = ({ orders, outputs }) => {
           value={selectedArticle}
           onChange={e => setSelectedArticle(e.target.value)}
           disabled={!selectedSupplier}
+          className="p-2 bg-gray-700 text-white rounded-lg"
         >
           <option value="">Artikel wählen</option>
           {[...(artikelMap[selectedSupplier] || [])].map((a, i) => (
@@ -104,7 +101,6 @@ const Lagerverlauf = ({ orders, outputs }) => {
         </select>
       </div>
 
-      {/* Chart */}
       <ResponsiveContainer width="100%" height={400}>
         <BarChart data={monthlyData}>
           <CartesianGrid strokeDasharray="3 3" stroke="#444" />
