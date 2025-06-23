@@ -510,12 +510,11 @@ const ReturnDetails = ({ returns }) => {
 };
 
 const PreviewCard = ({ title, path, children }) => (
-  <div className="graph-container mb-4">
-    <h3 className="text-lg font-bold text-yellow-400 mb-2">{title}</h3>
+  <div className="graph-container mb-6 transition-all hover:shadow-lg hover:-translate-y-1">
+    <h3 className="text-lg font-bold text-[#f7a440] mb-2">{title}</h3>
     <Link to={path} className="block">
       <div
-        className="bg-gray-900 p-2 rounded-lg border border-gray-600 hover:border-yellow-500 transition-all duration-200"
-        style={{ height: '180px', overflow: 'hidden' }}
+        className="bg-gray-900 p-4 rounded-lg border border-gray-600 hover:border-[#f7a440] transition-all duration-200"
       >
         {children}
       </div>
@@ -691,9 +690,9 @@ const App = () => {
             <Route
               path="/"
               element={
-                <div className="home space-y-6">
-                  <h1 className="text-3xl font-bold text-yellow-400 mb-6">📊 Dashboard</h1>
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div className="home space-y-8">
+                  <h1 className="text-3xl md:text-4xl font-bold text-yellow-400 mb-6">📊 Dashboard</h1>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     <PreviewCard title="Lagerentwicklung" path="/lagerverlauf">
                       <LagerverlaufPreview />
                     </PreviewCard>
@@ -717,7 +716,7 @@ const App = () => {
               path="/live-scannen"
               element={
                 <div className="live-scannen space-y-6">
-                  <h1 className="text-3xl font-bold text-yellow-400 mb-6">📷 Live-Scannen</h1>
+                  <h1 className="text-3xl md:text-4xl font-bold text-yellow-400 mb-6">📷 Live-Scannen</h1>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <BarcodeScanner
                       orders={orders}

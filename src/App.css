@@ -122,7 +122,7 @@
 /* Main Content */
 .main-content {
   flex: 1;
-  padding: 20px;
+  padding: 24px;
   overflow-y: auto;
   transition: margin-left 0.3s ease;
   margin-left: 64px;
@@ -137,28 +137,31 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding-top: 24px;
+  padding-top: 32px;
 }
 
-.graph-container,
-.orders-preview {
+.graph-container {
   width: 100%;
-  max-width: 1200px;
-  margin: 0 auto 24px;
-  padding: 0 16px;
+  max-width: 400px;
+  margin: 0 12px 24px;
+  padding: 0 8px;
   box-sizing: border-box;
+  transition: all 0.2s ease;
 }
 
 .graph-placeholder {
-  height: 200px;
+  height: 240px;
   background-color: #283546;
   margin-top: 8px;
-  border-radius: 8px;
+  border-radius: 10px;
   border: 1px solid #f7a440;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  transition: border-color 0.2s, transform 0.2s;
+}
+
+.graph-container:hover .graph-placeholder {
+  border-color: #ffb15e;
+  transform: translateY(-2px);
 }
 
 /* Order List */
@@ -204,6 +207,7 @@
 .detail-view h2 {
   margin-bottom: 16px;
   color: #ffb15e;
+  font-size: 24px;
 }
 
 .detail-view textarea {
@@ -343,6 +347,7 @@ a.email-link:hover {
 
   .main-content {
     margin-left: 0;
+    padding: 16px;
   }
 
   .menu-toggle {
@@ -351,6 +356,12 @@ a.email-link:hover {
 
   .sidebar-icon-only {
     display: none;
+  }
+
+  .graph-container {
+    max-width: 100%;
+    margin: 0 8px 16px;
+    padding: 0 4px;
   }
 
   .graph-placeholder {
@@ -365,6 +376,10 @@ a.email-link:hover {
     padding: 8px 12px;
     margin: 4px 0;
   }
+
+  .home {
+    padding-top: 24px;
+  }
 }
 
 @media (min-width: 769px) {
@@ -374,6 +389,14 @@ a.email-link:hover {
 
   .overlay {
     display: none;
+  }
+
+  .graph-container {
+    max-width: 400px;
+  }
+
+  .graph-placeholder {
+    height: 240px;
   }
 }
 
