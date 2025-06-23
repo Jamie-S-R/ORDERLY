@@ -4,17 +4,18 @@
   "functions": {
     "api/supabase.js": {
       "memory": 1024,
-      "maxDuration": 10
+      "maxDuration": 30
     }
   },
-  "rewrites": [
+  "routes": [
     {
-      "source": "/api/(.*)",
-      "destination": "/api/supabase.js"
+      "src": "/api/supabase",
+      "dest": "/api/supabase.js",
+      "methods": ["GET", "POST", "DELETE"]
     },
     {
-      "source": "/(.*)",
-      "destination": "/index.html"
+      "src": "/(.*)",
+      "dest": "/index.html"
     }
   ]
 }

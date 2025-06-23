@@ -23,3 +23,8 @@ yarn-debug.log*
 yarn-error.log*
 .vercel
 .env*.local
+
+node_modules/
+build/
+.env
+.env.local

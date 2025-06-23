@@ -30,16 +30,41 @@ import InvoiceScanner from './InvoiceScanner.jsx';
 const fetchData = async (table) => {
   try {
     console.log(`Fetching data from ${table}...`);
-    const response = await fetch(`/api/supabase?table=${table}&_t=${Date.now()}`);
+    const response = await fetch(`/api/supabase?table=${table}&_t=${Date.now()}`, {
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+      },
+    });
+    console.log(`Response status for ${table}:`, response.status);
+    console.log(`Response headers for ${table}:`, [...response.headers]);
+    const text = await response.text();
     if (!response.ok) {
-      throw new Error(`Fehler beim Abrufen von ${table}: ${response.status}`);
+      console.error(`Error fetching ${table}:`, text);
+      return { error: `Fehler beim Abrufen von ${table}: ${response.status} - ${text}`, data: [] };
     }
-    const data = await response.json();
-    console.log(`Data loaded from ${table}:`, data.length);
-    return data;
+    let data;
+    try {
+      data = JSON.parse(text);
+      console.log(`Parsed data for ${table} (${data.length} Datensätze):`, data.slice(-5));
+      if (table === 'bestellungen') {
+        const newEntries = data.filter(item => parseInt(item.BestellID) >= 3000);
+        console.log(`New entries (BestellID >= 3000) for ${table}:`, newEntries);
+      } else if (table === 'ausgaenge') {
+        const newEntries = data.filter(item => parseInt(item.AusgangsID) >= 4000);
+        console.log(`New entries (AusgangsID >= 4000) for ${table}:`, newEntries);
+      } else if (table === 'retouren') {
+        const newEntries = data.filter(item => parseInt(item.RetoureID) >= 5300);
+        console.log(`New entries (RetoureID >= 5300) for ${table}:`, newEntries);
+      }
+    } catch (parseErr) {
+      console.error(`JSON parse error for ${table}:`, parseErr, 'Response:', text);
+      return { error: `Invalid JSON response: ${parseErr.message}`, data: [] };
+    }
+    return { data: Array.isArray(data) ? data : [], error: null };
   } catch (err) {
     console.error(`Error fetching ${table}:`, err);
-    return [];
+    return { error: err.message, data: [] };
   }
 };
 
@@ -108,14 +133,18 @@ const OutputLog = ({ outputs, setOutputs, onDataUpdate }) => {
       });
 
       if (!response.ok) {
-        const errorText = await response.json();
-        throw new Error(`Löschfehler: ${response.status} - ${JSON.stringify(errorText)}`);
+        const errorText = await response.text();
+        console.error('Delete error response:', errorText);
+        throw new Error(`Löschfehler: ${response.status} - ${errorText}`);
       }
+
+      const data = await response.json();
+      console.log('Delete success:', data);
 
       setOutputs(prev => prev.filter(o => o.AusgangsID !== ausgangsID));
       setTimeout(() => {
         console.log('Calling onDataUpdate after delete (OutputLog)');
-        onDataUpdate();
+        onDataUpdate({ type: 'Ausgang', deletedID: ausgangsID });
       }, 500);
     } catch (err) {
       console.error('Delete Error:', err);
@@ -206,14 +235,18 @@ const OrderLog = ({ orders, setOrders, onDataUpdate }) => {
       });
 
       if (!response.ok) {
-        const errorText = await response.json();
-        throw new Error(`Löschfehler: ${response.status} - ${JSON.stringify(errorText)}`);
+        const errorText = await response.text();
+        console.error('Delete error response:', errorText);
+        throw new Error(`Löschfehler: ${response.status} - ${errorText}`);
       }
+
+      const data = await response.json();
+      console.log('Delete success:', data);
 
       setOrders(prev => prev.filter(o => o.BestellID !== bestellID));
       setTimeout(() => {
         console.log('Calling onDataUpdate after delete (OrderLog)');
-        onDataUpdate();
+        onDataUpdate({ type: 'Eingang', deletedID: bestellID });
       }, 500);
     } catch (err) {
       console.error('Delete Error:', err);
@@ -307,14 +340,18 @@ const ReturnLog = ({ returns, setReturns, onDataUpdate }) => {
       });
 
       if (!response.ok) {
-        const errorText = await response.json();
-        throw new Error(`Löschfehler: ${response.status} - ${JSON.stringify(errorText)}`);
+        const errorText = await response.text();
+        console.error('Delete error response:', errorText);
+        throw new Error(`Löschfehler: ${response.status} - ${errorText}`);
       }
+
+      const data = await response.json();
+      console.log('Delete success:', data);
 
       setReturns(prev => prev.filter(r => r.RetoureID !== retoureID));
       setTimeout(() => {
         console.log('Calling onDataUpdate after delete (ReturnLog)');
-        onDataUpdate();
+        onDataUpdate({ type: 'Retoure', deletedID: retoureID });
       }, 500);
     } catch (err) {
       console.error('Delete Error:', err);
@@ -461,21 +498,47 @@ const App = () => {
   const [returns, setReturns] = useState([]);
   const [menuOpen, setMenuOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
+  const [dataError, setDataError] = useState(null);
 
   const loadData = useCallback(async () => {
     console.log('Loading data...');
     try {
-      const [loadedOrders, loadedOutputs, loadedReturns] = await Promise.all([
+      const [ordersResult, outputsResult, returnsResult] = await Promise.all([
         fetchData('bestellungen'),
         fetchData('ausgaenge'),
         fetchData('retouren'),
       ]);
-      setOrders(loadedOrders);
-      setOutputs(loadedOutputs);
-      setReturns(loadedReturns);
-      console.log('Data loaded:', { orders: loadedOrders.length, outputs: loadedOutputs.length, returns: loadedReturns.length });
+
+      const errors = [
+        ordersResult.error && `Bestellungen: ${ordersResult.error}`,
+        outputsResult.error && `Ausgänge: ${outputsResult.error}`,
+        returnsResult.error && `Retouren: ${returnsResult.error}`,
+      ].filter(Boolean).join('; ');
+
+      if (errors) {
+        setDataError(`Fehler beim Laden der Daten: ${errors}`);
+        console.error('Load data errors:', errors);
+      } else {
+        setDataError(null);
+      }
+
+      setOrders(ordersResult.data || []);
+      setOutputs(outputsResult.data || []);
+      setReturns(returnsResult.data || []);
+      console.log('Data loaded:', {
+        orders: (ordersResult.data || []).length,
+        outputs: (outputsResult.data || []).length,
+        returns: (returnsResult.data || []).length,
+        newestOrder: (ordersResult.data || []).slice(-1)[0]?.BestellID,
+        newestOutput: (ordersResult.data || []).slice(-1)[0]?.AusgangsID,
+        newestReturn: (returnsResult.data || []).slice(-1)[0]?.RetoureID,
+      });
     } catch (err) {
       console.error('Error loading data:', err);
+      setDataError(`Fehler beim Laden der Daten: ${err.message}`);
+      setOrders([]);
+      setOutputs([]);
+      setReturns([]);
     }
   }, []);
 
@@ -484,12 +547,67 @@ const App = () => {
     loadData();
   }, [loadData]);
 
-  const handleDataUpdate = useCallback(() => {
-    console.log('handleDataUpdate called');
-    setTimeout(() => {
-      loadData();
-    }, 500);
-  }, [loadData]);
+  const handleDataUpdate = useCallback(({ type, newEntry, deletedID }) => {
+    console.log('handleDataUpdate called with:', { type, newEntry, deletedID });
+    if (newEntry) {
+      if (type === 'Eingang') {
+        setOrders(prev => {
+          const exists = prev.some(o => o.BestellID === newEntry.BestellID);
+          if (exists) {
+            console.log('BestellID already exists in orders:', newEntry.BestellID);
+            return prev;
+          }
+          const newOrders = [...prev, newEntry];
+          console.log('Updated orders state:', newOrders.length, newOrders.slice(-5));
+          return newOrders;
+        });
+      } else if (type === 'Ausgang') {
+        setOutputs(prev => {
+          const exists = prev.some(o => o.AusgangsID === newEntry.AusgangsID);
+          if (exists) {
+            console.log('AusgangsID already exists in outputs:', newEntry.AusgangsID);
+            return prev;
+          }
+          const newOutputs = [...prev, newEntry];
+          console.log('Updated outputs state:', newOutputs.length, newOutputs.slice(-5));
+          return newOutputs;
+        });
+      } else if (type === 'Retoure') {
+        setReturns(prev => {
+          const exists = prev.some(r => r.RetoureID === newEntry.RetoureID);
+          if (exists) {
+            console.log('RetoureID already exists in returns:', newEntry.RetoureID);
+            return prev;
+          }
+          const newReturns = [...prev, newEntry];
+          console.log('Updated returns state:', newReturns.length, newReturns.slice(-5));
+          return newReturns;
+        });
+      }
+    } else if (deletedID) {
+      if (type === 'Eingang') {
+        setOrders(prev => {
+          const newOrders = prev.filter(o => o.BestellID !== deletedID);
+          console.log('Updated orders state after delete:', newOrders.length, newOrders.slice(-5));
+          return newOrders;
+        });
+      } else if (type === 'Ausgang') {
+        setOutputs(prev => {
+          const newOutputs = prev.filter(o => o.AusgangsID !== deletedID);
+          console.log('Updated outputs state after delete:', newOutputs.length, newOutputs.slice(-5));
+          return newOutputs;
+        });
+      } else if (type === 'Retoure') {
+        setReturns(prev => {
+          const newReturns = prev.filter(r => r.RetoureID !== deletedID);
+          console.log('Updated returns state after delete:', newReturns.length, newReturns.slice(-5));
+          return newReturns;
+        });
+      }
+    } else {
+      console.log('No newEntry or deletedID provided, no state update performed');
+    }
+  }, []);
 
   useEffect(() => {
     const handleResize = () => {
@@ -513,6 +631,17 @@ const App = () => {
           <Sidebar isOpen={menuOpen} setIsOpen={setMenuOpen} isMobile={isMobile} />
         </aside>
         <main className="main-content">
+          {dataError && (
+            <div style={{ color: 'red', textAlign: 'center', padding: '1rem', background: '#ffe6e6' }}>
+              {dataError}
+            </div>
+          )}
+          <button
+            onClick={loadData}
+            style={{ margin: '1rem', padding: '0.5rem 1rem', background: '#4CAF50', color: 'white', borderRadius: '4px' }}
+          >
+            Daten neu laden
+          </button>
           <Routes>
             <Route
               path="/"
