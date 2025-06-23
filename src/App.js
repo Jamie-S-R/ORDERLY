@@ -71,7 +71,7 @@ const PreviewCard = ({ title, path, children }) => (
   <div className="graph-container mb-6 transition-all hover:shadow-lg hover:-translate-y-1">
     <h3 className="text-lg font-bold text-[#f7a440] mb-2">{title}</h3>
     <Link to={path} className="block">
-      <div className="bg-gray-900 p-4 rounded-lg border border-gray-600 hover:border-[#f7a440] transition-all duration-200">
+      <div className="bg-gray-900 p-4 rounded-lg border border-gray-600 hover:border-[#f7a440] transition-all duration-200" style={{ minHeight: '240px' }}>
         {children}
       </div>
     </Link>
@@ -131,7 +131,7 @@ const OrderLog = ({ orders, setOrders, onDataUpdate }) => {
 
   return (
     <div className="detail-view p-4">
-      <h2 className="text-2xl font-bold text-yellow-400 mb-4">📦 Bestellhistorie</h2>
+      <h2 className="text-2xl font-bold text-yellow-400 mb-4">Bestellhistorie</h2>
       {error && <p className="text-red-500 text-center mb-4">{error}</p>}
       {isDeleting && <p className="text-yellow-500 text-center mb-4">Löschen...</p>}
       <div className="flex items-center space-x-2 mb-4">
@@ -171,7 +171,7 @@ const OrderLog = ({ orders, setOrders, onDataUpdate }) => {
       </ul>
       {selected && (
         <div className="mt-6 bg-gray-900 p-4 rounded-lg border border-gray-600">
-          <h3 className="text-xl font-bold text-white mb-2">📋 Bestelldetails</h3>
+          <h3 className="text-xl font-bold text-white mb-2">Bestelldetails</h3>
           <p className="text-gray-300"><strong>Artikel:</strong> {selected.Artikelbeschreibung}</p>
           <p className="text-gray-300"><strong>Menge:</strong> {selected.Menge} {selected.Einheit}</p>
           <p className="text-gray-300"><strong>Einzelpreis:</strong> {selected.PreisProEinheit} €</p>
@@ -246,7 +246,7 @@ const OutputLog = ({ outputs, setOutputs, onDataUpdate }) => {
 
   return (
     <div className="detail-view p-4">
-      <h2 className="text-2xl font-bold text-yellow-400 mb-4">📤 Ausgangshistorie</h2>
+      <h2 className="text-2xl font-bold text-yellow-400 mb-4">Ausgangshistorie</h2>
       {error && <p className="text-red-500 text-center mb-4">{error}</p>}
       {isDeleting && <p className="text-yellow-500 text-center mb-4">Löschen...</p>}
       <div className="flex items-center space-x-2 mb-4">
@@ -286,7 +286,7 @@ const OutputLog = ({ outputs, setOutputs, onDataUpdate }) => {
       </ul>
       {selected && (
         <div className="mt-6 bg-gray-900 p-4 rounded-lg border border-gray-600">
-          <h3 className="text-xl font-bold text-white mb-2">📋 Ausgabendetails</h3>
+          <h3 className="text-xl font-bold text-white mb-2">Ausgabendetails</h3>
           <p className="text-gray-300"><strong>Artikelnummer:</strong> {selected.Artikelnummer}</p>
           <p className="text-gray-300"><strong>Menge:</strong> {selected.VerbrauchteMenge}</p>
           <p className="text-gray-300"><strong>Lagerbestand Vor:</strong> {selected.LagerbestandVor}</p>
@@ -358,7 +358,7 @@ const ReturnLog = ({ returns, setReturns, onDataUpdate }) => {
 
   return (
     <div className="detail-view p-4">
-      <h2 className="text-2xl font-bold text-yellow-400 mb-4">📦 Retourenhistorie</h2>
+      <h2 className="text-2xl font-bold text-yellow-400 mb-4">Retourenhistorie</h2>
       {error && <p className="text-red-500 text-center mb-4">{error}</p>}
       {isDeleting && <p className="text-yellow-500 text-center mb-4">Löschen...</p>}
       <div className="flex items-center space-x-2 mb-4">
@@ -398,7 +398,7 @@ const ReturnLog = ({ returns, setReturns, onDataUpdate }) => {
       </ul>
       {selected && (
         <div className="mt-6 bg-gray-900 p-4 rounded-lg border border-gray-600">
-          <h3 className="text-xl font-bold text-white mb-2">📋 Retourendetails</h3>
+          <h3 className="text-xl font-bold text-white mb-2">Retourendetails</h3>
           <p className="text-gray-300"><strong>Artikelnummer:</strong> {selected.Artikelnummer}</p>
           <p className="text-gray-300"><strong>Menge:</strong> {selected.Menge}</p>
           <p className="text-gray-300"><strong>Grund:</strong> {selected.GrundDerRetoure}</p>
@@ -424,7 +424,7 @@ const OrderDetails = ({ orders }) => {
 
   return (
     <div className="detail-view p-4">
-      <h2 className="text-2xl font-bold text-yellow-400 mb-4">📋 Bestelldetails</h2>
+      <h2 className="text-2xl font-bold text-yellow-400 mb-4">Bestelldetails</h2>
       <div className="bg-gray-800 p-4 rounded-lg space-y-2">
         <p className="text-gray-300"><strong>Artikel:</strong> {order.Artikelbeschreibung}</p>
         <p className="text-gray-300"><strong>Menge:</strong> {order.Menge} {order.Einheit}</p>
@@ -449,7 +449,7 @@ const OutputDetails = ({ outputs }) => {
 
   return (
     <div className="detail-view p-4">
-      <h2 className="text-2xl font-bold text-yellow-400 mb-4">📋 Ausgabendetails</h2>
+      <h2 className="text-2xl font-bold text-yellow-400 mb-4">Ausgabendetails</h2>
       <div className="bg-gray-800 p-4 rounded-lg space-y-2">
         <p className="text-gray-300"><strong>Artikelnummer:</strong> {output.Artikelnummer}</p>
         <p className="text-gray-300"><strong>Menge:</strong> {output.VerbrauchteMenge}</p>
@@ -471,7 +471,7 @@ const ReturnDetails = ({ returns }) => {
 
   return (
     <div className="detail-view p-4">
-      <h2 className="text-2xl font-bold text-yellow-400 mb-4">📋 Retourendetails</h2>
+      <h2 className="text-2xl font-bold text-yellow-400 mb-4">Retourendetails</h2>
       <div className="bg-gray-800 p-4 rounded-lg space-y-2">
         <p className="text-gray-300"><strong>Artikelnummer:</strong> {returnItem.Artikelnummer}</p>
         <p className="text-gray-300"><strong>Menge:</strong> {returnItem.Menge}</p>
@@ -488,7 +488,7 @@ const App = () => {
   const [orders, setOrders] = useState([]);
   const [outputs, setOutputs] = useState([]);
   const [returns, setReturns] = useState([]);
-  const [menuOpen, setMenuOpen] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(window.innerWidth > 768);
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
   const [dataError, setDataError] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -609,12 +609,11 @@ const App = () => {
     const handleResize = () => {
       const isNowMobile = window.innerWidth <= 768;
       setIsMobile(isNowMobile);
-      setMenuOpen(isNowMobile ? false : true);
+      setMenuOpen(!isNowMobile);
+      console.log('Resize:', { isMobile: isNowMobile, menuOpen: !isNowMobile });
     };
-
-    window.addEventListener('resize', handleResize);
     handleResize();
-
+    window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
@@ -634,13 +633,14 @@ const App = () => {
           ></div>
         )}
         <aside
-          className={`fixed md:static inset-y-0 left-0 z-50 bg-gray-900 text-white w-64 transform ${
-            menuOpen ? 'translate-x-0' : '-translate-x-full'
-          } md:translate-x-0 transition-transform duration-300 ease-in-out`}
+          className={`fixed inset-y-0 left-0 z-50 text-white w-64 ${
+            isMobile && !menuOpen ? 'transform -translate-x-full' : 'transform translate-x-0'
+          } transition-transform duration-300 ease-in-out`}
+          style={{ backgroundColor: '#1e293b' }} // Änderung: Dunkleres Blau für Sidebar
         >
           <Sidebar isOpen={menuOpen} setIsOpen={setMenuOpen} isMobile={isMobile} />
         </aside>
-        <main className="flex-1 p-4 md:ml-64">
+        <main className="flex-1 p-4">
           {dataError && (
             <div className="text-red-500 text-center p-4 mb-4 bg-red-100 rounded-lg">
               {dataError}
@@ -662,26 +662,34 @@ const App = () => {
               path="/"
               element={
                 <div className="home space-y-8">
-                  <h1 className="text-3xl md:text-4xl font-bold text-yellow-400 mb-6">📊 Dashboard</h1>
+                  <h1 className="text-3xl md:text-4xl font-bold text-[#f7a440] mb-6">Dashboard</h1>
                   {isLoading ? (
                     <div className="text-gray-400 text-center">Lade Vorschauen...</div>
                   ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                      <PreviewCard title="Lagerentwicklung" path="/lagerverlauf">
-                        <LagerverlaufPreview orders={orders} outputs={outputs} />
-                      </PreviewCard>
-                      <PreviewCard title="Retourenübersicht" path="/retouren">
-                        <RetourenPreview retouren={returns} />
-                      </PreviewCard>
-                      <PreviewCard title="Liefertermintreue" path="/termintreue">
-                        <TermintreuePreview orders={orders} />
-                      </PreviewCard>
-                      <PreviewCard title="Lieferantenbewertung" path="/lieferantenbewertung">
-                        <BewertungPreview orders={orders} retouren={returns} />
-                      </PreviewCard>
-                      <PreviewCard title="Automatisierung" path="/automatisierung">
-                        <AutomatisierungPreview orders={orders} />
-                      </PreviewCard>
+                      {orders.length === 0 && outputs.length === 0 && returns.length === 0 ? (
+                        <div className="text-gray-400 text-center col-span-full">
+                          Keine Daten verfügbar. Bitte überprüfen Sie die Datenbankverbindung oder laden Sie die Daten erneut.
+                        </div>
+                      ) : (
+                        <>
+                          <PreviewCard title="Lagerentwicklung" path="/lagerverlauf">
+                            <LagerverlaufPreview orders={orders} outputs={outputs} />
+                          </PreviewCard>
+                          <PreviewCard title="Retourenübersicht" path="/retouren">
+                            <RetourenPreview retouren={returns} />
+                          </PreviewCard>
+                          <PreviewCard title="Liefertermintreue" path="/termintreue">
+                            <TermintreuePreview orders={orders} />
+                          </PreviewCard>
+                          <PreviewCard title="Lieferantenbewertung" path="/lieferantenbewertung">
+                            <BewertungPreview orders={orders} retouren={returns} />
+                          </PreviewCard>
+                          <PreviewCard title="Automatisierung" path="/automatisierung">
+                            <AutomatisierungPreview orders={orders} />
+                          </PreviewCard>
+                        </>
+                      )}
                     </div>
                   )}
                 </div>
@@ -691,7 +699,7 @@ const App = () => {
               path="/live-scannen"
               element={
                 <div className="live-scannen space-y-6">
-                  <h1 className="text-3xl md:text-4xl font-bold text-yellow-400 mb-6">📷 Live-Scannen</h1>
+                  <h1 className="text-3xl md:text-4xl font-bold text-yellow-400 mb-6">Live-Scannen</h1>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <BarcodeScanner
                       orders={orders}

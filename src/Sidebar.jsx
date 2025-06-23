@@ -18,21 +18,28 @@ import { FaCamera } from 'react-icons/fa';
 
 const categories = [
   {
-    title: '📷 Scannen',
+    title: 'Scannen', // Änderung: Emoji entfernt
     icon: FaCamera,
     links: [
       { to: '/live-scannen', label: 'Live-Scannen', icon: FaCamera },
     ],
   },
   {
-    title: '🏠 Allgemein',
+    title: 'Automatisierung', // Änderung: Automatisierung nach oben verschoben
+    icon: FaCogs,
+    links: [
+      { to: '/automatisierung', label: 'Automatisierung', icon: FaCogs },
+    ],
+  },
+  {
+    title: 'Allgemein', // Änderung: Emoji entfernt
     icon: FaHome,
     links: [
       { to: '/', label: 'Startseite', icon: FaHome },
     ],
   },
   {
-    title: '📋 Daten',
+    title: 'Daten', // Änderung: Emoji entfernt
     icon: FaClipboardList,
     links: [
       { to: '/orderlog', label: 'Bestelllog', icon: FaClipboardList },
@@ -40,7 +47,7 @@ const categories = [
     ],
   },
   {
-    title: '📊 Analyse',
+    title: 'Analyse', // Änderung: Emoji entfernt
     icon: FaChartLine,
     links: [
       { to: '/lagerverlauf', label: 'Lagerverlauf', icon: FaChartLine },
@@ -49,13 +56,6 @@ const categories = [
       { to: '/engpaesse', label: 'Engpässe', icon: FaTruckLoading },
       { to: '/finanzen', label: 'Finanzen', icon: FaEuroSign },
       { to: '/lieferantenbewertung', label: 'Bewertung', icon: FaStarHalfAlt },
-    ],
-  },
-  {
-    title: '⚙️ Verwaltung',
-    icon: FaCogs,
-    links: [
-      { to: '/automatisierung', label: 'Automatisierung', icon: FaCogs },
     ],
   },
 ];

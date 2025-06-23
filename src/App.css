@@ -1,4 +1,18 @@
 /* App.css */
+
+/* CSS Reset */
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  box-sizing: border-box;
+}
+
+* {
+  box-sizing: border-box;
+}
+
 /* Allgemein */
 .app {
   display: flex;
@@ -7,6 +21,9 @@
   background-color: #1b1f23;
   color: #f0f0f0;
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  margin: 0;
+  padding: 0;
+  width: 100%;
 }
 
 /* Sidebar */
@@ -19,9 +36,24 @@
   top: 0;
   left: 0;
   z-index: 1000;
-  transition: width 0.3s ease, transform 0.3s ease;
-  box-shadow: none;
+  transition: width 0.3s ease;
+  box-shadow: none !important;
+  border-right: none !important;
 }
+.sidebar--open {
+  width: 240px;
+  box-shadow: 2px 0 8px rgba(0, 0, 0, 0.2);
+}
+@media (max-width: 768px) {
+  .sidebar {
+    width: 240px;
+    transform: translateX(-100%);
+  }
+  .sidebar--open {
+    transform: translateX(0);
+  }
+}
+
 
 .sidebar--open {
   width: 240px;
@@ -54,9 +86,13 @@
 
 .sidebar a.active {
   background-color: #3a4b5c;
-  border-left: 4px solid #f7a440;
   color: #ffb15e;
   font-weight: 600;
+  border-left: none; /* Entfernt den blauen Strich, wenn Sidebar geschlossen ist */
+}
+
+.sidebar.sidebar--open a.active {
+  border-left: 4px solid #f7a440;
 }
 
 .sidebar a {
@@ -106,13 +142,19 @@
   border-top: 1px solid #2c2c2c;
   transition: color 0.2s;
 }
+.active-category-collapsed {
+  background-color: transparent !important;
+}
+.active-category-collapsed .icon {
+  color: #ffb15e;
+}
 
 .sidebar-category.active-category {
   color: #f7a440;
 }
 
-.sidebar:not(.sidebar--open) .sidebar-category {
-  display: none;
+.sidebar:not(.sidebar--open) .sidebar-icon-only {
+  background-color: transparent !important;
 }
 
 .sidebar-footer {
@@ -125,16 +167,13 @@
   flex: 1;
   padding: 24px;
   overflow-y: auto;
-  transition: margin-left 0.3s ease;
-  margin-left: 64px;
+  width: 100%;
   max-width: 1200px;
-  margin-right: auto;
-  margin-left: auto;
+  margin: 0 auto;
+  background-color: #1b1f23;
+  position: relative; /* Sicherstellen, dass Inhalt nicht überdeckt wird */
 }
 
-.sidebar--open ~ .main-content {
-  margin-left: 240px;
-}
 
 /* Startseite */
 .home {
@@ -144,6 +183,7 @@
   padding-top: 32px;
   max-width: 1200px;
   margin: 0 auto;
+  width: 100%;
 }
 
 .graph-container {
@@ -292,6 +332,9 @@ a.email-link:hover {
   align-items: center;
   padding: 12px;
   color: #f7a440;
+  background-color: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
 }
 
 .sidebar-icon-only .icon {
@@ -299,9 +342,8 @@ a.email-link:hover {
 }
 
 .active-category-collapsed {
-  background-color: #3a4b5c;
+  background-color: transparent !important; /* Entfernt dunkelblauen Balken */
 }
-
 .active-category-collapsed .icon {
   color: #ffb15e;
 }
@@ -567,4 +609,11 @@ a.email-link:hover {
 
 .barcode-scanner td {
   color: #d1d5db;
+}
+
+aside,.app {
+  background-color: #1b1f23 !important;
+}
+.sidebar {
+  background-color: #1e293b !important;
 }
