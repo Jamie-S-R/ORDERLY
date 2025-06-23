@@ -155,28 +155,39 @@ const OutputLog = ({ outputs, setOutputs, onDataUpdate }) => {
   };
 
   return (
-    <div className="detail-view">
-      <h2>📤 Ausgangshistorie</h2>
-      {error && <p style={{ color: 'red', textAlign: 'center' }}>{error}</p>}
-      {isDeleting && <p style={{ color: 'yellow', textAlign: 'center' }}>Löschen...</p>}
-      <label style={{ marginBottom: '10px', display: 'block' }}>
-        Sortieren nach:
-        <select value={sortOrder} onChange={(e) => setSortOrder(e.target.value)} style={{ marginLeft: '10px', padding: '5px' }}>
-          <option value="newest">Neueste zuerst</option>
-          <option value="oldest">Älteste zuerst</option>
-        </select>
-      </label>
-      <ul className="order-list">
+    <div className="detail-view p-4">
+      <h2 className="text-2xl font-bold text-yellow-400 mb-4">📤 Ausgangshistorie</h2>
+      {error && <p className="text-red-500 text-center mb-4">{error}</p>}
+      {isDeleting && <p className="text-yellow-500 text-center mb-4">Löschen...</p>}
+      <div className="flex items-center space-x-2 mb-4">
+        <label className="text-white">Sortieren nach:</label>
+        <div className="relative inline-block">
+          <select
+            value={sortOrder}
+            onChange={(e) => setSortOrder(e.target.value)}
+            className="appearance-none bg-gray-700 text-white p-2 rounded-lg pr-8 focus:outline-none focus:ring-2 focus:ring-yellow-500"
+          >
+            <option value="newest">Neueste zuerst</option>
+            <option value="oldest">Älteste zuerst</option>
+          </select>
+          <div className="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
+            <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+            </svg>
+          </div>
+        </div>
+      </div>
+      <ul className="space-y-2">
         {sortOutputs(outputs).map((a) => (
-          <li key={a.AusgangsID} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <Link to={`/outputlog/${a.AusgangsID}`} className="section-link">
+          <li key={a.AusgangsID} className="flex justify-between items-center bg-gray-800 p-3 rounded-lg">
+            <Link to={`/outputlog/${a.AusgangsID}`} className="text-yellow-400 hover:underline flex-1">
               <strong>{a.Ausgangsdatum}</strong> – {a.Artikelnummer} – {a.VerbrauchteMenge} Stück<br />
-              <em>{a.Bemerkungen}</em>
+              <em className="text-gray-400">{a.Bemerkungen}</em>
             </Link>
             <button
               onClick={() => handleDelete(a.AusgangsID)}
               disabled={isDeleting}
-              style={{ padding: '5px 10px', background: '#f44336', color: 'white', border: 'none', cursor: isDeleting ? 'not-allowed' : 'pointer', borderRadius: '4px' }}
+              className={`bg-red-500 text-white px-3 py-1 rounded-lg ${isDeleting ? 'opacity-50 cursor-not-allowed' : 'hover:bg-red-600'}`}
             >
               Löschen
             </button>
@@ -184,21 +195,20 @@ const OutputLog = ({ outputs, setOutputs, onDataUpdate }) => {
         ))}
       </ul>
       {selected && (
-        <div style={{
-          marginTop: '2rem',
-          background: '#1f1f1f',
-          padding: '1rem',
-          borderRadius: '8px',
-          border: '1px solid #444'
-        }}>
-          <h3>📋 Ausgabendetails</h3>
-          <p><strong>Artikelnummer:</strong> {selected.Artikelnummer}</p>
-          <p><strong>Menge:</strong> {selected.VerbrauchteMenge}</p>
-          <p><strong>Lagerbestand Vor:</strong> {selected.LagerbestandVor}</p>
-          <p><strong>Lagerbestand Nach:</strong> {selected.LagerbestandNach}</p>
-          <p><strong>Datum:</strong> {selected.Ausgangsdatum}</p>
-          <p><strong>Bemerkung:</strong> {selected.Bemerkungen}</p>
-          <button onClick={() => setSelected(null)}>Schließen</button>
+        <div className="mt-6 bg-gray-900 p-4 rounded-lg border border-gray-600">
+          <h3 className="text-xl font-bold text-white mb-2">📋 Ausgabendetails</h3>
+          <p className="text-gray-300"><strong>Artikelnummer:</strong> {selected.Artikelnummer}</p>
+          <p className="text-gray-300"><strong>Menge:</strong> {selected.VerbrauchteMenge}</p>
+          <p className="text-gray-300"><strong>Lagerbestand Vor:</strong> {selected.LagerbestandVor}</p>
+          <p className="text-gray-300"><strong>Lagerbestand Nach:</strong> {selected.LagerbestandNach}</p>
+          <p className="text-gray-300"><strong>Datum:</strong> {selected.Ausgangsdatum}</p>
+          <p className="text-gray-300"><strong>Bemerkung:</strong> {selected.Bemerkungen}</p>
+          <button
+            onClick={() => setSelected(null)}
+            className="mt-2 bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600"
+          >
+            Schließen
+          </button>
         </div>
       )}
     </div>
@@ -257,28 +267,39 @@ const OrderLog = ({ orders, setOrders, onDataUpdate }) => {
   };
 
   return (
-    <div className="detail-view">
-      <h2>📦 Bestellhistorie</h2>
-      {error && <p style={{ color: 'red', textAlign: 'center' }}>{error}</p>}
-      {isDeleting && <p style={{ color: 'yellow', textAlign: 'center' }}>Löschen...</p>}
-      <label style={{ marginBottom: '10px', display: 'block' }}>
-        Sortieren nach:
-        <select value={sortOrder} onChange={(e) => setSortOrder(e.target.value)} style={{ marginLeft: '10px', padding: '5px' }}>
-          <option value="newest">Neueste zuerst</option>
-          <option value="oldest">Älteste zuerst</option>
-        </select>
-      </label>
-      <ul className="order-list">
+    <div className="detail-view p-4">
+      <h2 className="text-2xl font-bold text-yellow-400 mb-4">📦 Bestellhistorie</h2>
+      {error && <p className="text-red-500 text-center mb-4">{error}</p>}
+      {isDeleting && <p className="text-yellow-500 text-center mb-4">Löschen...</p>}
+      <div className="flex items-center space-x-2 mb-4">
+        <label className="text-white">Sortieren nach:</label>
+        <div className="relative inline-block">
+          <select
+            value={sortOrder}
+            onChange={(e) => setSortOrder(e.target.value)}
+            className="appearance-none bg-gray-700 text-white p-2 rounded-lg pr-8 focus:outline-none focus:ring-2 focus:ring-yellow-500"
+          >
+            <option value="newest">Neueste zuerst</option>
+            <option value="oldest">Älteste zuerst</option>
+          </select>
+          <div className="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
+            <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+            </svg>
+          </div>
+        </div>
+      </div>
+      <ul className="space-y-2">
         {sortOrders(orders).map((o) => (
-          <li key={o.BestellID} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <Link to={`/orderlog/${o.BestellID}`} className="section-link">
+          <li key={o.BestellID} className="flex justify-between items-center bg-gray-800 p-3 rounded-lg">
+            <Link to={`/orderlog/${o.BestellID}`} className="text-yellow-400 hover:underline flex-1">
               <strong>{o.Bestelldatum}</strong> – {o.Lieferant} – {o.Menge} {o.Einheit}<br />
-              <em>{o.Artikelbeschreibung}</em>
+              <em className="text-gray-400">{o.Artikelbeschreibung}</em>
             </Link>
             <button
               onClick={() => handleDelete(o.BestellID)}
               disabled={isDeleting}
-              style={{ padding: '5px 10px', background: '#f44336', color: 'white', border: 'none', cursor: isDeleting ? 'not-allowed' : 'pointer', borderRadius: '4px' }}
+              className={`bg-red-500 text-white px-3 py-1 rounded-lg ${isDeleting ? 'opacity-50 cursor-not-allowed' : 'hover:bg-red-600'}`}
             >
               Löschen
             </button>
@@ -286,24 +307,23 @@ const OrderLog = ({ orders, setOrders, onDataUpdate }) => {
         ))}
       </ul>
       {selected && (
-        <div style={{
-          marginTop: '2rem',
-          background: '#1f1f1f',
-          padding: '1rem',
-          borderRadius: '8px',
-          border: '1px solid #444'
-        }}>
-          <h3>📋 Bestelldetails</h3>
-          <p><strong>Artikel:</strong> {selected.Artikelbeschreibung}</p>
-          <p><strong>Menge:</strong> {selected.Menge} {selected.Einheit}</p>
-          <p><strong>Einzelpreis:</strong> {selected.PreisProEinheit} €</p>
-          <p><strong>Gesamtpreis:</strong> {selected.Gesamtpreis} €</p>
-          <p><strong>Lieferant:</strong> {selected.Lieferant}</p>
-          <p><strong>Kategorie:</strong> {selected.Kategorie}</p>
-          <p><strong>Geplant:</strong> {selected.GeplantesLieferdatum}</p>
-          <p><strong>Tatsächlich:</strong> {selected.TatsächlichesLieferdatum}</p>
-          <p><strong>Lieferdauer:</strong> {selected.Lieferdauer} Tage</p>
-          <button onClick={() => setSelected(null)}>Schließen</button>
+        <div className="mt-6 bg-gray-900 p-4 rounded-lg border border-gray-600">
+          <h3 className="text-xl font-bold text-white mb-2">📋 Bestelldetails</h3>
+          <p className="text-gray-300"><strong>Artikel:</strong> {selected.Artikelbeschreibung}</p>
+          <p className="text-gray-300"><strong>Menge:</strong> {selected.Menge} {selected.Einheit}</p>
+          <p className="text-gray-300"><strong>Einzelpreis:</strong> {selected.PreisProEinheit} €</p>
+          <p className="text-gray-300"><strong>Gesamtpreis:</strong> {selected.Gesamtpreis} €</p>
+          <p className="text-gray-300"><strong>Lieferant:</strong> {selected.Lieferant}</p>
+          <p className="text-gray-300"><strong>Kategorie:</strong> {selected.Kategorie}</p>
+          <p className="text-gray-300"><strong>Geplant:</strong> {selected.GeplantesLieferdatum}</p>
+          <p className="text-gray-300"><strong>Tatsächlich:</strong> {selected.TatsächlichesLieferdatum}</p>
+          <p className="text-gray-300"><strong>Lieferdauer:</strong> {selected.Lieferdauer} Tage</p>
+          <button
+            onClick={() => setSelected(null)}
+            className="mt-2 bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600"
+          >
+            Schließen
+          </button>
         </div>
       )}
     </div>
@@ -362,28 +382,39 @@ const ReturnLog = ({ returns, setReturns, onDataUpdate }) => {
   };
 
   return (
-    <div className="detail-view">
-      <h2>📦 Retourenhistorie</h2>
-      {error && <p style={{ color: 'red', textAlign: 'center' }}>{error}</p>}
-      {isDeleting && <p style={{ color: 'yellow', textAlign: 'center' }}>Löschen...</p>}
-      <label style={{ marginBottom: '10px', display: 'block' }}>
-        Sortieren nach:
-        <select value={sortOrder} onChange={(e) => setSortOrder(e.target.value)} style={{ marginLeft: '10px', padding: '5px' }}>
-          <option value="newest">Neueste zuerst</option>
-          <option value="oldest">Älteste zuerst</option>
-        </select>
-      </label>
-      <ul className="order-list">
+    <div className="detail-view p-4">
+      <h2 className="text-2xl font-bold text-yellow-400 mb-4">📦 Retourenhistorie</h2>
+      {error && <p className="text-red-500 text-center mb-4">{error}</p>}
+      {isDeleting && <p className="text-yellow-500 text-center mb-4">Löschen...</p>}
+      <div className="flex items-center space-x-2 mb-4">
+        <label className="text-white">Sortieren nach:</label>
+        <div className="relative inline-block">
+          <select
+            value={sortOrder}
+            onChange={(e) => setSortOrder(e.target.value)}
+            className="appearance-none bg-gray-700 text-white p-2 rounded-lg pr-8 focus:outline-none focus:ring-2 focus:ring-yellow-500"
+          >
+            <option value="newest">Neueste zuerst</option>
+            <option value="oldest">Älteste zuerst</option>
+          </select>
+          <div className="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
+            <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+            </svg>
+          </div>
+        </div>
+      </div>
+      <ul className="space-y-2">
         {sortReturns(returns).map((r) => (
-          <li key={r.RetoureID} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <Link to={`/returnlog/${r.RetoureID}`} className="section-link">
+          <li key={r.RetoureID} className="flex justify-between items-center bg-gray-800 p-3 rounded-lg">
+            <Link to={`/returnlog/${r.RetoureID}`} className="text-yellow-400 hover:underline flex-1">
               <strong>{r.Datum}</strong> – {r.Artikelnummer} – {r.Menge} Stück<br />
-              <em>{r.GrundDerRetoure}</em>
+              <em className="text-gray-400">{r.GrundDerRetoure}</em>
             </Link>
             <button
               onClick={() => handleDelete(r.RetoureID)}
               disabled={isDeleting}
-              style={{ padding: '5px 10px', background: '#f44336', color: 'white', border: 'none', cursor: isDeleting ? 'not-allowed' : 'pointer', borderRadius: '4px' }}
+              className={`bg-red-500 text-white px-3 py-1 rounded-lg ${isDeleting ? 'opacity-50 cursor-not-allowed' : 'hover:bg-red-600'}`}
             >
               Löschen
             </button>
@@ -391,20 +422,19 @@ const ReturnLog = ({ returns, setReturns, onDataUpdate }) => {
         ))}
       </ul>
       {selected && (
-        <div style={{
-          marginTop: '2rem',
-          background: '#1f1f1f',
-          padding: '1rem',
-          borderRadius: '8px',
-          border: '1px solid #444'
-        }}>
-          <h3>📋 Retourendetails</h3>
-          <p><strong>Artikelnummer:</strong> {selected.Artikelnummer}</p>
-          <p><strong>Menge:</strong> {selected.Menge}</p>
-          <p><strong>Grund:</strong> {selected.GrundDerRetoure}</p>
-          <p><strong>Lieferant:</strong> {selected.Lieferant}</p>
-          <p><strong>Datum:</strong> {selected.Datum}</p>
-          <button onClick={() => setSelected(null)}>Schließen</button>
+        <div className="mt-6 bg-gray-900 p-4 rounded-lg border border-gray-600">
+          <h3 className="text-xl font-bold text-white mb-2">📋 Retourendetails</h3>
+          <p className="text-gray-300"><strong>Artikelnummer:</strong> {selected.Artikelnummer}</p>
+          <p className="text-gray-300"><strong>Menge:</strong> {selected.Menge}</p>
+          <p className="text-gray-300"><strong>Grund:</strong> {selected.GrundDerRetoure}</p>
+          <p className="text-gray-300"><strong>Lieferant:</strong> {selected.Lieferant}</p>
+          <p className="text-gray-300"><strong>Datum:</strong> {selected.Datum}</p>
+          <button
+            onClick={() => setSelected(null)}
+            className="mt-2 bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600"
+          >
+            Schließen
+          </button>
         </div>
       )}
     </div>
@@ -415,21 +445,23 @@ const OrderDetails = ({ orders }) => {
   const { id } = useParams();
   const order = orders.find(o => o.BestellID === id);
 
-  if (!order) return <div className="detail-view">❌ Bestellung nicht gefunden.</div>;
+  if (!order) return <div className="detail-view p-4">❌ Bestellung nicht gefunden.</div>;
 
   return (
-    <div className="detail-view">
-      <h2>📋 Bestelldetails</h2>
-      <p><strong>Artikel:</strong> {order.Artikelbeschreibung}</p>
-      <p><strong>Menge:</strong> {order.Menge} {order.Einheit}</p>
-      <p><strong>Einzelpreis:</strong> {order.PreisProEinheit} €</p>
-      <p><strong>Gesamtpreis:</strong> {order.Gesamtpreis} €</p>
-      <p><strong>Lieferant:</strong> {order.Lieferant}</p>
-      <p><strong>Kategorie:</strong> {order.Kategorie}</p>
-      <p><strong>Geplant:</strong> {order.GeplantesLieferdatum}</p>
-      <p><strong>Tatsächlich:</strong> {order.TatsächlichesLieferdatum}</p>
-      <p><strong>Lieferdauer:</strong> {order.Lieferdauer} Tage</p>
-      <Link to="/orderlog" className="section-link">← Zurück zur Liste</Link>
+    <div className="detail-view p-4">
+      <h2 className="text-2xl font-bold text-yellow-400 mb-4">📋 Bestelldetails</h2>
+      <div className="bg-gray-800 p-4 rounded-lg space-y-2">
+        <p className="text-gray-300"><strong>Artikel:</strong> {order.Artikelbeschreibung}</p>
+        <p className="text-gray-300"><strong>Menge:</strong> {order.Menge} {order.Einheit}</p>
+        <p className="text-gray-300"><strong>Einzelpreis:</strong> {order.PreisProEinheit} €</p>
+        <p className="text-gray-300"><strong>Gesamtpreis:</strong> {order.Gesamtpreis} €</p>
+        <p className="text-gray-300"><strong>Lieferant:</strong> {order.Lieferant}</p>
+        <p className="text-gray-300"><strong>Kategorie:</strong> {order.Kategorie}</p>
+        <p className="text-gray-300"><strong>Geplant:</strong> {order.GeplantesLieferdatum}</p>
+        <p className="text-gray-300"><strong>Tatsächlich:</strong> {order.TatsächlichesLieferdatum}</p>
+        <p className="text-gray-300"><strong>Lieferdauer:</strong> {order.Lieferdauer} Tage</p>
+        <Link to="/orderlog" className="text-yellow-400 hover:underline">← Zurück zur Liste</Link>
+      </div>
     </div>
   );
 };
@@ -438,18 +470,20 @@ const OutputDetails = ({ outputs }) => {
   const { id } = useParams();
   const output = outputs.find(a => a.AusgangsID === id);
 
-  if (!output) return <div className="detail-view">❌ Ausgang nicht gefunden.</div>;
+  if (!output) return <div className="detail-view p-4">❌ Ausgang nicht gefunden.</div>;
 
   return (
-    <div className="detail-view">
-      <h2>📋 Ausgabendetails</h2>
-      <p><strong>Artikelnummer:</strong> {output.Artikelnummer}</p>
-      <p><strong>Menge:</strong> {output.VerbrauchteMenge}</p>
-      <p><strong>Lagerbestand Vor:</strong> {output.LagerbestandVor}</p>
-      <p><strong>Lagerbestand Nach:</strong> {output.LagerbestandNach}</p>
-      <p><strong>Datum:</strong> {output.Ausgangsdatum}</p>
-      <p><strong>Bemerkung:</strong> {output.Bemerkungen}</p>
-      <Link to="/outputlog" className="section-link">← Zurück zur Liste</Link>
+    <div className="detail-view p-4">
+      <h2 className="text-2xl font-bold text-yellow-400 mb-4">📋 Ausgabendetails</h2>
+      <div className="bg-gray-800 p-4 rounded-lg space-y-2">
+        <p className="text-gray-300"><strong>Artikelnummer:</strong> {output.Artikelnummer}</p>
+        <p className="text-gray-300"><strong>Menge:</strong> {output.VerbrauchteMenge}</p>
+        <p className="text-gray-300"><strong>Lagerbestand Vor:</strong> {output.LagerbestandVor}</p>
+        <p className="text-gray-300"><strong>Lagerbestand Nach:</strong> {output.LagerbestandNach}</p>
+        <p className="text-gray-300"><strong>Datum:</strong> {output.Ausgangsdatum}</p>
+        <p className="text-gray-300"><strong>Bemerkung:</strong> {output.Bemerkungen}</p>
+        <Link to="/outputlog" className="text-yellow-400 hover:underline">← Zurück zur Liste</Link>
+      </div>
     </div>
   );
 };
@@ -458,34 +492,31 @@ const ReturnDetails = ({ returns }) => {
   const { id } = useParams();
   const returnItem = returns.find(r => r.RetoureID === id);
 
-  if (!returnItem) return <div className="detail-view">❌ Retoure nicht gefunden.</div>;
+  if (!returnItem) return <div className="detail-view p-4">❌ Retoure nicht gefunden.</div>;
 
   return (
-    <div className="detail-view">
-      <h2>📋 Retourendetails</h2>
-      <p><strong>Artikelnummer:</strong> {returnItem.Artikelnummer}</p>
-      <p><strong>Menge:</strong> {returnItem.Menge}</p>
-      <p><strong>Grund:</strong> {returnItem.GrundDerRetoure}</p>
-      <p><strong>Lieferant:</strong> {returnItem.Lieferant}</p>
-      <p><strong>Datum:</strong> {returnItem.Datum}</p>
-      <Link to="/returnlog" className="section-link">← Zurück zur Liste</Link>
+    <div className="detail-view p-4">
+      <h2 className="text-2xl font-bold text-yellow-400 mb-4">📋 Retourendetails</h2>
+      <div className="bg-gray-800 p-4 rounded-lg space-y-2">
+        <p className="text-gray-300"><strong>Artikelnummer:</strong> {returnItem.Artikelnummer}</p>
+        <p className="text-gray-300"><strong>Menge:</strong> {returnItem.Menge}</p>
+        <p className="text-gray-300"><strong>Grund:</strong> {returnItem.GrundDerRetoure}</p>
+        <p className="text-gray-300"><strong>Lieferant:</strong> {returnItem.Lieferant}</p>
+        <p className="text-gray-300"><strong>Datum:</strong> {returnItem.Datum}</p>
+        <Link to="/returnlog" className="text-yellow-400 hover:underline">← Zurück zur Liste</Link>
+      </div>
     </div>
   );
 };
 
 const PreviewCard = ({ title, path, children }) => (
-  <div className="graph-container">
-    <h3 style={{ color: '#f7a440' }}>{title}</h3>
-    <Link to={path} className="section-link" style={{ textDecoration: 'none' }}>
-      <div className="graph-placeholder"
-        style={{
-          height: '180px',
-          overflow: 'hidden',
-          backgroundColor: '#1e1e1e',
-          padding: '0.5rem',
-          borderRadius: '8px',
-          border: '1px solid #333',
-        }}>
+  <div className="graph-container mb-4">
+    <h3 className="text-lg font-bold text-yellow-400 mb-2">{title}</h3>
+    <Link to={path} className="block">
+      <div
+        className="bg-gray-900 p-2 rounded-lg border border-gray-600 hover:border-yellow-500 transition-all duration-200"
+        style={{ height: '180px', overflow: 'hidden' }}
+      >
         {children}
       </div>
     </Link>
@@ -624,21 +655,35 @@ const App = () => {
 
   return (
     <Router>
-      <button onClick={() => setMenuOpen(prev => !prev)} className="menu-toggle">☰</button>
-      <div className="app">
-        {menuOpen && isMobile && <div className="overlay active" onClick={() => setMenuOpen(false)}></div>}
-        <aside className={`sidebar ${menuOpen ? 'sidebar--open' : ''}`}>
+      <button
+        onClick={() => setMenuOpen(prev => !prev)}
+        className="fixed top-4 left-4 z-50 bg-yellow-500 text-white p-3 rounded-full shadow-lg hover:bg-yellow-600 focus:outline-none focus:ring-2 focus:ring-yellow-400 md:hidden"
+      >
+        ☰
+      </button>
+      <div className="app flex min-h-screen">
+        {menuOpen && isMobile && (
+          <div
+            className="fixed inset-0 bg-black bg-opacity-50 z-40"
+            onClick={() => setMenuOpen(false)}
+          ></div>
+        )}
+        <aside
+          className={`fixed md:static inset-y-0 left-0 z-50 bg-gray-900 text-white w-64 transform ${
+            menuOpen ? 'translate-x-0' : '-translate-x-full'
+          } md:translate-x-0 transition-transform duration-300 ease-in-out`}
+        >
           <Sidebar isOpen={menuOpen} setIsOpen={setMenuOpen} isMobile={isMobile} />
         </aside>
-        <main className="main-content">
+        <main className="flex-1 p-4 md:ml-64">
           {dataError && (
-            <div style={{ color: 'red', textAlign: 'center', padding: '1rem', background: '#ffe6e6' }}>
+            <div className="text-red-500 text-center p-4 mb-4 bg-red-100 rounded-lg">
               {dataError}
             </div>
           )}
           <button
             onClick={loadData}
-            style={{ margin: '1rem', padding: '0.5rem 1rem', background: '#4CAF50', color: 'white', borderRadius: '4px' }}
+            className="mb-4 bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-400"
           >
             Daten neu laden
           </button>
@@ -646,36 +691,52 @@ const App = () => {
             <Route
               path="/"
               element={
-                <div className="home">
-                  <h1 style={{ color: '#f7a440', marginBottom: '2rem' }}>📊 Dashboard</h1>
-                  <PreviewCard title="Lagerentwicklung" path="/lagerverlauf">
-                    <LagerverlaufPreview />
-                  </PreviewCard>
-                  <PreviewCard title="Retourenübersicht" path="/retouren">
-                    <RetourenPreview />
-                  </PreviewCard>
-                  <PreviewCard title="Liefertermintreue" path="/termintreue">
-                    <TermintreuePreview />
-                  </PreviewCard>
-                  <PreviewCard title="Lieferantenbewertung" path="/lieferantenbewertung">
-                    <BewertungPreview />
-                  </PreviewCard>
-                  <PreviewCard title="Automatisierung" path="/automatisierung">
-                    <AutomatisierungPreview />
-                  </PreviewCard>
+                <div className="home space-y-6">
+                  <h1 className="text-3xl font-bold text-yellow-400 mb-6">📊 Dashboard</h1>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <PreviewCard title="Lagerentwicklung" path="/lagerverlauf">
+                      <LagerverlaufPreview />
+                    </PreviewCard>
+                    <PreviewCard title="Retourenübersicht" path="/retouren">
+                      <RetourenPreview />
+                    </PreviewCard>
+                    <PreviewCard title="Liefertermintreue" path="/termintreue">
+                      <TermintreuePreview />
+                    </PreviewCard>
+                    <PreviewCard title="Lieferantenbewertung" path="/lieferantenbewertung">
+                      <BewertungPreview />
+                    </PreviewCard>
+                    <PreviewCard title="Automatisierung" path="/automatisierung">
+                      <AutomatisierungPreview />
+                    </PreviewCard>
+                  </div>
                 </div>
               }
             />
-            <Route path="/live-scannen" element={
-              <div className="live-scannen">
-                <h1 style={{ color: '#f7a440', marginBottom: '2rem' }}>📷 Live-Scannen</h1>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <BarcodeScanner orders={orders} setOrders={setOrders} outputs={outputs} setOutputs={setOutputs} returns={returns} setReturns={setReturns} onDataUpdate={handleDataUpdate} />
-                  <InvoiceScanner onDataUpdate={handleDataUpdate} />
+            <Route
+              path="/live-scannen"
+              element={
+                <div className="live-scannen space-y-6">
+                  <h1 className="text-3xl font-bold text-yellow-400 mb-6">📷 Live-Scannen</h1>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <BarcodeScanner
+                      orders={orders}
+                      setOrders={setOrders}
+                      outputs={outputs}
+                      setOutputs={setOutputs}
+                      returns={returns}
+                      setReturns={setReturns}
+                      onDataUpdate={handleDataUpdate}
+                    />
+                    <InvoiceScanner onDataUpdate={handleDataUpdate} />
+                  </div>
                 </div>
-              </div>
-            } />
-            <Route path="/lagerverlauf" element={<Lagerverlauf orders={orders} outputs={outputs} returns={returns} />} />
+              }
+            />
+            <Route
+              path="/lagerverlauf"
+              element={<Lagerverlauf orders={orders} outputs={outputs} returns={returns} />}
+            />
             <Route path="/retouren" element={<Retouren returns={returns} />} />
             <Route path="/termintreue" element={<Termintreue orders={orders} />} />
             <Route path="/lieferantenbewertung" element={<Lieferantenbewertung />} />
@@ -683,11 +744,20 @@ const App = () => {
             <Route path="/engpaesse" element={<Engpaesse />} />
             <Route path="/finanzen" element={<Finanzen />} />
             <Route path="/tutorial" element={<Tutorial />} />
-            <Route path="/orderlog" element={<OrderLog orders={orders} setOrders={setOrders} onDataUpdate={handleDataUpdate} />} />
+            <Route
+              path="/orderlog"
+              element={<OrderLog orders={orders} setOrders={setOrders} onDataUpdate={handleDataUpdate} />}
+            />
             <Route path="/orderlog/:id" element={<OrderDetails orders={orders} />} />
-            <Route path="/outputlog" element={<OutputLog outputs={outputs} setOutputs={setOutputs} onDataUpdate={handleDataUpdate} />} />
+            <Route
+              path="/outputlog"
+              element={<OutputLog outputs={outputs} setOutputs={setOutputs} onDataUpdate={handleDataUpdate} />}
+            />
             <Route path="/outputlog/:id" element={<OutputDetails outputs={outputs} />} />
-            <Route path="/returnlog" element={<ReturnLog returns={returns} setReturns={setReturns} onDataUpdate={handleDataUpdate} />} />
+            <Route
+              path="/returnlog"
+              element={<ReturnLog returns={returns} setReturns={setReturns} onDataUpdate={handleDataUpdate} />}
+            />
             <Route path="/returnlog/:id" element={<ReturnDetails returns={returns} />} />
             <Route path="/feedback" element={<Feedback />} />
             <Route path="/help" element={<Help />} />
