@@ -1,15 +1,33 @@
-// BarcodeScanner.jsx
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import Quagga from 'quagga';
+import { FaSearch } from 'react-icons/fa';
 
-const AccordionSection = ({ title, children }) => (
-  <section className="mb-4 border border-gray-600 rounded-lg overflow-hidden">
-    <header className="p-3 bg-gray-700 text-white font-semibold cursor-pointer">
-      ▼ {title}
-    </header>
-    <div className="p-3 bg-gray-800">{children}</div>
-  </section>
-);
+const AccordionSection = ({ title, children }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  return (
+    <section className="mb-4 border border-gray-600 rounded-lg overflow-hidden">
+      <header
+        className="p-3 bg-gray-700 text-white font-semibold cursor-pointer flex items-center justify-between"
+        onClick={() => setIsOpen(!isOpen)}
+      >
+        <span>{title}</span>
+        <svg
+          className={`w-4 h-4 transform transition-transform ${isOpen ? 'rotate-180' : ''}`}
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+        </svg>
+      </header>
+      <div
+        className={`p-3 bg-gray-800 transition-max-height duration-300 ease-in-out ${isOpen ? 'max-h-screen' : 'max-h-0 overflow-hidden'}`}
+      >
+        {children}
+      </div>
+    </section>
+  );
+};
 
 const BarcodeScanner = ({ orders = [], setOrders, outputs = [], setOutputs, returns = [], setReturns, onDataUpdate }) => {
   const videoRef = useRef(null);
@@ -611,7 +629,8 @@ const BarcodeScanner = ({ orders = [], setOrders, outputs = [], setOutputs, retu
     document.body.removeChild(link);
   };
 
-  // Sort logs by date (newest first)
+  // Sort logs by date
+  const [logSortOrder, setLogSortOrder] = useState('newest');
   const sortedLogs = [
     ...(outputs || []).map(item => ({
       ...item,
@@ -628,15 +647,19 @@ const BarcodeScanner = ({ orders = [], setOrders, outputs = [], setOutputs, retu
       type: 'Retoure',
       date: item.Datum,
     }))
-  ].sort((a, b) => new Date(b.date) - new Date(a.date)).slice(0, 10);
+  ].sort((a, b) => {
+    const dateA = new Date(a.date);
+    const dateB = new Date(b.date);
+    return logSortOrder === 'newest' ? dateB - dateA : dateA - dateB;
+  }).slice(0, 10);
 
   console.log('Aktuelle sortedLogs:', sortedLogs.length, sortedLogs);
 
   return (
-    <div className="barcode-scanner p-4 bg-gray-900 rounded-lg border-l-4 border-yellow-500 max-w-full mx-auto sm:max-w-lg">
-      <h2 className="text-xl font-bold text-yellow-400 mb-4">📷 Barcode-Scanner</h2>
-      <div className="mb-4">
-        <label className="block text-white mb-1">Typ auswählen:</label>
+    <div className="barcode-scanner p-3 sm:p-4 bg-gray-900 rounded-lg border-l-4 border-[#f7a440] max-w-full mx-auto sm:max-w-md">
+      <h2 className="text-lg sm:text-xl font-bold text-[#f7a440] mb-3 sm:mb-4">📷 Barcode-Scanner</h2>
+      <div className="mb-3 sm:mb-4">
+        <label className="block text-white text-sm sm:text-base mb-1">Typ auswählen:</label>
         <div className="relative">
           <select
             value={entryType}
@@ -644,7 +667,7 @@ const BarcodeScanner = ({ orders = [], setOrders, outputs = [], setOutputs, retu
               console.log('Auswahl geändert: neuer entryType=', e.target.value);
               setEntryType(e.target.value);
             }}
-            className="w-full p-2 bg-gray-700 text-white rounded-lg appearance-none focus:outline-none focus:ring-2 focus:ring-yellow-500"
+            className="w-full p-2.5 sm:p-3 bg-gray-700 text-white text-sm sm:text-base rounded-lg appearance-none focus:outline-none focus:ring-2 focus:ring-[#f7a440] transition-all"
           >
             <option value="Eingang">Eingang</option>
             <option value="Ausgang">Ausgang</option>
@@ -658,18 +681,18 @@ const BarcodeScanner = ({ orders = [], setOrders, outputs = [], setOutputs, retu
         </div>
       </div>
       {entryType && (
-        <div className="flex flex-col gap-2 mb-4">
+        <div className="flex flex-col gap-2 mb-3 sm:mb-4">
           {!isScanning ? (
             <button
               onClick={startScanning}
-              className="bg-green-500 text-white px-4 py-2 rounded-lg w-full sm:max-w-xs mx-auto hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-400"
+              className="bg-[#10b981] text-white px-4 py-2.5 sm:py-3 rounded-lg w-full text-sm sm:text-base hover:bg-[#059669] focus:outline-none focus:ring-2 focus:ring-[#10b981] transition-all"
             >
               Scanner starten
             </button>
           ) : (
             <button
               onClick={stopScanning}
-              className="bg-red-500 text-white px-4 py-2 rounded-lg w-full sm:max-w-xs mx-auto hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-400"
+              className="bg-[#ef4444] text-white px-4 py-2.5 sm:py-3 rounded-lg w-full text-sm sm:text-base hover:bg-[#dc2626] focus:outline-none focus:ring-2 focus:ring-[#ef4444] transition-all"
             >
               Scanner stoppen
             </button>
@@ -678,54 +701,56 @@ const BarcodeScanner = ({ orders = [], setOrders, outputs = [], setOutputs, retu
       )}
       <video
         ref={videoRef}
-        className="w-full max-w-md mx-auto border-2 border-yellow-500 rounded-lg"
-        style={{ height: 'auto', maxHeight: '50vh', objectFit: 'contain', display: isScanning ? 'block' : 'none' }}
+        className="w-full max-w-full mx-auto border-2 border-[#f7a440] rounded-lg"
+        style={{ height: 'auto', maxHeight: '40vh', objectFit: 'contain', display: isScanning ? 'block' : 'none' }}
         muted
         playsInline
       />
-      {error && <p className="text-red-500 text-center mt-4">{error}</p>}
-      {successMessage && <p className="text-green-500 text-center mt-4">{successMessage}</p>}
+      {error && <p className="text-[#ef4444] text-center text-sm sm:text-base mt-3 sm:mt-4">{error}</p>}
+      {successMessage && <p className="text-[#10b981] text-center text-sm sm:text-base mt-3 sm:mt-4">{successMessage}</p>}
       {entryType && (
-        <form onSubmit={handleManualSubmit} className="mt-4 flex flex-col sm:flex-row gap-2">
-          <input
-            type="text"
-            value={manualBarcode}
-            onChange={(e) => setManualBarcode(e.target.value)}
-            placeholder="Barcode manuell eingeben"
-            className="p-2 flex-1 bg-gray-700 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-500"
-          />
-          <button
-            type="submit"
-            className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-400"
-          >
-            Suchen
-          </button>
+        <form onSubmit={handleManualSubmit} className="mt-3 sm:mt-4 flex flex-col gap-2">
+          <div className="flex flex-col sm:flex-row gap-2">
+            <input
+              type="text"
+              value={manualBarcode}
+              onChange={(e) => setManualBarcode(e.target.value)}
+              placeholder="Barcode manuell eingeben"
+              className="p-2.5 sm:p-3 flex-1 bg-gray-700 text-white text-sm sm:text-base rounded-lg focus:outline-none focus:ring-2 focus:ring-[#f7a440] transition-all"
+            />
+            <button
+              type="submit"
+              className="bg-[#3b82f6] text-white px-4 py-2.5 sm:py-3 rounded-lg flex items-center gap-2 text-sm sm:text-base hover:bg-[#2563eb] focus:outline-none focus:ring-2 focus:ring-[#3b82f6] transition-all"
+            >
+              <FaSearch /> Suchen
+            </button>
+          </div>
         </form>
       )}
       {scanResult?.barcode && newEntry && (
-        <div className="mt-6 space-y-4">
-          <h3 className="text-lg font-bold text-white">Gescannter Barcode: {scanResult.barcode}</h3>
+        <div className="mt-4 sm:mt-6 space-y-3 sm:space-y-4">
+          <h3 className="text-base sm:text-lg font-bold text-white">Gescannter Barcode: {scanResult.barcode}</h3>
           {scanResult.ausgang && (
-            <p className="text-gray-300">
+            <p className="text-gray-300 text-sm sm:text-base">
               Ausgang: {scanResult.ausgang.VerbrauchteMenge} Einheiten verbraucht am {scanResult.ausgang.Ausgangsdatum},
               Lagerbestand: {scanResult.ausgang.LagerbestandVor} → {scanResult.ausgang.LagerbestandNach}
             </p>
           )}
           {scanResult.bestellung && (
-            <p className="text-gray-300">
+            <p className="text-gray-300 text-sm sm:text-base">
               Eingang: {scanResult.bestellung.Menge} Einheiten eingegangen am {scanResult.bestellung.Bestelldatum},
               Lagerbestand: {scanResult.bestellung.AktuellerLagerbestand}
             </p>
           )}
           {scanResult.retoure && (
-            <p className="text-gray-300">
+            <p className="text-gray-300 text-sm sm:text-base">
               Retoure: {scanResult.retoure.Menge} Einheiten zurückgesendet am {scanResult.retoure.Datum},
               Grund: {scanResult.retoure.GrundDerRetoure}
             </p>
           )}
           {!scanResult.ausgang && !scanResult.bestellung && !scanResult.retoure && (
             <div>
-              <p className="text-gray-300">
+              <p className="text-gray-300 text-sm sm:text-base">
                 {entryType === 'Eingang' && scanResult.newBestellungCreated
                   ? `Neuer Artikel: ${scanResult.barcode}. Wird in bestellungen hinzugefügt.`
                   : entryType === 'Ausgang' && scanResult.newAusgangCreated
@@ -734,109 +759,109 @@ const BarcodeScanner = ({ orders = [], setOrders, outputs = [], setOutputs, retu
                   ? `Neuer Artikel: ${scanResult.barcode}. Wird in retouren hinzugefügt.`
                   : `Kein passender Eintrag gefunden: ${scanResult.barcode}`}
               </p>
-              <h4 className="text-lg font-bold text-white mt-4">Neuen Eintrag hinzufügen</h4>
-              <form onSubmit={handleNewEntrySubmit} className="flex flex-col gap-4 mt-2">
+              <h4 className="text-base sm:text-lg font-bold text-white mt-3 sm:mt-4">Neuen Eintrag hinzufügen</h4>
+              <form onSubmit={handleNewEntrySubmit} className="flex flex-col gap-3 sm:gap-4 mt-2">
                 {entryType === 'Eingang' && (
                   <>
                     <label className="flex flex-col">
-                      <span className="text-white mb-1">BestellID:</span>
+                      <span className="text-white text-sm sm:text-base mb-1">BestellID:</span>
                       <input
                         type="text"
                         value={generatedIds.BestellID || 'Lade ID...'}
                         readOnly
-                        className="p-2 bg-gray-600 text-white rounded-lg"
+                        className="p-2.5 sm:p-3 bg-gray-600 text-white text-sm sm:text-base rounded-lg"
                       />
                     </label>
                     <label className="flex flex-col">
-                      <span className="text-white mb-1">Bestelldatum:</span>
+                      <span className="text-white text-sm sm:text-base mb-1">Bestelldatum:</span>
                       <input
                         type="date"
                         value={newEntry.Bestelldatum}
                         onChange={(e) => handleNewEntryChange('Bestelldatum', e.target.value)}
                         required
-                        className="p-2 bg-gray-700 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-500"
+                        className="p-2.5 sm:p-3 bg-gray-700 text-white text-sm sm:text-base rounded-lg focus:outline-none focus:ring-2 focus:ring-[#f7a440] transition-all"
                       />
                     </label>
                     <label className="flex flex-col">
-                      <span className="text-white mb-1">Menge:</span>
+                      <span className="text-white text-sm sm:text-base mb-1">Menge:</span>
                       <input
                         type="number"
                         value={newEntry.Menge}
                         onChange={(e) => handleNewEntryChange('Menge', e.target.value)}
                         required
-                        className="p-2 bg-gray-700 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-500"
+                        className="p-2.5 sm:p-3 bg-gray-700 text-white text-sm sm:text-base rounded-lg focus:outline-none focus:ring-2 focus:ring-[#f7a440] transition-all"
                       />
                     </label>
                     <label className="flex flex-col">
-                      <span className="text-white mb-1">Bestellart:</span>
+                      <span className="text-white text-sm sm:text-base mb-1">Bestellart:</span>
                       <input
                         type="text"
                         value={newEntry.Bestellart}
                         onChange={(e) => handleNewEntryChange('Bestellart', e.target.value)}
-                        className="p-2 bg-gray-700 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-500"
+                        className="p-2.5 sm:p-3 bg-gray-700 text-white text-sm sm:text-base rounded-lg focus:outline-none focus:ring-2 focus:ring-[#f7a440] transition-all"
                       />
                     </label>
                     <label className="flex flex-col">
-                      <span className="text-white mb-1">Lieferant:</span>
+                      <span className="text-white text-sm sm:text-base mb-1">Lieferant:</span>
                       <input
                         type="text"
                         value={newEntry.Lieferant}
                         onChange={(e) => handleNewEntryChange('Lieferant', e.target.value)}
-                        className="p-2 bg-gray-700 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-500"
+                        className="p-2.5 sm:p-3 bg-gray-700 text-white text-sm sm:text-base rounded-lg focus:outline-none focus:ring-2 focus:ring-[#f7a440] transition-all"
                       />
                     </label>
                     <label className="flex flex-col">
-                      <span className="text-white mb-1">Artikelbeschreibung:</span>
+                      <span className="text-white text-sm sm:text-base mb-1">Artikelbeschreibung:</span>
                       <input
                         type="text"
                         value={newEntry.Artikelbeschreibung}
                         onChange={(e) => handleNewEntryChange('Artikelbeschreibung', e.target.value)}
-                        className="p-2 bg-gray-700 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-500"
+                        className="p-2.5 sm:p-3 bg-gray-700 text-white text-sm sm:text-base rounded-lg focus:outline-none focus:ring-2 focus:ring-[#f7a440] transition-all"
                       />
                     </label>
                     <label className="flex flex-col">
-                      <span className="text-white mb-1">Einheit:</span>
+                      <span className="text-white text-sm sm:text-base mb-1">Einheit:</span>
                       <input
                         type="text"
                         value={newEntry.Einheit}
                         onChange={(e) => handleNewEntryChange('Einheit', e.target.value)}
-                        className="p-2 bg-gray-700 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-500"
+                        className="p-2.5 sm:p-3 bg-gray-700 text-white text-sm sm:text-base rounded-lg focus:outline-none focus:ring-2 focus:ring-[#f7a440] transition-all"
                       />
                     </label>
                     <label className="flex flex-col">
-                      <span className="text-white mb-1">PreisProEinheit:</span>
+                      <span className="text-white text-sm sm:text-base mb-1">PreisProEinheit:</span>
                       <input
                         type="number"
                         value={newEntry.PreisProEinheit}
                         onChange={(e) => handleNewEntryChange('PreisProEinheit', e.target.value)}
-                        className="p-2 bg-gray-700 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-500"
+                        className="p-2.5 sm:p-3 bg-gray-700 text-white text-sm sm:text-base rounded-lg focus:outline-none focus:ring-2 focus:ring-[#f7a440] transition-all"
                       />
                     </label>
                     <label className="flex flex-col">
-                      <span className="text-white mb-1">Bestellstatus:</span>
+                      <span className="text-white text-sm sm:text-base mb-1">Bestellstatus:</span>
                       <input
                         type="text"
                         value={newEntry.Bestellstatus}
                         onChange={(e) => handleNewEntryChange('Bestellstatus', e.target.value)}
-                        className="p-2 bg-gray-700 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-500"
+                        className="p-2.5 sm:p-3 bg-gray-700 text-white text-sm sm:text-base rounded-lg focus:outline-none focus:ring-2 focus:ring-[#f7a440] transition-all"
                       />
                     </label>
                     <label className="flex flex-col">
-                      <span className="text-white mb-1">JahrMonat:</span>
+                      <span className="text-white text-sm sm:text-base mb-1">JahrMonat:</span>
                       <input
                         type="text"
                         value={newEntry.JahrMonat}
                         onChange={(e) => handleNewEntryChange('JahrMonat', e.target.value)}
-                        className="p-2 bg-gray-700 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-500"
+                        className="p-2.5 sm:p-3 bg-gray-700 text-white text-sm sm:text-base rounded-lg focus:outline-none focus:ring-2 focus:ring-[#f7a440] transition-all"
                       />
                     </label>
                     <label className="flex flex-col">
-                      <span className="text-white mb-1">Kategorie:</span>
+                      <span className="text-white text-sm sm:text-base mb-1">Kategorie:</span>
                       <input
                         type="text"
                         value={newEntry.Kategorie}
                         onChange={(e) => handleNewEntryChange('Kategorie', e.target.value)}
-                        className="p-2 bg-gray-700 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-500"
+                        className="p-2.5 sm:p-3 bg-gray-700 text-white text-sm sm:text-base rounded-lg focus:outline-none focus:ring-2 focus:ring-[#f7a440] transition-all"
                       />
                     </label>
                   </>
@@ -844,32 +869,32 @@ const BarcodeScanner = ({ orders = [], setOrders, outputs = [], setOutputs, retu
                 {entryType === 'Ausgang' && (
                   <>
                     <label className="flex flex-col">
-                      <span className="text-white mb-1">AusgangsID:</span>
+                      <span className="text-white text-sm sm:text-base mb-1">AusgangsID:</span>
                       <input
                         type="text"
                         value={generatedIds.AusgangsID || 'Lade ID...'}
                         readOnly
-                        className="p-2 bg-gray-600 text-white rounded-lg"
+                        className="p-2.5 sm:p-3 bg-gray-600 text-white text-sm sm:text-base rounded-lg"
                       />
                     </label>
                     <label className="flex flex-col">
-                      <span className="text-white mb-1">Ausgangsdatum:</span>
+                      <span className="text-white text-sm sm:text-base mb-1">Ausgangsdatum:</span>
                       <input
                         type="date"
                         value={newEntry.Ausgangsdatum}
                         onChange={(e) => handleNewEntryChange('Ausgangsdatum', e.target.value)}
                         required
-                        className="p-2 bg-gray-700 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-500"
+                        className="p-2.5 sm:p-3 bg-gray-700 text-white text-sm sm:text-base rounded-lg focus:outline-none focus:ring-2 focus:ring-[#f7a440] transition-all"
                       />
                     </label>
                     <label className="flex flex-col">
-                      <span className="text-white mb-1">VerbrauchteMenge:</span>
+                      <span className="text-white text-sm sm:text-base mb-1">VerbrauchteMenge:</span>
                       <input
                         type="number"
                         value={newEntry.VerbrauchteMenge}
                         onChange={(e) => handleNewEntryChange('VerbrauchteMenge', e.target.value)}
                         required
-                        className="p-2 bg-gray-700 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-500"
+                        className="p-2.5 sm:p-3 bg-gray-700 text-white text-sm sm:text-base rounded-lg focus:outline-none focus:ring-2 focus:ring-[#f7a440] transition-all"
                       />
                     </label>
                   </>
@@ -877,120 +902,120 @@ const BarcodeScanner = ({ orders = [], setOrders, outputs = [], setOutputs, retu
                 {entryType === 'Retoure' && (
                   <>
                     <label className="flex flex-col">
-                      <span className="text-white mb-1">RetoureID:</span>
+                      <span className="text-white text-sm sm:text-base mb-1">RetoureID:</span>
                       <input
                         type="text"
                         value={generatedIds.RetoureID || 'Lade ID...'}
                         readOnly
-                        className="p-2 bg-gray-600 text-white rounded-lg"
+                        className="p-2.5 sm:p-3 bg-gray-600 text-white text-sm sm:text-base rounded-lg"
                       />
                     </label>
                     <label className="flex flex-col">
-                      <span className="text-white mb-1">Datum:</span>
+                      <span className="text-white text-sm sm:text-base mb-1">Datum:</span>
                       <input
                         type="date"
                         value={newEntry.Datum}
                         onChange={(e) => handleNewEntryChange('Datum', e.target.value)}
                         required
-                        className="p-2 bg-gray-700 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-500"
+                        className="p-2.5 sm:p-3 bg-gray-700 text-white text-sm sm:text-base rounded-lg focus:outline-none focus:ring-2 focus:ring-[#f7a440] transition-all"
                       />
                     </label>
                     <label className="flex flex-col">
-                      <span className="text-white mb-1">Menge:</span>
+                      <span className="text-white text-sm sm:text-base mb-1">Menge:</span>
                       <input
                         type="number"
                         value={newEntry.Menge}
                         onChange={(e) => handleNewEntryChange('Menge', e.target.value)}
                         required
-                        className="p-2 bg-gray-700 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-500"
+                        className="p-2.5 sm:p-3 bg-gray-700 text-white text-sm sm:text-base rounded-lg focus:outline-none focus:ring-2 focus:ring-[#f7a440] transition-all"
                       />
                     </label>
                     <label className="flex flex-col">
-                      <span className="text-white mb-1">GrundDerRetoure:</span>
+                      <span className="text-white text-sm sm:text-base mb-1">GrundDerRetoure:</span>
                       <input
                         type="text"
                         value={newEntry.GrundDerRetoure}
                         onChange={(e) => handleNewEntryChange('GrundDerRetoure', e.target.value)}
-                        className="p-2 bg-gray-700 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-500"
+                        className="p-2.5 sm:p-3 bg-gray-700 text-white text-sm sm:text-base rounded-lg focus:outline-none focus:ring-2 focus:ring-[#f7a440] transition-all"
                       />
                     </label>
                     <label className="flex flex-col">
-                      <span className="text-white mb-1">Lieferant:</span>
+                      <span className="text-white text-sm sm:text-base mb-1">Lieferant:</span>
                       <input
                         type="text"
                         value={newEntry.Lieferant}
                         onChange={(e) => handleNewEntryChange('Lieferant', e.target.value)}
-                        className="p-2 bg-gray-700 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-500"
+                        className="p-2.5 sm:p-3 bg-gray-700 text-white text-sm sm:text-base rounded-lg focus:outline-none focus:ring-2 focus:ring-[#f7a440] transition-all"
                       />
                     </label>
                   </>
                 )}
                 <label className="flex flex-col">
-                  <span className="text-white mb-1">Artikelnummer:</span>
+                  <span className="text-white text-sm sm:text-base mb-1">Artikelnummer:</span>
                   <input
                     type="text"
                     value={newEntry.Artikelnummer}
                     onChange={(e) => handleNewEntryChange('Artikelnummer', e.target.value)}
                     required
-                    className="p-2 bg-gray-700 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-500"
+                    className="p-2.5 sm:p-3 bg-gray-700 text-white text-sm sm:text-base rounded-lg focus:outline-none focus:ring-2 focus:ring-[#f7a440] transition-all"
                   />
                 </label>
                 {(entryType === 'Eingang' || entryType === 'Ausgang') && (
                   <>
                     <label className="flex flex-col">
-                      <span className="text-white mb-1">LagerbestandVor:</span>
+                      <span className="text-white text-sm sm:text-base mb-1">LagerbestandVor:</span>
                       <input
                         type="number"
                         value={newEntry.LagerbestandVor}
                         onChange={(e) => handleNewEntryChange('LagerbestandVor', e.target.value)}
                         required
-                        className="p-2 bg-gray-700 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-500"
+                        className="p-2.5 sm:p-3 bg-gray-700 text-white text-sm sm:text-base rounded-lg focus:outline-none focus:ring-2 focus:ring-[#f7a440] transition-all"
                       />
                     </label>
                     <label className="flex flex-col">
-                      <span className="text-white mb-1">LagerbestandNach:</span>
+                      <span className="text-white text-sm sm:text-base mb-1">LagerbestandNach:</span>
                       <input
                         type="number"
                         value={newEntry.LagerbestandNach}
                         readOnly
-                        className="p-2 bg-gray-600 text-white rounded-lg"
+                        className="p-2.5 sm:p-3 bg-gray-600 text-white text-sm sm:text-base rounded-lg"
                       />
                     </label>
                   </>
                 )}
                 {(entryType === 'Eingang' || entryType === 'Ausgang') && (
                   <label className="flex flex-col">
-                    <span className="text-white mb-1">Bemerkungen:</span>
+                    <span className="text-white text-sm sm:text-base mb-1">Bemerkungen:</span>
                     <input
                       type="text"
                       value={newEntry.Bemerkungen}
                       onChange={(e) => handleNewEntryChange('Bemerkungen', e.target.value)}
-                      className="p-2 bg-gray-700 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-500"
+                      className="p-2.5 sm:p-3 bg-gray-700 text-white text-sm sm:text-base rounded-lg focus:outline-none focus:ring-2 focus:ring-[#f7a440] transition-all"
                     />
                   </label>
                 )}
                 <label className="flex flex-col">
-                  <span className="text-white mb-1">GeplantesLieferdatum:</span>
+                  <span className="text-white text-sm sm:text-base mb-1">GeplantesLieferdatum:</span>
                   <input
                     type="date"
                     value={newEntry.GeplantesLieferdatum}
                     onChange={(e) => handleNewEntryChange('GeplantesLieferdatum', e.target.value)}
-                    className="p-2 bg-gray-700 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-500"
+                    className="p-2.5 sm:p-3 bg-gray-700 text-white text-sm sm:text-base rounded-lg focus:outline-none focus:ring-2 focus:ring-[#f7a440] transition-all"
                   />
                 </label>
                 <label className="flex flex-col">
-                  <span className="text-white mb-1">TatsächlichesLieferdatum:</span>
+                  <span className="text-white text-sm sm:text-base mb-1">TatsächlichesLieferdatum:</span>
                   <input
                     type="date"
                     value={newEntry.TatsächlichesLieferdatum}
                     onChange={(e) => handleNewEntryChange('TatsächlichesLieferdatum', e.target.value)}
-                    className="p-2 bg-gray-700 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-500"
+                    className="p-2.5 sm:p-3 bg-gray-700 text-white text-sm sm:text-base rounded-lg focus:outline-none focus:ring-2 focus:ring-[#f7a440] transition-all"
                   />
                 </label>
                 <button
                   type="submit"
                   disabled={isSubmitting || !generatedIds.BestellID || generatedIds.BestellID === 'Lade ID...'}
-                  className={`bg-blue-500 text-white px-4 py-2 rounded-lg mt-2 hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-400 ${
+                  className={`bg-[#3b82f6] text-white px-4 py-2.5 sm:py-3 rounded-lg mt-2 text-sm sm:text-base hover:bg-[#2563eb] focus:outline-none focus:ring-2 focus:ring-[#3b82f6] transition-all ${
                     isSubmitting || !generatedIds.BestellID || generatedIds.BestellID === 'Lade ID...' ? 'opacity-50 cursor-not-allowed' : ''
                   }`}
                 >
@@ -1002,27 +1027,45 @@ const BarcodeScanner = ({ orders = [], setOrders, outputs = [], setOutputs, retu
         </div>
       )}
       <AccordionSection title="Letzte Einträge">
+        <div className="flex items-center space-x-2 mb-3 sm:mb-4">
+          <label className="text-white text-sm sm:text-base">Sortieren nach:</label>
+          <div className="relative inline-block">
+            <select
+              value={logSortOrder}
+              onChange={(e) => setLogSortOrder(e.target.value)}
+              className="appearance-none bg-gray-700 text-white p-2.5 sm:p-3 rounded-lg pr-8 text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-[#f7a440] transition-all"
+            >
+              <option value="newest">Neueste zuerst</option>
+              <option value="oldest">Älteste zuerst</option>
+            </select>
+            <div className="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
+              <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+              </svg>
+            </div>
+          </div>
+        </div>
         <div className="overflow-x-auto">
-          <table className="w-full text-gray-300 text-sm border-collapse">
+          <table className="w-full text-gray-300 text-xs sm:text-sm border-collapse">
             <thead>
               <tr className="bg-gray-700">
-                <th className="p-2 text-left border-b border-gray-500">Typ</th>
-                <th className="p-2 text-left border-b border-gray-500">Artikelnummer</th>
-                <th className="p-2 text-left border-b border-gray-500">Datum</th>
-                <th className="p-2 text-right border-b border-gray-500">Menge</th>
-                <th className="p-2 text-right border-b border-gray-500">Lagerbestand</th>
+                <th className="p-1.5 sm:p-2 text-left border-b border-gray-500">Typ</th>
+                <th className="p-1.5 sm:p-2 text-left border-b border-gray-500">Artikelnummer</th>
+                <th className="p-1.5 sm:p-2 text-left border-b border-gray-500">Datum</th>
+                <th className="p-1.5 sm:p-2 text-right border-b border-gray-500">Menge</th>
+                <th className="p-1.5 sm:p-2 text-right border-b border-gray-500">Lagerbestand</th>
               </tr>
             </thead>
             <tbody>
               {sortedLogs.map((log, i) => (
                 <tr key={`${log.type}-${log.AusgangsID || log.BestellID || log.RetoureID}-${i}`} className="hover:bg-gray-700">
-                  <td className="p-2 border-b border-gray-600">{log.type}</td>
-                  <td className="p-2 border-b border-gray-600">{log.Artikelnummer}</td>
-                  <td className="p-2 border-b border-gray-600">{log.date}</td>
-                  <td className="p-2 text-right border-b border-gray-600">
+                  <td className="p-1.5 sm:p-2 border-b border-gray-600">{log.type}</td>
+                  <td className="p-1.5 sm:p-2 border-b border-gray-600">{log.Artikelnummer}</td>
+                  <td className="p-1.5 sm:p-2 border-b border-gray-600">{log.date}</td>
+                  <td className="p-1.5 sm:p-2 text-right border-b border-gray-600">
                     {log.type === 'Ausgang' ? log.VerbrauchteMenge : log.Menge}
                   </td>
-                  <td className="p-2 text-right border-b border-gray-600">
+                  <td className="p-1.5 sm:p-2 text-right border-b border-gray-600">
                     {log.type === 'Ausgang' ? log.LagerbestandNach : log.type === 'Eingang' ? log.AktuellerLagerbestand : '-'}
                   </td>
                 </tr>
@@ -1033,7 +1076,7 @@ const BarcodeScanner = ({ orders = [], setOrders, outputs = [], setOutputs, retu
       </AccordionSection>
       <button
         onClick={downloadAllCsvs}
-        className="bg-gray-500 text-white px-4 py-2 rounded-lg w-full mt-4 hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-400"
+        className="bg-gray-500 text-white px-4 py-2.5 sm:py-3 rounded-lg w-full mt-3 sm:mt-4 text-sm sm:text-base hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-400 transition-all"
       >
         Alle CSVs herunterladen
       </button>
