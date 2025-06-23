@@ -1,137 +1,109 @@
+// api/supabase.js
 import { createClient } from '@supabase/supabase-js';
 
-     const supabaseUrl = process.env.REACT_APP_SUPABASE_URL;
-     const supabaseKey = process.env.REACT_APP_SUPABASE_ANON_KEY;
+export default async function handler(req, res) {
+  console.log('API handler invoked:', {
+    method: req.method,
+    query: req.query,
+    body: req.body,
+  });
 
-     console.log('Supabase URL:', supabaseUrl ? 'Set' : 'Missing');
-     console.log('Supabase Key:', supabaseKey ? 'Set' : 'Missing');
+  const supabaseUrl = process.env.SUPABASE_URL;
+  const supabaseKey = process.env.SUPABASE_ANON_KEY;
 
-     if (!supabaseUrl || !supabaseKey) {
-       console.error('Supabase configuration missing');
-       throw new Error('Supabase configuration missing');
-     }
+  console.log('Supabase config:', {
+    url: supabaseUrl ? 'Set' : 'Missing',
+    key: supabaseKey ? 'Set' : 'Missing',
+  });
 
-     const supabase = createClient(supabaseUrl, supabaseKey);
+  if (!supabaseUrl || !supabaseKey) {
+    console.error('Supabase configuration missing');
+    return res.status(500).json({ error: 'Supabase configuration missing' });
+  }
 
-     export async function handler(req, res) {
-       console.log('Handler invoked:', { url: req.url, method: req.method });
+  const supabase = createClient(supabaseUrl, supabaseKey);
 
-       const { method, query, body } = req;
+  try {
+    if (req.method === 'GET') {
+      const { table, columns, max } = req.query;
+      console.log(`GET request: table=${table}, columns=${columns}, max=${max}`);
+      if (!table || !['bestellungen', 'ausgaenge', 'retouren'].includes(table)) {
+        console.error('Invalid table name:', table);
+        return res.status(400).json({ error: `Invalid table name: ${table}` });
+      }
 
-       console.log('Request details:', { method, query, body });
+      if (max && columns) {
+        console.log(`Executing RPC get_max_id for ${table}.${columns}`);
+        const { data, error } = await supabase
+          .rpc('get_max_id', { table_name: table, column_name: columns })
+          .single();
+        if (error) {
+          console.error('Supabase RPC error:', error);
+          return res.status(500).json({ error: `RPC error: ${error.message}`, details: error });
+        }
+        console.log(`Max ${columns} for ${table}:`, data);
+        return res.status(200).json([{ [columns]: data || '0' }]);
+      } else {
+        console.log(`Executing SELECT * FROM ${table}`);
+        const query = supabase
+          .from(table)
+          .select(columns || '*')
+          .order(
+            table === 'bestellungen'
+              ? 'BestellID'
+              : table === 'ausgaenge'
+              ? 'AusgangsID'
+              : 'RetoureID',
+            { ascending: false }
+          );
+        const { data, error } = await query;
+        if (error) {
+          console.error('Supabase GET error:', error);
+          return res.status(500).json({ error: `GET error: ${error.message}`, details: error });
+        }
+        console.log(`Fetched data for ${table} (${data.length} rows):`, data.slice(0, 5));
+        return res.status(200).json(data || []);
+      }
+    }
 
-       if (method === 'GET') {
-         const { table } = query;
-         console.log('GET request: table=', table);
-         if (!table || !['bestellungen', 'ausgaenge', 'retouren'].includes(table)) {
-           console.error('Invalid table name:', table);
-           res.status(400).json({ error: 'Invalid table name' });
-           return;
-         }
+    if (req.method === 'POST') {
+      const { table, data } = req.body;
+      console.log(`POST request: table=${table}, data=`, data);
+      if (!table || !['bestellungen', 'ausgaenge', 'retouren'].includes(table)) {
+        console.error('Invalid table name:', table);
+        return res.status(400).json({ error: `Invalid table name: ${table}` });
+      }
+      console.log(`Executing INSERT INTO ${table}`);
+      const { data: insertedData, error } = await supabase.from(table).insert([data]).select();
+      if (error) {
+        console.error('Supabase POST error:', error);
+        return res.status(500).json({ error: `POST error: ${error.message}`, details: error });
+      }
+      console.log(`Inserted data into ${table}:`, insertedData);
+      return res.status(200).json(insertedData || []);
+    }
 
-         try {
-           console.log(`Attempting to fetch data from ${table}...`);
-           const { data, error } = await supabase.from(table).select('*');
-           if (error) {
-             console.error(`Supabase GET error for table ${table}:`, error);
-             res.status(500).json({
-               error: `Supabase error: ${error.message}`,
-               details: error,
-               table,
-             });
-             return;
-           }
-           console.log(`Supabase GET data for ${table}:`, data);
-           res.status(200).json(data || []);
-         } catch (err) {
-           console.error(`Server error for GET ${table}:`, err);
-           res.status(500).json({
-             error: `Server error: ${err.message}`,
-             details: err.stack,
-             table,
-           });
-         }
-         return;
-       }
+    if (req.method === 'DELETE') {
+      const { table, id, idField } = req.body;
+      console.log(`DELETE request: table=${table}, id=${id}, idField=${idField}`);
+      if (!table || !['bestellungen', 'ausgaenge', 'retouren'].includes(table)) {
+        console.error('Invalid table name:', table);
+        return res.status(400).json({ error: `Invalid table name: ${table}` });
+      }
+      console.log(`Executing DELETE FROM ${table} WHERE ${idField} = ${id}`);
+      const { data, error } = await supabase.from(table).delete().eq(idField, id).select();
+      if (error) {
+        console.error('Supabase DELETE error:', error);
+        return res.status(500).json({ error: `DELETE error: ${error.message}`, details: error });
+      }
+      console.log(`Deleted data from ${table}:`, data);
+      return res.status(200).json(data || []);
+    }
 
-       if (method === 'POST') {
-         const { table, data } = body;
-         console.log('POST request: table=', table, 'data=', data);
-         if (!table || !['bestellungen', 'ausgaenge', 'retouren'].includes(table)) {
-           console.error('Invalid table name:', table);
-           res.status(400).json({ error: 'Invalid table name' });
-           return;
-         }
-         if (!data || typeof data !== 'object') {
-           console.error('Invalid data:', data);
-           res.status(400).json({ error: 'Invalid data' });
-           return;
-         }
-
-         try {
-           console.log(`Attempting to insert data into ${table}:`, data);
-           const { data: insertedData, error } = await supabase.from(table).insert([data]).select();
-           if (error) {
-             console.error(`Supabase POST error for table ${table}:`, error);
-             res.status(500).json({
-               error: `Supabase error: ${error.message}`,
-               details: error,
-               table,
-             });
-             return;
-           }
-           console.log(`Supabase POST success for ${table}:`, insertedData);
-           res.status(200).json(insertedData);
-         } catch (err) {
-           console.error(`Server error for POST ${table}:`, err);
-           res.status(500).json({
-             error: `Server error: ${err.message}`,
-             details: err.stack,
-             table,
-           });
-         }
-         return;
-       }
-
-       if (method === 'DELETE') {
-         const { table, id, idField } = body;
-         console.log('DELETE request: table=', table, 'id=', id, 'idField=', idField);
-         if (!table || !['bestellungen', 'ausgaenge', 'retouren'].includes(table)) {
-           console.error('Invalid table name:', table);
-           res.status(400).json({ error: 'Invalid table name' });
-           return;
-         }
-         if (!id || !idField) {
-           console.error('Invalid id or idField:', { id, idField });
-           res.status(400).json({ error: 'Invalid id or idField' });
-           return;
-         }
-
-         try {
-           console.log(`Attempting to delete from ${table} where ${idField} = ${id}...`);
-           const { data, error } = await supabase.from(table).delete().eq(idField, id).select();
-           if (error) {
-             console.error(`Supabase DELETE error for table ${table}:`, error);
-             res.status(500).json({
-               error: `Supabase error: ${error.message}`,
-               details: error,
-               table,
-             });
-             return;
-           }
-           console.log(`Supabase DELETE success for ${table}:`, data);
-           res.status(200).json(data);
-         } catch (err) {
-           console.error(`Server error for DELETE ${table}:`, err);
-           res.status(500).json({
-             error: `Server error: ${err.message}`,
-             details: err.stack,
-             table,
-           });
-         }
-         return;
-       }
-
-       console.error('Method not allowed:', method);
-       res.status(405).json({ error: 'Method not allowed' });
-     }
+    console.error('Method not allowed:', req.method);
+    return res.status(405).json({ error: 'Method not allowed' });
+  } catch (error) {
+    console.error('Unexpected error in API handler:', error);
+    return res.status(500).json({ error: 'Unexpected server error', details: error.message });
+  }
+}
