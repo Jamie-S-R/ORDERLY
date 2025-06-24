@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { createClient } from '@supabase/supabase-js';
+import Papa from 'papaparse';
 import {
   ResponsiveContainer,
   BarChart,
@@ -10,11 +10,6 @@ import {
   Tooltip,
   Legend
 } from 'recharts';
-
-// Supabase-Client initialisieren
-const supabaseUrl = process.env.REACT_APP_SUPABASE_URL;
-const supabaseAnonKey = process.env.REACT_APP_SUPABASE_ANON_KEY;
-const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 const AccordionSection = ({ title, children }) => (
   <section className="mb-6 border border-gray-600 rounded-lg overflow-hidden">
@@ -28,27 +23,16 @@ const AccordionSection = ({ title, children }) => (
 const Retouren = () => {
   const [retouren, setRetouren] = useState([]);
   const [selectedSupplier, setSelectedSupplier] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState(null);
 
-  // Daten aus Supabase abrufen
   useEffect(() => {
-    const fetchRetouren = async () => {
-      setIsLoading(true);
-      setError(null);
-      try {
-        const { data, error } = await supabase
-          .from('retouren')
-          .select('*');
-        if (error) throw error;
-        setRetouren(data);
-      } catch (err) {
-        setError('Fehler beim Abrufen der Retouren: ' + err.message);
-      } finally {
-        setIsLoading(false);
+    Papa.parse('/data/retouren.csv', {
+      download: true,
+      header: true,
+      complete: (results) => {
+        const cleaned = results.data.filter(r => r.RetoureID);
+        setRetouren(cleaned);
       }
-    };
-    fetchRetouren();
+    });
   }, []);
 
   const filteredRetouren = useMemo(() => {
@@ -58,7 +42,7 @@ const Retouren = () => {
   }, [retouren, selectedSupplier]);
 
   const lieferanten = useMemo(() => {
-    return [...new Set(retouren.map(r => r.Lieferant || 'Unbekannt'))];
+    return [...new Set(retouren.map(r => r.Lieferant || 'Unbefkannt'))];
   }, [retouren]);
 
   const lieferantenStats = useMemo(() => {
@@ -92,8 +76,6 @@ const Retouren = () => {
     <div className="detail-view p-4">
       <h2 className="text-2xl font-bold text-[#f7a440] mb-4">📦 Retourenanalyse</h2>
       <p className="text-gray-300 mb-4">Übersicht über Rückläufer zur Optimierung von Bestellprozessen.</p>
-      {error && <p className="text-red-500 text-center mb-4">{error}</p>}
-      {isLoading && <p className="text-yellow-500 text-center mb-4">Lade Retouren...</p>}
       <div className="mb-6">
         <label className="flex items-center text-white">
           Lieferant:
