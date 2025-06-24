@@ -7,7 +7,6 @@ const mockSupplierApis = [
   { name: 'Lieferant A', api: 'https://api.lieferanta.com/v1/orders', supportsAuto: true },
   { name: 'Lieferant B', api: 'https://api.lieferantb.com/v2/orders', supportsAuto: true },
   { name: 'Lieferant C', api: null, supportsAuto: false },
-  // Add more mock suppliers as needed
 ];
 
 const AccordionSection = ({ title, children }) => {
@@ -47,21 +46,24 @@ const Automatisierung = ({ orders = [], onDataUpdate }) => {
   // Fetch unique suppliers from Supabase
   const fetchSuppliers = async () => {
     setIsLoading(true);
+    setError(null);
     try {
-      const response = await fetch('/api/supabase?suppliers=true&_t=${Date.now()}', {
+      const response = await fetch(`/api/supabase?suppliers=true&_t=${Date.now()}`, {
         headers: {
           'Accept': 'application/json',
           'Content-Type': 'application/json',
         },
       });
       if (!response.ok) {
-        const text = await response.text();
-        throw new Error(`Fehler beim Abrufen der Lieferanten: ${response.status} - ${text}`);
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Fehler beim Abrufen der Lieferanten');
       }
       const data = await response.json();
       setSuppliers(data);
+      console.log(`Fetched unique suppliers (${data.length}):`, data);
     } catch (err) {
-      setError('Fehler beim Abrufen der Lieferanten: ' + err.message);
+      setError(`Fehler beim Laden der Lieferanten: ${err.message}`);
+      console.error('Error fetching suppliers:', err);
     } finally {
       setIsLoading(false);
     }
@@ -70,6 +72,7 @@ const Automatisierung = ({ orders = [], onDataUpdate }) => {
   // Simulate fetching automated orders
   const fetchAutoOrders = async () => {
     setIsLoading(true);
+    setError(null);
     try {
       const lowStockItems = orders.filter(o => parseInt(o.AktuellerLagerbestand) < 20);
       const mockOrders = lowStockItems.map(o => {
@@ -84,12 +87,14 @@ const Automatisierung = ({ orders = [], onDataUpdate }) => {
           status: connectedSuppliers[o.Lieferant] ? 'Bestellt' : 'Wartet auf API',
           progressText: connectedSuppliers[o.Lieferant] ? 'Bestellung platziert' : 'API-Verbindung erforderlich',
           progressPercent: connectedSuppliers[o.Lieferant] ? 80 : 20,
-          menge: 50, // Mock reorder quantity
+          menge: 50,
         };
       });
       setAutoOrders(mockOrders);
+      console.log(`Generated ${mockOrders.length} automated orders`);
     } catch (err) {
       setError('Fehler beim Abrufen der automatisierten Bestellungen');
+      console.error('Error fetching auto orders:', err);
     } finally {
       setIsLoading(false);
     }
@@ -98,6 +103,7 @@ const Automatisierung = ({ orders = [], onDataUpdate }) => {
   // Connect to supplier API
   const connectSupplier = (supplierName) => {
     setIsLoading(true);
+    setError(null);
     setTimeout(() => {
       const supplier = mockSupplierApis.find(s => s.name === supplierName);
       if (supplier && supplier.supportsAuto) {
@@ -212,7 +218,7 @@ const Automatisierung = ({ orders = [], onDataUpdate }) => {
             );
           })}
           {suppliers.length === 0 && !isLoading && (
-            <p className="text-gray-400">Keine Lieferanten gefunden.</p>
+            <p className="text-gray-400">Keine Lieferanten gefunden. Bitte fügen Sie Bestellungen hinzu, um Lieferanten anzuzeigen.</p>
           )}
         </div>
       </AccordionSection>
@@ -259,7 +265,7 @@ const Automatisierung = ({ orders = [], onDataUpdate }) => {
             </tbody>
           </table>
           {filteredOrders.length === 0 && !isLoading && (
-            <p className="text-gray-400 text-center mt-4">Keine automatisierten Bestellungen gefunden.</p>
+            <p className="text-gray-400 text-center mt-4">Keine automatisierten Bestellungen gefunden. Verbinden Sie Lieferanten-APIs oder fügen Sie Bestellungen mit niedrigem Lagerbestand hinzu.</p>
           )}
         </div>
       </AccordionSection>

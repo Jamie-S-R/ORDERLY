@@ -26,8 +26,8 @@ export default async function handler(req, res) {
     if (req.method === 'GET') {
       const { table, columns, max, suppliers } = req.query;
       console.log(`GET request: table=${table}, columns=${columns}, max=${max}, suppliers=${suppliers}`);
-      
-      // New endpoint for fetching unique suppliers
+
+      // Handle suppliers query first
       if (suppliers === 'true') {
         console.log('Fetching unique suppliers from bestellungen');
         const { data, error } = await supabase
@@ -36,16 +36,17 @@ export default async function handler(req, res) {
           .order('Lieferant', { ascending: true });
         if (error) {
           console.error('Supabase suppliers error:', error);
-          return res.status(500).json({ error: `Suppliers error: ${error.message}`, details: error });
+          return res.status(500).json({ error: `Supabase error: ${error.message}`, details: error });
         }
         const uniqueSuppliers = [...new Set(data.map(item => item.Lieferant))];
         console.log(`Fetched unique suppliers (${uniqueSuppliers.length}):`, uniqueSuppliers);
         return res.status(200).json(uniqueSuppliers);
       }
 
+      // Validate table for other queries
       if (!table || !['bestellungen', 'ausgaenge', 'retouren'].includes(table)) {
         console.error('Invalid table name:', table);
-        return res.status(400).json({ error: `Invalid table name: ${table}` });
+        return res.status(400).json({ error: `Invalid table name: ${table || 'undefined'}` });
       }
 
       if (max && columns) {

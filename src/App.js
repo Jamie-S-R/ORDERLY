@@ -719,7 +719,7 @@ const App = () => {
             <Route path="/retouren" element={<Retouren returns={returns} />} />
             <Route path="/termintreue" element={<Termintreue orders={orders} />} />
             <Route path="/lieferantenbewertung" element={<Lieferantenbewertung orders={orders} retouren={returns} />} />
-            <Route path="/automatisierung" element={<Automatisierung orders={orders} />} />
+            <Route path="/automatisierung" element={<Automatisierung orders={orders} onDataUpdate={handleDataUpdate} />} />
             <Route path="/engpaesse" element={<Engpaesse orders={orders} />} />
             <Route path="/finanzen" element={<Finanzen orders={orders} />} />
             <Route path="/tutorial" element={<Tutorial />} />

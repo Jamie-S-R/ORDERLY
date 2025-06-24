@@ -20,11 +20,28 @@ const supabase = createClient(supabaseUrl, supabaseKey);
 app.use(express.json());
 
 app.get('/api/supabase', async (req, res) => {
-  const { table, columns, max } = req.query;
-  console.log(`GET request: table=${table}, columns=${columns}, max=${max}`);
+  console.log('Incoming GET request:', req.query);
+  const { table, columns, max, suppliers } = req.query;
   try {
+    // Handling für suppliers=true
+    if (suppliers === 'true') {
+      console.log('Fetching unique suppliers from bestellungen');
+      const { data, error } = await supabase
+        .from('bestellungen')
+        .select('Lieferant')
+        .order('Lieferant', { ascending: true });
+      if (error) {
+        console.error('Supabase suppliers error:', error);
+        throw new Error(`Supabase error: ${error.message}`);
+      }
+      const uniqueSuppliers = [...new Set(data.map(item => item.Lieferant))];
+      console.log(`Fetched unique suppliers (${uniqueSuppliers.length}):`, uniqueSuppliers);
+      return res.status(200).json(uniqueSuppliers);
+    }
+
+    // Bestehende Logik für table, columns, max
     if (!table || !['bestellungen', 'ausgaenge', 'retouren'].includes(table)) {
-      throw new Error(`Invalid table name: ${table}`);
+      throw new Error(`Invalid table name: ${table || 'undefined'}`);
     }
     if (max && columns) {
       console.log(`Executing RPC get_max_id for ${table}.${columns}`);
