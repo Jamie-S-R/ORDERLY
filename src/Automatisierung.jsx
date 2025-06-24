@@ -46,24 +46,23 @@ const Automatisierung = ({ orders = [], onDataUpdate }) => {
   // Fetch unique suppliers from Supabase
   const fetchSuppliers = async () => {
     setIsLoading(true);
-    setError(null);
     try {
-      const response = await fetch(`/api/supabase?suppliers=true&_t=${Date.now()}`, {
+      const timestamp = new Date().getTime(); // Eindeutiger Zeitstempel
+      const response = await fetch(`/api/supabase?suppliers=true&_t=${timestamp}`, {
         headers: {
           'Accept': 'application/json',
           'Content-Type': 'application/json',
+          'Cache-Control': 'no-cache', // Verhindert Browser-Caching
         },
       });
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Fehler beim Abrufen der Lieferanten');
+        const text = await response.text();
+        throw new Error(`Fehler beim Abrufen der Lieferanten: ${response.status} - ${text}`);
       }
       const data = await response.json();
       setSuppliers(data);
-      console.log(`Fetched unique suppliers (${data.length}):`, data);
     } catch (err) {
-      setError(`Fehler beim Laden der Lieferanten: ${err.message}`);
-      console.error('Error fetching suppliers:', err);
+      setError('Fehler beim Abrufen der Lieferanten: ' + err.message);
     } finally {
       setIsLoading(false);
     }
@@ -72,9 +71,21 @@ const Automatisierung = ({ orders = [], onDataUpdate }) => {
   // Simulate fetching automated orders
   const fetchAutoOrders = async () => {
     setIsLoading(true);
-    setError(null);
     try {
-      const lowStockItems = orders.filter(o => parseInt(o.AktuellerLagerbestand) < 20);
+      const timestamp = new Date().getTime(); // Eindeutiger Zeitstempel
+      const response = await fetch(`/api/supabase?table=bestellungen&_t=${timestamp}`, {
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+          'Cache-Control': 'no-cache', // Verhindert Browser-Caching
+        },
+      });
+      if (!response.ok) {
+        const text = await response.text();
+        throw new Error(`Fehler beim Abrufen der Bestellungen: ${response.status} - ${text}`);
+      }
+      const data = await response.json();
+      const lowStockItems = data.filter(o => parseInt(o.AktuellerLagerbestand) < 20);
       const mockOrders = lowStockItems.map(o => {
         const supplier = mockSupplierApis.find(s => s.name === o.Lieferant) || mockSupplierApis[0];
         return {
@@ -91,10 +102,8 @@ const Automatisierung = ({ orders = [], onDataUpdate }) => {
         };
       });
       setAutoOrders(mockOrders);
-      console.log(`Generated ${mockOrders.length} automated orders`);
     } catch (err) {
       setError('Fehler beim Abrufen der automatisierten Bestellungen');
-      console.error('Error fetching auto orders:', err);
     } finally {
       setIsLoading(false);
     }
