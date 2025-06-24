@@ -131,16 +131,16 @@ const OrderLog = ({ orders, setOrders, onDataUpdate }) => {
 
   return (
     <div className="detail-view p-4">
-      <h2 className="text-2xl font-bold text-yellow-400 mb-4">Bestellhistorie</h2>
+      <h2 className="text-2xl font-bold text-[#f7a440] mb-4">Bestellhistorie</h2>
       {error && <p className="text-red-500 text-center mb-4">{error}</p>}
-      {isDeleting && <p className="text-yellow-500 text-center mb-4">Löschen...</p>}
+      {isDeleting && <p className="text-[#f7a440] text-center mb-4">Löschen...</p>}
       <div className="flex items-center space-x-2 mb-4">
         <label className="text-white">Sortieren nach:</label>
         <div className="relative inline-block">
           <select
             value={sortOrder}
             onChange={(e) => setSortOrder(e.target.value)}
-            className="appearance-none bg-gray-700 text-white p-2 rounded-lg pr-8 focus:outline-none focus:ring-2 focus:ring-yellow-500"
+            className="appearance-none bg-gray-700 text-white p-2 rounded-lg pr-8 focus:outline-none focus:ring-2 focus:ring-[#f7a440]"
           >
             <option value="newest">Neueste zuerst</option>
             <option value="oldest">Älteste zuerst</option>
@@ -155,7 +155,7 @@ const OrderLog = ({ orders, setOrders, onDataUpdate }) => {
       <ul className="space-y-2">
         {sortOrders(orders).map((o) => (
           <li key={o.BestellID} className="flex justify-between items-center bg-gray-800 p-3 rounded-lg">
-            <Link to={`/orderlog/${o.BestellID}`} className="text-yellow-400 hover:underline flex-1">
+            <Link to={`/orderlog/${o.BestellID}`} className="text-[#f7a440] hover:underline flex-1">
               <strong>{o.Bestelldatum}</strong> – {o.Lieferant} – {o.Menge} {o.Einheit}<br />
               <em className="text-gray-400">{o.Artikelbeschreibung}</em>
             </Link>
@@ -246,16 +246,16 @@ const OutputLog = ({ outputs, setOutputs, onDataUpdate }) => {
 
   return (
     <div className="detail-view p-4">
-      <h2 className="text-2xl font-bold text-yellow-400 mb-4">Ausgangshistorie</h2>
+      <h2 className="text-2xl font-bold text-[#f7a440] mb-4">Ausgangshistorie</h2>
       {error && <p className="text-red-500 text-center mb-4">{error}</p>}
-      {isDeleting && <p className="text-yellow-500 text-center mb-4">Löschen...</p>}
+      {isDeleting && <p className="text-[#f7a440] text-center mb-4">Löschen...</p>}
       <div className="flex items-center space-x-2 mb-4">
         <label className="text-white">Sortieren nach:</label>
         <div className="relative inline-block">
           <select
             value={sortOrder}
             onChange={(e) => setSortOrder(e.target.value)}
-            className="appearance-none bg-gray-700 text-white p-2 rounded-lg pr-8 focus:outline-none focus:ring-2 focus:ring-yellow-500"
+            className="appearance-none bg-gray-700 text-white p-2 rounded-lg pr-8 focus:outline-none focus:ring-2 focus:ring-[#f7a440]"
           >
             <option value="newest">Neueste zuerst</option>
             <option value="oldest">Älteste zuerst</option>
@@ -270,7 +270,7 @@ const OutputLog = ({ outputs, setOutputs, onDataUpdate }) => {
       <ul className="space-y-2">
         {sortOutputs(outputs).map((a) => (
           <li key={a.AusgangsID} className="flex justify-between items-center bg-gray-800 p-3 rounded-lg">
-            <Link to={`/outputlog/${a.AusgangsID}`} className="text-yellow-400 hover:underline flex-1">
+            <Link to={`/outputlog/${a.AusgangsID}`} className="text-[#f7a440] hover:underline flex-1">
               <strong>{a.Ausgangsdatum}</strong> – {a.Artikelnummer} – {a.VerbrauchteMenge} Stück<br />
               <em className="text-gray-400">{a.Bemerkungen}</em>
             </Link>
@@ -358,16 +358,16 @@ const ReturnLog = ({ returns, setReturns, onDataUpdate }) => {
 
   return (
     <div className="detail-view p-4">
-      <h2 className="text-2xl font-bold text-yellow-400 mb-4">Retourenhistorie</h2>
+      <h2 className="text-2xl font-bold text-[#f7a440] mb-4">Retourenhistorie</h2>
       {error && <p className="text-red-500 text-center mb-4">{error}</p>}
-      {isDeleting && <p className="text-yellow-500 text-center mb-4">Löschen...</p>}
+      {isDeleting && <p className="text-[#f7a440] text-center mb-4">Löschen...</p>}
       <div className="flex items-center space-x-2 mb-4">
         <label className="text-white">Sortieren nach:</label>
         <div className="relative inline-block">
           <select
             value={sortOrder}
             onChange={(e) => setSortOrder(e.target.value)}
-            className="appearance-none bg-gray-700 text-white p-2 rounded-lg pr-8 focus:outline-none focus:ring-2 focus:ring-yellow-500"
+            className="appearance-none bg-gray-700 text-white p-2 rounded-lg pr-8 focus:outline-none focus:ring-2 focus:ring-[#f7a440]"
           >
             <option value="newest">Neueste zuerst</option>
             <option value="oldest">Älteste zuerst</option>
@@ -382,7 +382,7 @@ const ReturnLog = ({ returns, setReturns, onDataUpdate }) => {
       <ul className="space-y-2">
         {sortReturns(returns).map((r) => (
           <li key={r.RetoureID} className="flex justify-between items-center bg-gray-800 p-3 rounded-lg">
-            <Link to={`/returnlog/${r.RetoureID}`} className="text-yellow-400 hover:underline flex-1">
+            <Link to={`/returnlog/${r.RetoureID}`} className="text-[#f7a440] hover:underline flex-1">
               <strong>{r.Datum}</strong> – {r.Artikelnummer} – {r.Menge} Stück<br />
               <em className="text-gray-400">{r.GrundDerRetoure}</em>
             </Link>
@@ -424,7 +424,7 @@ const OrderDetails = ({ orders }) => {
 
   return (
     <div className="detail-view p-4">
-      <h2 className="text-2xl font-bold text-yellow-400 mb-4">Bestelldetails</h2>
+      <h2 className="text-2xl font-bold text-[#f7a440] mb-4">Bestelldetails</h2>
       <div className="bg-gray-800 p-4 rounded-lg space-y-2">
         <p className="text-gray-300"><strong>Artikel:</strong> {order.Artikelbeschreibung}</p>
         <p className="text-gray-300"><strong>Menge:</strong> {order.Menge} {order.Einheit}</p>
@@ -435,7 +435,7 @@ const OrderDetails = ({ orders }) => {
         <p className="text-gray-300"><strong>Geplant:</strong> {order.GeplantesLieferdatum}</p>
         <p className="text-gray-300"><strong>Tatsächlich:</strong> {order.TatsächlichesLieferdatum}</p>
         <p className="text-gray-300"><strong>Lieferdauer:</strong> {order.Lieferdauer} Tage</p>
-        <Link to="/orderlog" className="text-yellow-400 hover:underline">← Zurück zur Liste</Link>
+        <Link to="/orderlog" className="text-[#f7a440] hover:underline">← Zurück zur Liste</Link>
       </div>
     </div>
   );
@@ -449,7 +449,7 @@ const OutputDetails = ({ outputs }) => {
 
   return (
     <div className="detail-view p-4">
-      <h2 className="text-2xl font-bold text-yellow-400 mb-4">Ausgabendetails</h2>
+      <h2 className="text-2xl font-bold text-[#f7a440] mb-4">Ausgabendetails</h2>
       <div className="bg-gray-800 p-4 rounded-lg space-y-2">
         <p className="text-gray-300"><strong>Artikelnummer:</strong> {output.Artikelnummer}</p>
         <p className="text-gray-300"><strong>Menge:</strong> {output.VerbrauchteMenge}</p>
@@ -457,7 +457,7 @@ const OutputDetails = ({ outputs }) => {
         <p className="text-gray-300"><strong>Lagerbestand Nach:</strong> {output.LagerbestandNach}</p>
         <p className="text-gray-300"><strong>Datum:</strong> {output.Ausgangsdatum}</p>
         <p className="text-gray-300"><strong>Bemerkung:</strong> {output.Bemerkungen}</p>
-        <Link to="/outputlog" className="text-yellow-400 hover:underline">← Zurück zur Liste</Link>
+        <Link to="/outputlog" className="text-[#f7a440] hover:underline">← Zurück zur Liste</Link>
       </div>
     </div>
   );
@@ -471,14 +471,14 @@ const ReturnDetails = ({ returns }) => {
 
   return (
     <div className="detail-view p-4">
-      <h2 className="text-2xl font-bold text-yellow-400 mb-4">Retourendetails</h2>
+      <h2 className="text-2xl font-bold text-[#f7a440] mb-4">Retourendetails</h2>
       <div className="bg-gray-800 p-4 rounded-lg space-y-2">
         <p className="text-gray-300"><strong>Artikelnummer:</strong> {returnItem.Artikelnummer}</p>
         <p className="text-gray-300"><strong>Menge:</strong> {returnItem.Menge}</p>
         <p className="text-gray-300"><strong>Grund:</strong> {returnItem.GrundDerRetoure}</p>
         <p className="text-gray-300"><strong>Lieferant:</strong> {returnItem.Lieferant}</p>
         <p className="text-gray-300"><strong>Datum:</strong> {returnItem.Datum}</p>
-        <Link to="/returnlog" className="text-yellow-400 hover:underline">← Zurück zur Liste</Link>
+        <Link to="/returnlog" className="text-[#f7a440] hover:underline">← Zurück zur Liste</Link>
       </div>
     </div>
   );
@@ -621,39 +621,36 @@ const App = () => {
     <Router>
       <button
         onClick={() => setMenuOpen(prev => !prev)}
-        className="fixed top-4 left-4 z-50 bg-yellow-500 text-white p-3 rounded-full shadow-lg hover:bg-yellow-600 focus:outline-none focus:ring-2 focus:ring-yellow-400 md:hidden"
+        className="menu-toggle"
       >
         ☰
       </button>
-      <div className="app flex min-h-screen">
-        {menuOpen && isMobile && (
-          <div
-            className="fixed inset-0 bg-black bg-opacity-50 z-40"
-            onClick={() => setMenuOpen(false)}
-          ></div>
-        )}
+      <div className="app">
         <aside
-          className={`fixed inset-y-0 left-0 z-50 text-white w-64 ${
-            isMobile && !menuOpen ? 'transform -translate-x-full' : 'transform translate-x-0'
-          } transition-transform duration-300 ease-in-out`}
-          style={{ backgroundColor: '#1e293b' }} // Änderung: Dunkleres Blau für Sidebar
+          className={`sidebar ${menuOpen ? 'sidebar--open' : ''}`}
         >
           <Sidebar isOpen={menuOpen} setIsOpen={setMenuOpen} isMobile={isMobile} />
         </aside>
-        <main className="flex-1 p-4">
+        {menuOpen && isMobile && (
+          <div
+            className="overlay active"
+            onClick={() => setMenuOpen(false)}
+          ></div>
+        )}
+        <main className="main-content">
           {dataError && (
             <div className="text-red-500 text-center p-4 mb-4 bg-red-100 rounded-lg">
               {dataError}
             </div>
           )}
           {isLoading && (
-            <div className="text-yellow-500 text-center p-4 mb-4 bg-yellow-100 rounded-lg">
+            <div className="text-[#f7a440] text-center p-4 mb-4 bg-[#1b1f23] rounded-lg">
               Daten werden geladen...
             </div>
           )}
           <button
             onClick={loadData}
-            className="mb-4 bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-400"
+            className="reload-data-button"
           >
             Daten neu laden
           </button>
@@ -699,8 +696,8 @@ const App = () => {
               path="/live-scannen"
               element={
                 <div className="live-scannen space-y-6">
-                  <h1 className="text-3xl md:text-4xl font-bold text-yellow-400 mb-6">Live-Scannen</h1>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <h1 className="text-3xl md:text-4xl font-bold text-[#f7a440] mb-6">Live-Scannen</h1>
+                  <div className="grid">
                     <BarcodeScanner
                       orders={orders}
                       setOrders={setOrders}

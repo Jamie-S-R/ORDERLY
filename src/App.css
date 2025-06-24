@@ -16,34 +16,33 @@ html, body {
 /* Allgemein */
 .app {
   display: flex;
-  flex-direction: row;
+  flex-direction: column;
   min-height: 100vh;
   background-color: #1b1f23;
   color: #f0f0f0;
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  margin: 0;
-  padding: 0;
-  width: 100%;
 }
 
 /* Sidebar */
 .sidebar {
   width: 64px;
   height: 100vh;
-  background-color: #2e3b4e;
+  background-color: #1e293b;
   overflow-y: auto;
   position: fixed;
   top: 0;
   left: 0;
   z-index: 1000;
-  transition: width 0.3s ease;
-  box-shadow: none !important;
-  border-right: none !important;
+  transition: width 0.3s ease, transform 0.3s ease;
+  box-shadow: none;
+  border-right: none;
 }
+
 .sidebar--open {
   width: 240px;
   box-shadow: 2px 0 8px rgba(0, 0, 0, 0.2);
 }
+
 @media (max-width: 768px) {
   .sidebar {
     width: 240px;
@@ -52,13 +51,6 @@ html, body {
   .sidebar--open {
     transform: translateX(0);
   }
-}
-
-
-.sidebar--open {
-  width: 240px;
-  transform: translateX(0);
-  box-shadow: 2px 0 8px rgba(0, 0, 0, 0.2);
 }
 
 .sidebar-content {
@@ -86,9 +78,9 @@ html, body {
 
 .sidebar a.active {
   background-color: #3a4b5c;
-  color: #ffb15e;
+  color: #f7a440;
   font-weight: 600;
-  border-left: none; /* Entfernt den blauen Strich, wenn Sidebar geschlossen ist */
+  border-left: none;
 }
 
 .sidebar.sidebar--open a.active {
@@ -107,7 +99,7 @@ html, body {
 }
 
 .sidebar a:hover {
-  color: #ffb15e;
+  color: #f7a440;
 }
 
 .sidebar .icon {
@@ -142,11 +134,13 @@ html, body {
   border-top: 1px solid #2c2c2c;
   transition: color 0.2s;
 }
+
 .active-category-collapsed {
   background-color: transparent !important;
 }
+
 .active-category-collapsed .icon {
-  color: #ffb15e;
+  color: #f7a440;
 }
 
 .sidebar-category.active-category {
@@ -168,12 +162,29 @@ html, body {
   padding: 24px;
   overflow-y: auto;
   width: 100%;
-  max-width: 1200px;
-  margin: 0 auto;
   background-color: #1b1f23;
-  position: relative; /* Sicherstellen, dass Inhalt nicht überdeckt wird */
+  position: relative;
 }
 
+/* Reload Data Button */
+.reload-data-button {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  background: #10b981;
+  color: white;
+  padding: 8px 16px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+  transition: background-color 0.2s;
+  z-index: 100;
+}
+
+.reload-data-button:hover {
+  background: #059669;
+}
 
 /* Startseite */
 .home {
@@ -206,7 +217,7 @@ html, body {
 }
 
 .graph-container:hover .graph-placeholder {
-  border-color: #ffb15e;
+  border-color: #f7a440;
   transform: translateY(-2px);
 }
 
@@ -252,7 +263,7 @@ html, body {
 
 .detail-view h2 {
   margin-bottom: 16px;
-  color: #ffb15e;
+  color: #f7a440;
   font-size: 24px;
 }
 
@@ -274,7 +285,7 @@ html, body {
 }
 
 .detail-view button:hover {
-  background-color: #ffa726;
+  background-color: #e69a3b;
 }
 
 /* Links */
@@ -285,7 +296,7 @@ html, body {
 }
 
 .section-link:hover {
-  color: #ffb15e;
+  color: #e69a3b;
   text-decoration: underline;
 }
 
@@ -297,7 +308,7 @@ a.email-link {
 
 a.email-link:hover {
   text-decoration: underline;
-  color: #ffb15e;
+  color: #e69a3b;
 }
 
 /* Sidebar Header */
@@ -342,10 +353,11 @@ a.email-link:hover {
 }
 
 .active-category-collapsed {
-  background-color: transparent !important; /* Entfernt dunkelblauen Balken */
+  background-color: transparent !important;
 }
+
 .active-category-collapsed .icon {
-  color: #ffb15e;
+  color: #f7a440;
 }
 
 /* Menu Toggle Button */
@@ -366,7 +378,7 @@ a.email-link:hover {
 }
 
 .menu-toggle:hover {
-  background: #ffa726;
+  background: #e69a3b;
 }
 
 /* Overlay */
@@ -384,17 +396,7 @@ a.email-link:hover {
 
 /* Responsive Design */
 @media (max-width: 768px) {
-  .sidebar {
-    transform: translateX(-100%);
-    width: 240px;
-  }
-
-  .sidebar.sidebar--open {
-    transform: translateX(0);
-  }
-
   .main-content {
-    margin-left: 0;
     padding: 16px;
   }
 
@@ -427,6 +429,11 @@ a.email-link:hover {
 
   .home {
     padding-top: 24px;
+  }
+
+  .reload-data-button {
+    top: 60px;
+    right: 16px;
   }
 }
 
@@ -479,7 +486,7 @@ a.email-link:hover {
 }
 
 .barcode-scanner h2 {
-  color: #ffb15e;
+  color: #f7a440;
   margin-bottom: 12px;
   font-size: 18px;
   font-weight: 600;
@@ -519,7 +526,7 @@ a.email-link:hover {
 
 .barcode-scanner button {
   padding: 10px 16px;
-  background-color: #3b82f6;
+  background-color: #f7a440;
   color: #ffffff;
   border: none;
   border-radius: 6px;
@@ -609,11 +616,4 @@ a.email-link:hover {
 
 .barcode-scanner td {
   color: #d1d5db;
-}
-
-aside,.app {
-  background-color: #1b1f23 !important;
-}
-.sidebar {
-  background-color: #1e293b !important;
 }
