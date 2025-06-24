@@ -3,7 +3,7 @@ import Quagga from 'quagga';
 import { FaSearch } from 'react-icons/fa';
 
 const AccordionSection = ({ title, children }) => {
-  const [isOpen, setIsOpen] = useState(false);
+  const [isOpen, setIsOpen] = useState(title === 'Letzte Einträge');
   return (
     <section className="mb-4 border border-gray-600 rounded-lg overflow-hidden">
       <header
@@ -1027,24 +1027,18 @@ const BarcodeScanner = ({ orders = [], setOrders, outputs = [], setOutputs, retu
         </div>
       )}
       <AccordionSection title="Letzte Einträge">
-        <div className="flex items-center space-x-2 mb-3 sm:mb-4">
           <label className="text-white text-sm sm:text-base">Sortieren nach:</label>
           <div className="relative inline-block">
             <select
               value={logSortOrder}
               onChange={(e) => setLogSortOrder(e.target.value)}
-              className="appearance-none bg-gray-700 text-white p-2.5 sm:p-3 rounded-lg pr-8 text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-[#f7a440] transition-all"
-            >
+              className="bg-gray-700 text-white p-2.5 sm:p-3 rounded-lg text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-[#f7a440] transition-all"
+              >
               <option value="newest">Neueste zuerst</option>
               <option value="oldest">Älteste zuerst</option>
             </select>
-            <div className="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
-              <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
-              </svg>
-            </div>
           </div>
-        </div>
+        
         <div className="overflow-x-auto">
           <table className="w-full text-gray-300 text-xs sm:text-sm border-collapse">
             <thead>

@@ -488,7 +488,7 @@ const App = () => {
   const [orders, setOrders] = useState([]);
   const [outputs, setOutputs] = useState([]);
   const [returns, setReturns] = useState([]);
-  const [menuOpen, setMenuOpen] = useState(window.innerWidth > 768);
+  const [menuOpen, setMenuOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
   const [dataError, setDataError] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
