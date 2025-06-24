@@ -2,7 +2,6 @@ import { createClient } from '@supabase/supabase-js';
 import express from 'express';
 import dotenv from 'dotenv';
 
-// Lade Umgebungsvariablen aus .env.local
 dotenv.config({ path: '.env.local' });
 
 const app = express();
@@ -23,7 +22,6 @@ app.get('/api/supabase', async (req, res) => {
   console.log('Incoming GET request:', req.query);
   const { table, columns, max, suppliers } = req.query;
   try {
-    // Handling für suppliers=true
     if (suppliers === 'true') {
       console.log('Fetching unique suppliers from bestellungen');
       const { data, error } = await supabase
@@ -39,8 +37,7 @@ app.get('/api/supabase', async (req, res) => {
       return res.status(200).json(uniqueSuppliers);
     }
 
-    // Bestehende Logik für table, columns, max
-    if (!table || !['bestellungen', 'ausgaenge', 'retouren'].includes(table)) {
+    if (!table || !['bestellungen', 'ausgaenge', 'retouren', 'connected_suppliers'].includes(table)) {
       throw new Error(`Invalid table name: ${table || 'undefined'}`);
     }
     if (max && columns) {
@@ -60,11 +57,11 @@ app.get('/api/supabase', async (req, res) => {
       console.log(`Maximale ${columns} für ${table}:`, data);
       res.json([{ [columns]: data || '0' }]);
     } else {
-      console.log(`Executing SELECT * FROM ${table} ORDER BY ${table === 'bestellungen' ? 'BestellID' : table === 'ausgaenge' ? 'AusgangsID' : 'RetoureID'} DESC`);
+      console.log(`Executing SELECT * FROM ${table} ORDER BY ${table === 'bestellungen' ? 'BestellID' : table === 'ausgaenge' ? 'AusgangsID' : table === 'retouren' ? 'RetoureID' : 'supplier'} DESC`);
       const query = supabase
         .from(table)
         .select(columns || '*')
-        .order(table === 'bestellungen' ? 'BestellID' : table === 'ausgaenge' ? 'AusgangsID' : 'RetoureID', { ascending: false });
+        .order(table === 'bestellungen' ? 'BestellID' : table === 'ausgaenge' ? 'AusgangsID' : table === 'retouren' ? 'RetoureID' : 'supplier', { ascending: false });
       const { data, error } = await query;
       if (error) {
         console.error(`Supabase GET error for ${table}:`, {
@@ -88,7 +85,7 @@ app.post('/api/supabase', async (req, res) => {
   const { table, data } = req.body;
   console.log(`POST request for ${table}:`, data);
   try {
-    if (!table || !['bestellungen', 'ausgaenge', 'retouren'].includes(table)) {
+    if (!table || !['bestellungen', 'ausgaenge', 'retouren', 'connected_suppliers'].includes(table)) {
       throw new Error(`Invalid table name: ${table}`);
     }
     console.log(`Executing INSERT INTO ${table}`);
@@ -114,7 +111,7 @@ app.delete('/api/supabase', async (req, res) => {
   const { table, id, idField } = req.body;
   console.log(`DELETE request for ${table} where ${idField} = ${id}`);
   try {
-    if (!table || !['bestellungen', 'ausgaenge', 'retouren'].includes(table)) {
+    if (!table || !['bestellungen', 'ausgaenge', 'retouren', 'connected_suppliers'].includes(table)) {
       throw new Error(`Invalid table name: ${table}`);
     }
     console.log(`Executing DELETE FROM ${table} WHERE ${idField} = ${id}`);

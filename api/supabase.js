@@ -27,7 +27,6 @@ export default async function handler(req, res) {
       const { table, columns, max, suppliers } = req.query;
       console.log(`GET request: table=${table}, columns=${columns}, max=${max}, suppliers=${suppliers}`);
 
-      // Handle suppliers query first
       if (suppliers === 'true') {
         console.log('Fetching unique suppliers from bestellungen');
         const { data, error } = await supabase
@@ -43,8 +42,7 @@ export default async function handler(req, res) {
         return res.status(200).json(uniqueSuppliers);
       }
 
-      // Validate table for other queries
-      if (!table || !['bestellungen', 'ausgaenge', 'retouren'].includes(table)) {
+      if (!table || !['bestellungen', 'ausgaenge', 'retouren', 'connected_suppliers'].includes(table)) {
         console.error('Invalid table name:', table);
         return res.status(400).json({ error: `Invalid table name: ${table || 'undefined'}` });
       }
@@ -70,7 +68,9 @@ export default async function handler(req, res) {
               ? 'BestellID'
               : table === 'ausgaenge'
               ? 'AusgangsID'
-              : 'RetoureID',
+              : table === 'retouren'
+              ? 'RetoureID'
+              : 'supplier',
             { ascending: false }
           );
         const { data, error } = await query;
@@ -86,7 +86,7 @@ export default async function handler(req, res) {
     if (req.method === 'POST') {
       const { table, data } = req.body;
       console.log(`POST request: table=${table}, data=`, data);
-      if (!table || !['bestellungen', 'ausgaenge', 'retouren'].includes(table)) {
+      if (!table || !['bestellungen', 'ausgaenge', 'retouren', 'connected_suppliers'].includes(table)) {
         console.error('Invalid table name:', table);
         return res.status(400).json({ error: `Invalid table name: ${table}` });
       }
@@ -103,7 +103,7 @@ export default async function handler(req, res) {
     if (req.method === 'DELETE') {
       const { table, id, idField } = req.body;
       console.log(`DELETE request: table=${table}, id=${id}, idField=${idField}`);
-      if (!table || !['bestellungen', 'ausgaenge', 'retouren'].includes(table)) {
+      if (!table || !['bestellungen', 'ausgaenge', 'retouren', 'connected_suppliers'].includes(table)) {
         console.error('Invalid table name:', table);
         return res.status(400).json({ error: `Invalid table name: ${table}` });
       }

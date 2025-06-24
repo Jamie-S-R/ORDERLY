@@ -1,13 +1,13 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { FaSync, FaCheckCircle, FaExclamationTriangle, FaPlug } from 'react-icons/fa';
 
-// Mock supplier API database
-const mockSupplierApis = [
-  { name: 'Unbekannt', api: 'https://api.unbekannt.com/v1/orders', supportsAuto: true },
-  { name: 'Lieferant A', api: 'https://api.lieferanta.com/v1/orders', supportsAuto: true },
-  { name: 'Lieferant B', api: 'https://api.lieferantb.com/v2/orders', supportsAuto: true },
-  { name: 'Lieferant C', api: null, supportsAuto: false },
-];
+const mockSupplierApis = {
+  'Continental AG': 'https://api.continental.com/v1/orders',
+  'Magura Bosch Parts & Services GmbH': 'https://api.magurabosch.com/v1/orders',
+  'Selle Italia S.r.l.': 'https://api.selleitalia.com/v1/orders',
+  'SRAM Corporation': 'https://api.sram.com/v1/orders',
+  'Shimano GmbH': 'https://api.shimano.com/v1/orders',
+};
 
 const AccordionSection = ({ title, children }) => {
   const [isOpen, setIsOpen] = useState(true);
@@ -43,22 +43,17 @@ const Automatisierung = ({ orders = [], onDataUpdate }) => {
   const [error, setError] = useState(null);
   const [connectedSuppliers, setConnectedSuppliers] = useState({});
 
-  // Fetch unique suppliers from Supabase
   const fetchSuppliers = async () => {
     setIsLoading(true);
     try {
-      const timestamp = new Date().getTime(); // Eindeutiger Zeitstempel
-      const response = await fetch(`/api/supabase?suppliers=true&_t=${timestamp}`, {
+      const response = await fetch(`/api/supabase?suppliers=true&_t=${Date.now()}`, {
         headers: {
           'Accept': 'application/json',
           'Content-Type': 'application/json',
-          'Cache-Control': 'no-cache', // Verhindert Browser-Caching
+          'Cache-Control': 'no-cache',
         },
       });
-      if (!response.ok) {
-        const text = await response.text();
-        throw new Error(`Fehler beim Abrufen der Lieferanten: ${response.status} - ${text}`);
-      }
+      if (!response.ok) throw new Error(`Fehler: ${response.status}`);
       const data = await response.json();
       setSuppliers(data);
     } catch (err) {
@@ -68,26 +63,44 @@ const Automatisierung = ({ orders = [], onDataUpdate }) => {
     }
   };
 
-  // Simulate fetching automated orders
-  const fetchAutoOrders = async () => {
-    setIsLoading(true);
+  const fetchConnectedSuppliers = async () => {
     try {
-      const timestamp = new Date().getTime(); // Eindeutiger Zeitstempel
-      const response = await fetch(`/api/supabase?table=bestellungen&_t=${timestamp}`, {
+      const response = await fetch(`/api/supabase?table=connected_suppliers&_t=${Date.now()}`, {
         headers: {
           'Accept': 'application/json',
           'Content-Type': 'application/json',
-          'Cache-Control': 'no-cache', // Verhindert Browser-Caching
+          'Cache-Control': 'no-cache',
         },
       });
-      if (!response.ok) {
-        const text = await response.text();
-        throw new Error(`Fehler beim Abrufen der Bestellungen: ${response.status} - ${text}`);
-      }
+      if (!response.ok) throw new Error(`Serverfehler: ${response.status}`);
+      const data = await response.json();
+      const connected = data.reduce((acc, { supplier, api }) => {
+        acc[supplier] = api;
+        return acc;
+      }, {});
+      setConnectedSuppliers(connected);
+    } catch (err) {
+      console.error('Fehler beim Laden des Verbindungsstatus:', err);
+      setError('Fehler beim Laden der Daten: ' + err.message);
+    }
+  };
+
+  const fetchAutoOrders = async () => {
+    setIsLoading(true);
+    try {
+      const response = await fetch(`/api/supabase?table=bestellungen&_t=${Date.now()}`, {
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+          'Cache-Control': 'no-cache',
+        },
+      });
+      if (!response.ok) throw new Error(`Fehler: ${response.status}`);
       const data = await response.json();
       const lowStockItems = data.filter(o => parseInt(o.AktuellerLagerbestand) < 20);
       const mockOrders = lowStockItems.map(o => {
-        const supplier = mockSupplierApis.find(s => s.name === o.Lieferant) || mockSupplierApis[0];
+        const supplierApi = mockSupplierApis[o.Lieferant];
+        const isConnected = !!connectedSuppliers[o.Lieferant];
         return {
           lieferant: o.Lieferant,
           artikel: o.Artikelbeschreibung,
@@ -95,75 +108,74 @@ const Automatisierung = ({ orders = [], onDataUpdate }) => {
           bestand: parseInt(o.AktuellerLagerbestand) || 0,
           bestellnummer: `#AUTO-${Math.floor(Math.random() * 100000)}`,
           lieferdatum: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-          status: connectedSuppliers[o.Lieferant] ? 'Bestellt' : 'Wartet auf API',
-          progressText: connectedSuppliers[o.Lieferant] ? 'Bestellung platziert' : 'API-Verbindung erforderlich',
-          progressPercent: connectedSuppliers[o.Lieferant] ? 80 : 20,
+          status: isConnected ? 'Bestellt' : 'Wartet auf API',
+          progressText: isConnected ? 'Bestellung platziert' : 'API-Verbindung erforderlich',
+          progressPercent: isConnected ? 80 : 20,
           menge: 50,
         };
       });
       setAutoOrders(mockOrders);
     } catch (err) {
-      setError('Fehler beim Abrufen der automatisierten Bestellungen');
+      setError('Fehler beim Abrufen der Bestellungen');
     } finally {
       setIsLoading(false);
     }
   };
 
-  // Connect to supplier API
-  const connectSupplier = (supplierName) => {
+  const connectSupplier = async (supplierName) => {
     setIsLoading(true);
     setError(null);
-    setTimeout(() => {
-      const supplier = mockSupplierApis.find(s => s.name === supplierName);
-      if (supplier && supplier.supportsAuto) {
-        setConnectedSuppliers(prev => ({
-          ...prev,
-          [supplierName]: supplier.api,
-        }));
-        setAutoOrders(prev =>
-          prev.map(o =>
-            o.lieferant === supplierName
-              ? { ...o, status: 'Bestellt', progressText: 'Bestellung platziert', progressPercent: 80 }
-              : o
-          )
-        );
-        // Simulate adding a new order to bestellungen
-        const lowStockItems = orders.filter(
-          o => o.Lieferant === supplierName && parseInt(o.AktuellerLagerbestand) < 20
-        );
-        lowStockItems.forEach(item => {
-          const newOrder = {
-            BestellID: `AUTO-${Math.floor(Math.random() * 100000)}`,
-            Bestelldatum: new Date().toISOString().split('T')[0],
-            Bestellart: 'Automatisch',
-            Lieferant: supplierName,
-            Artikelnummer: item.Artikelnummer,
-            Artikelbeschreibung: item.Artikelbeschreibung,
-            Menge: '50',
-            Einheit: item.Einheit,
-            PreisProEinheit: item.PreisProEinheit,
-            Bestellstatus: 'Bestellt',
-            GeplantesLieferdatum: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-            TatsächlichesLieferdatum: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-            AktuellerLagerbestand: '50',
-            Engpass: 'false',
-            KritischSeit: '',
-            Gesamtpreis: (50 * parseFloat(item.PreisProEinheit)).toFixed(2),
-            Lieferdauer: '7',
-            JahrMonat: new Date().toISOString().slice(0, 7),
-            Kategorie: item.Kategorie,
-          };
-          onDataUpdate({ type: 'Eingang', newEntry: newOrder });
-        });
-      } else {
-        setError(`Keine API für ${supplierName} verfügbar`);
-      }
+    try {
+      const api = mockSupplierApis[supplierName];
+      if (!api) throw new Error(`Keine API für ${supplierName} gefunden`);
+      setConnectedSuppliers(prev => ({ ...prev, [supplierName]: api }));
+      const response = await fetch('/api/supabase', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ table: 'connected_suppliers', data: { supplier: supplierName, api } }),
+      });
+      if (!response.ok) throw new Error(`Fehler beim Speichern: ${response.status}`);
+      setAutoOrders(prev =>
+        prev.map(o =>
+          o.lieferant === supplierName
+            ? { ...o, status: 'Bestellt', progressText: 'Bestellung platziert', progressPercent: 80 }
+            : o
+        )
+      );
+    } catch (err) {
+      console.error('Fehler beim Verbinden:', err);
+      setError('Fehler beim Verbinden der API: ' + err.message);
+    } finally {
       setIsLoading(false);
-    }, 1000);
+    }
+  };
+
+  const resetConnections = async () => {
+    setIsLoading(true);
+    try {
+      await Promise.all(
+        Object.keys(connectedSuppliers).map(supplier =>
+          fetch('/api/supabase', {
+            method: 'DELETE',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ table: 'connected_suppliers', id: supplier, idField: 'supplier' }),
+          })
+        )
+      );
+      setConnectedSuppliers({});
+      setAutoOrders(prev =>
+        prev.map(o => ({ ...o, status: 'Wartet auf API', progressText: 'API-Verbindung erforderlich', progressPercent: 20 }))
+      );
+    } catch (err) {
+      setError('Fehler beim Zurücksetzen der Verbindungen');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   useEffect(() => {
     fetchSuppliers();
+    fetchConnectedSuppliers();
     fetchAutoOrders();
   }, [orders]);
 
@@ -175,7 +187,7 @@ const Automatisierung = ({ orders = [], onDataUpdate }) => {
     <div className="detail-view p-4">
       <h2 className="text-2xl font-bold text-[#f7a440] mb-4">🤖 Automatisierte Bestellungen</h2>
       <p className="text-gray-300 mb-4">
-        Automatisieren Sie Ihre Bestellungen durch Integration mit Lieferanten-APIs (z. B. SAP, Shopify, eigene APIs).
+        Automatisieren Sie Ihre Bestellungen durch Integration mit Lieferanten-APIs.
       </p>
 
       <div className="flex justify-end mb-4">
@@ -197,7 +209,7 @@ const Automatisierung = ({ orders = [], onDataUpdate }) => {
       <AccordionSection title="Lieferanten verbinden">
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
           {suppliers.map((supplier, index) => {
-            const supplierApi = mockSupplierApis.find(s => s.name === supplier) || { supportsAuto: false };
+            const supplierApi = mockSupplierApis[supplier];
             return (
               <div key={index} className="border border-gray-600 rounded-lg p-4 bg-gray-900">
                 <h3 className="text-lg font-bold text-[#f7a440]">{supplier}</h3>
@@ -214,20 +226,23 @@ const Automatisierung = ({ orders = [], onDataUpdate }) => {
                 </p>
                 <button
                   onClick={() => connectSupplier(supplier)}
-                  disabled={connectedSuppliers[supplier] || !supplierApi.supportsAuto || isLoading}
+                  disabled={connectedSuppliers[supplier] || !supplierApi || isLoading}
                   className={`mt-3 w-full bg-[#10b981] text-white px-4 py-2 rounded-lg flex items-center justify-center gap-2 ${
-                    connectedSuppliers[supplier] || !supplierApi.supportsAuto || isLoading
+                    connectedSuppliers[supplier] || !supplierApi || isLoading
                       ? 'opacity-50 cursor-not-allowed'
                       : 'hover:bg-[#059669]'
                   }`}
                 >
                   <FaPlug /> {connectedSuppliers[supplier] ? 'Verbunden' : 'API verbinden'}
                 </button>
+                {!supplierApi && (
+                  <p className="text-red-500 text-sm mt-2">Keine API für diesen Lieferanten verfügbar</p>
+                )}
               </div>
             );
           })}
           {suppliers.length === 0 && !isLoading && (
-            <p className="text-gray-400">Keine Lieferanten gefunden. Bitte fügen Sie Bestellungen hinzu, um Lieferanten anzuzeigen.</p>
+            <p className="text-gray-400">Keine Lieferanten gefunden.</p>
           )}
         </div>
       </AccordionSection>
@@ -274,10 +289,18 @@ const Automatisierung = ({ orders = [], onDataUpdate }) => {
             </tbody>
           </table>
           {filteredOrders.length === 0 && !isLoading && (
-            <p className="text-gray-400 text-center mt-4">Keine automatisierten Bestellungen gefunden. Verbinden Sie Lieferanten-APIs oder fügen Sie Bestellungen mit niedrigem Lagerbestand hinzu.</p>
+            <p className="text-gray-400 text-center mt-4">Keine automatisierten Bestellungen gefunden.</p>
           )}
         </div>
       </AccordionSection>
+
+      {/* Versteckter Reset-Button für Testzwecke - vor dem Pitch entfernen oder auskommentieren */}
+      <button
+        onClick={resetConnections}
+        className="mt-4 bg-red-500 text-white px-4 py-2 rounded-lg hidden"
+      >
+        Reset Verbindungen (Test)
+      </button>
     </div>
   );
 };
