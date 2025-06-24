@@ -1,40 +1,93 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { FaSync, FaCheckCircle, FaExclamationTriangle } from 'react-icons/fa';
+import { FaSync, FaCheckCircle, FaExclamationTriangle, FaPlug } from 'react-icons/fa';
 
-const AccordionSection = ({ title, children }) => (
-  <section className="mb-6 border border-gray-600 rounded-lg overflow-hidden">
-    <header className="p-3 bg-gray-700 text-white font-semibold cursor-pointer">
-      ▼ {title}
-    </header>
-    <div className="p-4 bg-gray-800">{children}</div>
-  </section>
-);
+// Mock supplier API database
+const mockSupplierApis = [
+  { name: 'Unbekannt', api: 'https://api.unbekannt.com/v1/orders', supportsAuto: true },
+  { name: 'Lieferant A', api: 'https://api.lieferanta.com/v1/orders', supportsAuto: true },
+  { name: 'Lieferant B', api: 'https://api.lieferantb.com/v2/orders', supportsAuto: true },
+  { name: 'Lieferant C', api: null, supportsAuto: false },
+  // Add more mock suppliers as needed
+];
 
-const Automatisierung = ({ orders = [] }) => {
+const AccordionSection = ({ title, children }) => {
+  const [isOpen, setIsOpen] = useState(true);
+  return (
+    <section className="mb-6 border border-gray-600 rounded-lg overflow-hidden">
+      <header
+        className="p-3 bg-gray-700 text-white font-semibold cursor-pointer flex items-center justify-between"
+        onClick={() => setIsOpen(!isOpen)}
+      >
+        <span>{title}</span>
+        <svg
+          className={`w-4 h-4 transform transition-transform ${isOpen ? 'rotate-180' : ''}`}
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+        </svg>
+      </header>
+      <div
+        className={`p-4 bg-gray-800 transition-max-height duration-300 ease-in-out ${isOpen ? 'max-h-screen' : 'max-h-0 overflow-hidden'}`}
+      >
+        {children}
+      </div>
+    </section>
+  );
+};
+
+const Automatisierung = ({ orders = [], onDataUpdate }) => {
+  const [suppliers, setSuppliers] = useState([]);
   const [autoOrders, setAutoOrders] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [connectedSuppliers, setConnectedSuppliers] = useState({});
 
-  // Mock external API call
+  // Fetch unique suppliers from Supabase
+  const fetchSuppliers = async () => {
+    setIsLoading(true);
+    try {
+      const response = await fetch('/api/supabase?suppliers=true&_t=${Date.now()}', {
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+        },
+      });
+      if (!response.ok) {
+        const text = await response.text();
+        throw new Error(`Fehler beim Abrufen der Lieferanten: ${response.status} - ${text}`);
+      }
+      const data = await response.json();
+      setSuppliers(data);
+    } catch (err) {
+      setError('Fehler beim Abrufen der Lieferanten: ' + err.message);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Simulate fetching automated orders
   const fetchAutoOrders = async () => {
     setIsLoading(true);
     try {
-      // Simuliert API-Call zu einem ERP-System (z. B. SAP, Shopify)
-      const response = await new Promise(resolve => setTimeout(() => resolve({
-        data: orders.map(o => ({
+      const lowStockItems = orders.filter(o => parseInt(o.AktuellerLagerbestand) < 20);
+      const mockOrders = lowStockItems.map(o => {
+        const supplier = mockSupplierApis.find(s => s.name === o.Lieferant) || mockSupplierApis[0];
+        return {
           lieferant: o.Lieferant,
           artikel: o.Artikelbeschreibung,
           artikelnummer: o.Artikelnummer,
           bestand: parseInt(o.AktuellerLagerbestand) || 0,
-          letzteBestellung: o.Bestelldatum,
-          bestellnummer: `#${o.BestellID}`,
-          lieferdatum: o.GeplantesLieferdatum,
-          status: o.Bestellstatus,
-          progressText: o.Bestellstatus,
-          progressPercent: o.Bestellstatus === 'Bestätigt' ? 80 : o.Bestellstatus === 'Offen' ? 20 : 60,
-        })).filter(o => o.bestand < 20) // Simuliert Engpass-Logik
-      }), 1000));
-      setAutoOrders(response.data);
+          bestellnummer: `#AUTO-${Math.floor(Math.random() * 100000)}`,
+          lieferdatum: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+          status: connectedSuppliers[o.Lieferant] ? 'Bestellt' : 'Wartet auf API',
+          progressText: connectedSuppliers[o.Lieferant] ? 'Bestellung platziert' : 'API-Verbindung erforderlich',
+          progressPercent: connectedSuppliers[o.Lieferant] ? 80 : 20,
+          menge: 50, // Mock reorder quantity
+        };
+      });
+      setAutoOrders(mockOrders);
     } catch (err) {
       setError('Fehler beim Abrufen der automatisierten Bestellungen');
     } finally {
@@ -42,63 +95,171 @@ const Automatisierung = ({ orders = [] }) => {
     }
   };
 
+  // Connect to supplier API
+  const connectSupplier = (supplierName) => {
+    setIsLoading(true);
+    setTimeout(() => {
+      const supplier = mockSupplierApis.find(s => s.name === supplierName);
+      if (supplier && supplier.supportsAuto) {
+        setConnectedSuppliers(prev => ({
+          ...prev,
+          [supplierName]: supplier.api,
+        }));
+        setAutoOrders(prev =>
+          prev.map(o =>
+            o.lieferant === supplierName
+              ? { ...o, status: 'Bestellt', progressText: 'Bestellung platziert', progressPercent: 80 }
+              : o
+          )
+        );
+        // Simulate adding a new order to bestellungen
+        const lowStockItems = orders.filter(
+          o => o.Lieferant === supplierName && parseInt(o.AktuellerLagerbestand) < 20
+        );
+        lowStockItems.forEach(item => {
+          const newOrder = {
+            BestellID: `AUTO-${Math.floor(Math.random() * 100000)}`,
+            Bestelldatum: new Date().toISOString().split('T')[0],
+            Bestellart: 'Automatisch',
+            Lieferant: supplierName,
+            Artikelnummer: item.Artikelnummer,
+            Artikelbeschreibung: item.Artikelbeschreibung,
+            Menge: '50',
+            Einheit: item.Einheit,
+            PreisProEinheit: item.PreisProEinheit,
+            Bestellstatus: 'Bestellt',
+            GeplantesLieferdatum: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+            TatsächlichesLieferdatum: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+            AktuellerLagerbestand: '50',
+            Engpass: 'false',
+            KritischSeit: '',
+            Gesamtpreis: (50 * parseFloat(item.PreisProEinheit)).toFixed(2),
+            Lieferdauer: '7',
+            JahrMonat: new Date().toISOString().slice(0, 7),
+            Kategorie: item.Kategorie,
+          };
+          onDataUpdate({ type: 'Eingang', newEntry: newOrder });
+        });
+      } else {
+        setError(`Keine API für ${supplierName} verfügbar`);
+      }
+      setIsLoading(false);
+    }, 1000);
+  };
+
   useEffect(() => {
+    fetchSuppliers();
     fetchAutoOrders();
   }, [orders]);
 
   const filteredOrders = useMemo(() => {
-    return autoOrders.filter(o => o.bestand < 20); // Beispiel für Engpass-Filter
+    return autoOrders.filter(o => o.bestand < 20);
   }, [autoOrders]);
 
   return (
     <div className="detail-view p-4">
       <h2 className="text-2xl font-bold text-[#f7a440] mb-4">🤖 Automatisierte Bestellungen</h2>
-      <p className="text-gray-300 mb-4">Verwaltung von Bestellungen über externe APIs (z. B. SAP, Shopify)</p>
+      <p className="text-gray-300 mb-4">
+        Automatisieren Sie Ihre Bestellungen durch Integration mit Lieferanten-APIs (z. B. SAP, Shopify, eigene APIs).
+      </p>
 
       <div className="flex justify-end mb-4">
         <button
-          onClick={fetchAutoOrders}
+          onClick={() => {
+            fetchSuppliers();
+            fetchAutoOrders();
+          }}
           className="bg-[#3b82f6] text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-[#2563eb]"
           disabled={isLoading}
         >
-          <FaSync className={isLoading ? 'animate-spin' : ''} /> Bestellungen synchronisieren
+          <FaSync className={isLoading ? 'animate-spin' : ''} /> Daten synchronisieren
         </button>
       </div>
 
       {error && <p className="text-red-500 text-center mb-4">{error}</p>}
-      {isLoading && <p className="text-yellow-500 text-center mb-4">Lade Bestellungen...</p>}
+      {isLoading && <p className="text-yellow-500 text-center mb-4">Lade Daten...</p>}
+
+      <AccordionSection title="Lieferanten verbinden">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+          {suppliers.map((supplier, index) => {
+            const supplierApi = mockSupplierApis.find(s => s.name === supplier) || { supportsAuto: false };
+            return (
+              <div key={index} className="border border-gray-600 rounded-lg p-4 bg-gray-900">
+                <h3 className="text-lg font-bold text-[#f7a440]">{supplier}</h3>
+                <p className="text-gray-300 text-sm mt-2">
+                  Status: {connectedSuppliers[supplier] ? (
+                    <span className="text-green-500 flex items-center gap-1">
+                      <FaCheckCircle /> Verbunden
+                    </span>
+                  ) : (
+                    <span className="text-yellow-500 flex items-center gap-1">
+                      <FaExclamationTriangle /> Nicht verbunden
+                    </span>
+                  )}
+                </p>
+                <button
+                  onClick={() => connectSupplier(supplier)}
+                  disabled={connectedSuppliers[supplier] || !supplierApi.supportsAuto || isLoading}
+                  className={`mt-3 w-full bg-[#10b981] text-white px-4 py-2 rounded-lg flex items-center justify-center gap-2 ${
+                    connectedSuppliers[supplier] || !supplierApi.supportsAuto || isLoading
+                      ? 'opacity-50 cursor-not-allowed'
+                      : 'hover:bg-[#059669]'
+                  }`}
+                >
+                  <FaPlug /> {connectedSuppliers[supplier] ? 'Verbunden' : 'API verbinden'}
+                </button>
+              </div>
+            );
+          })}
+          {suppliers.length === 0 && !isLoading && (
+            <p className="text-gray-400">Keine Lieferanten gefunden.</p>
+          )}
+        </div>
+      </AccordionSection>
 
       <AccordionSection title="Automatisierte Bestellungen">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {filteredOrders.map((eintrag, index) => (
-            <div
-              key={index}
-              className="border border-gray-600 rounded-lg p-4 bg-gray-900"
-            >
-              <h3 className="text-lg font-bold text-[#f7a440]">{eintrag.lieferant}</h3>
-              <div className="mt-2 p-3 bg-gray-800 rounded-lg">
-                <strong className="text-white">{eintrag.artikel} ({eintrag.artikelnummer})</strong>
-                <div className="mt-2 text-gray-300 text-sm">
-                  <p>Bestand: <span className="text-red-500">{eintrag.bestand} Stück</span></p>
-                  <p>Letzte Bestellung: {eintrag.letzteBestellung}</p>
-                  <p>Bestellnummer: {eintrag.bestellnummer}</p>
-                  <p>Lieferdatum: {eintrag.lieferdatum}</p>
-                  <p>Status: <span className="bg-[#f7a440] text-black px-2 py-1 rounded">{eintrag.status}</span></p>
-                </div>
-                <div className="mt-3">
-                  <p className="text-gray-400 text-xs">{eintrag.progressText}</p>
-                  <div className="bg-gray-700 rounded-full h-2 mt-1">
-                    <div
-                      className="bg-[#f7a440] h-2 rounded-full"
-                      style={{ width: `${eintrag.progressPercent}%` }}
-                    ></div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          ))}
+        <div className="overflow-x-auto">
+          <table className="w-full text-gray-300 text-sm border-collapse">
+            <thead>
+              <tr className="bg-gray-700">
+                <th className="p-2 text-left border-b border-gray-500">Lieferant</th>
+                <th className="p-2 text-left border-b border-gray-500">Artikel</th>
+                <th className="p-2 text-left border-b border-gray-500">Bestellnummer</th>
+                <th className="p-2 text-right border-b border-gray-500">Menge</th>
+                <th className="p-2 text-right border-b border-gray-500">Bestand</th>
+                <th className="p-2 text-left border-b border-gray-500">Status</th>
+                <th className="p-2 text-left border-b border-gray-500">Fortschritt</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredOrders.map((order, index) => (
+                <tr key={index} className="hover:bg-gray-700">
+                  <td className="p-2 border-b border-gray-600">{order.lieferant}</td>
+                  <td className="p-2 border-b border-gray-600">{order.artikel} ({order.artikelnummer})</td>
+                  <td className="p-2 border-b border-gray-600">{order.bestellnummer}</td>
+                  <td className="p-2 text-right border-b border-gray-600">{order.menge}</td>
+                  <td className="p-2 text-right border-b border-gray-600">{order.bestand}</td>
+                  <td className="p-2 border-b border-gray-600">
+                    <span className={`px-2 py-1 rounded text-xs ${
+                      order.status === 'Bestellt' ? 'bg-green-500 text-black' : 'bg-yellow-500 text-black'
+                    }`}>
+                      {order.status}
+                    </span>
+                  </td>
+                  <td className="p-2 border-b border-gray-600">
+                    <div className="bg-gray-700 rounded-full h-2">
+                      <div
+                        className="bg-[#f7a440] h-2 rounded-full"
+                        style={{ width: `${order.progressPercent}%` }}
+                      ></div>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
           {filteredOrders.length === 0 && !isLoading && (
-            <p className="text-gray-400">Keine automatisierten Bestellungen gefunden.</p>
+            <p className="text-gray-400 text-center mt-4">Keine automatisierten Bestellungen gefunden.</p>
           )}
         </div>
       </AccordionSection>
