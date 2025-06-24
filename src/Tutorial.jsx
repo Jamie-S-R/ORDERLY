@@ -3,162 +3,228 @@ import { useNavigate, Link } from 'react-router-dom';
 
 const tutorialSteps = [
   {
-    title: 'Was ist ORDERLY?',
-    content: (
-      <>
-        <p>
-          <strong>ORDERLY</strong> ist eine smarte, cloudbasierte SaaS-Lösung für kleine und mittlere Unternehmen (KMU), die den gesamten <strong>Materialeinkauf automatisieren</strong> und vereinfachen soll.
-        </p>
-        <p>
-          Durch intelligente Auswertung vergangener Lagerbewegungen schlägt ORDERLY automatisch Bestellungen vor, erkennt Engpässe, bewertet Lieferanten und zeigt dir Retourengründe sowie finanzielle Entwicklungen.
-        </p>
-        <p>
-          Du brauchst keine Installation, keine Schulung – ORDERLY ist <strong>sofort einsatzbereit</strong> und läuft auf jedem Gerät im Browser.
-        </p>
-        <ul>
-          <li>📦 Automatisierte Nachbestellungen</li>
-          <li>📈 Analyse von Lager, Retouren & Lieferanten</li>
-          <li>💶 Transparenz über Kosten und Verbrauch</li>
-          <li>🧠 Unterstützung durch KI</li>
-        </ul>
-        <p>Im Folgenden lernst du alle Funktionen Schritt für Schritt kennen.</p>
-      </>
-    )
-  },
-  {
     title: 'Willkommen bei ORDERLY',
     content: (
       <>
-        <p>
-          Willkommen bei <strong>ORDERLY</strong> – deinem digitalen Werkzeug für smartes Lager- und Bestellmanagement.
+        <p className="text-gray-300 mb-4">
+          Wir sind <strong>ORDERLY</strong>, wir wollen KMUs dabei helfen, Bestellungen zu automatisieren und Lagerführung zu betreiben.
         </p>
         <p>
-          Dieses Tutorial führt dich durch alle Funktionen Schritt für Schritt. Du kannst direkt mitklicken.
+          <strong>ORDERLY</strong> ist deine cloudbasierte Lösung für smartes Lager- und Bestellmanagement. Ohne Installation, sofort einsatzbereit im Browser, hilft ORDERLY kleinen und mittleren Unternehmen, ihre Prozesse effizienter zu gestalten.
         </p>
-        <p>
-          Klicke auf <strong>Weiter</strong>, um zu starten.
+        <ul className="list-disc list-inside text-gray-300 mt-2">
+          <li>Automatische Nachbestellungen basierend auf Lagerbeständen</li>
+          <li>Transparente Analysen zu Kosten, Retouren und Lieferanten</li>
+          <li>Einfaches Scannen von Barcodes für Eingänge und Ausgänge</li>
+          <li>Intuitive Dashboards für volle Kontrolle</li>
+        </ul>
+        <p className="mt-2">
+          Dieses Tutorial führt dich durch alle Funktionen. Klicke auf <strong>Weiter</strong>, um zu starten!
         </p>
       </>
-    )
+    ),
   },
   {
-    title: 'Bestelllog & Ausgänge',
+    title: 'Barcode-Scanner: Schnelle Datenerfassung',
     content: (
       <>
-        <p>
-          Im <Link className="section-link" to="/orderlog">Bestelllog</Link> findest du alle bisherigen Bestellungen. Jede Bestellung ist anklickbar – mit Details zu Datum, Menge, Preis und Artikel.
+        <p className="text-gray-300 mb-4">
+          Wir sind <strong>ORDERLY</strong>, wir wollen KMUs dabei helfen, Bestellungen zu automatisieren und Lagerführung zu betreiben.
         </p>
         <p>
-          Unter <Link className="section-link" to="/outputlog">Ausgänge</Link> sind alle Verbrauchsvorgänge gelistet – inklusive Artikelnummer, Menge, Datum und Abteilung.
+          Mit dem <Link className="section-link text-[#f7a440] hover:underline" to="/live-scannen">Barcode-Scanner</Link> erfassen du Eingänge, Ausgänge und Retouren schnell per Kamera oder manueller Eingabe. Alle Daten werden direkt in die Supabase-Datenbank gespeichert.
         </p>
+        <ul className="list-disc list-inside text-gray-300 mt-2">
+          <li>Scanne Barcodes für Bestellungen, Verbrauch oder Retouren</li>
+          <li>Automatische Aktualisierung des Lagerbestands</li>
+          <li>Manuelle Eingabe für maximale Flexibilität</li>
+          <li>Echtzeit-Übersicht der letzten Einträge</li>
+        </ul>
       </>
-    )
+    ),
   },
   {
-    title: 'Lagerverlauf & Termintreue',
+    title: 'Automatisierung: Intelligente Nachbestellungen',
     content: (
       <>
-        <p>
-          Der <Link className="section-link" to="/lagerverlauf">Lagerverlauf</Link> visualisiert deinen Lagerbestand monatlich:
+        <p className="text-gray-300 mb-4">
+          Wir sind <strong>ORDERLY</strong>, wir wollen KMUs dabei helfen, Bestellungen zu automatisieren und Lagerführung zu betreiben.
         </p>
-        <ul>
-          <li>Bestellungen pro Monat</li>
-          <li>Verbrauch / Ausgänge</li>
-          <li>Entwicklung des Lagerbestands</li>
-        </ul>
         <p>
-          Unter <Link className="section-link" to="/termintreue">Termintreue</Link> analysierst du die Pünktlichkeit deiner Lieferanten:
+          Der <Link className="section-link text-[#f7a440] hover:underline" to="/automatisierung">Automatisierungsbereich</Link> überwacht deine Lagerbestände und schlägt Nachbestellungen vor, sobald Artikel knapp werden. Bald kannst du Bestellungen direkt über Lieferanten-APIs auslösen.
         </p>
-        <ul>
-          <li>Anteil pünktlicher Lieferungen</li>
-          <li>Durchschnittliche Verspätung</li>
+        <ul className="list-disc list-inside text-gray-300 mt-2">
+          <li>Automatische Erkennung niedriger Lagerbestände</li>
+          <li>Übersichtliche Bestellvorschläge mit Status</li>
+          <li>Vorbereitung für nahtlose Lieferanten-API-Integration</li>
+          <li>Zeitersparnis durch weniger manuelle Bestellungen</li>
         </ul>
       </>
-    )
+    ),
   },
   {
-    title: 'Retouren & Engpässe',
+    title: 'Lagerverlauf: Bestandsentwicklung im Blick',
     content: (
       <>
-        <p>
-          Die <Link className="section-link" to="/retouren">Retouren</Link>-Ansicht zeigt dir:
+        <p className="text-gray-300 mb-4">
+          Wir sind <strong>ORDERLY</strong>, wir wollen KMUs dabei helfen, Bestellungen zu automatisieren und Lagerführung zu betreiben.
         </p>
-        <ul>
-          <li>Welche Artikel oft zurückgehen</li>
-          <li>Von welchem Lieferanten sie stammen</li>
-          <li>Einzelne Rückläufer mit Grund</li>
-        </ul>
         <p>
-          In <Link className="section-link" to="/engpaesse">Engpässe</Link> werden automatisch kritische Artikel erkannt. Du siehst:
+          Der <Link className="section-link text-[#f7a440] hover:underline" to="/lagerverlauf">Lagerverlauf</Link> zeigt dir monatlich, wie sich dein Lagerbestand entwickelt, basierend auf Bestellungen und Verbrauch.
         </p>
-        <ul>
-          <li>Welche Produkte aktuell kritisch sind</li>
-          <li>Wie lange sie schon kritisch sind</li>
+        <ul className="list-disc list-inside text-gray-300 mt-2">
+          <li>Visualisierung von Zu- und Abgängen</li>
+          <li>Filter nach Lieferant oder Artikel</li>
+          <li>Monatliche Bestandsentwicklung als Diagramm</li>
         </ul>
       </>
-    )
+    ),
   },
   {
-    title: 'Finanzen & Bewertung',
+    title: 'Retouren: Analyse von Rückläufern',
     content: (
       <>
-        <p>
-          Unter <Link className="section-link" to="/finanzen">Finanzen</Link> siehst du:
+        <p className="text-gray-300 mb-4">
+          Wir sind <strong>ORDERLY</strong>, wir wollen KMUs dabei helfen, Bestellungen zu automatisieren und Lagerführung zu betreiben.
         </p>
-        <ul>
-          <li>Monatliche Gesamtausgaben</li>
-          <li>Kosten nach Warengruppe (z. B. Bremsen, Antrieb, Sonstiges)</li>
-          <li>Trends deiner Einkaufsentwicklung</li>
-        </ul>
         <p>
-          Die <Link className="section-link" to="/lieferantenbewertung">Lieferantenbewertung</Link> bewertet deine Lieferanten nach:
+          Die <Link className="section-link text-[#f7a440] hover:underline" to="/retouren">Retourenanalyse</Link> gibt dir Einblick in Rückläufer, ihre Gründe und betroffene Lieferanten.
         </p>
-        <ul>
-          <li>Pünktlichkeit</li>
-          <li>Retourenquote</li>
-          <li>Preisniveau</li>
+        <ul className="list-disc list-inside text-gray-300 mt-2">
+          <li>Anzahl der Retouren pro Lieferant und Artikel</li>
+          <li>Detailansicht mit Retourengründen</li>
+          <li>Filterbare Statistiken für gezielte Analysen</li>
         </ul>
       </>
-    )
+    ),
   },
   {
-    title: 'Automatisierung & Feedback',
+    title: 'Termintreue: Lieferantenpünktlichkeit',
     content: (
       <>
-        <p>
-          Im Bereich <Link className="section-link" to="/automatisierung">Automatisierung</Link> siehst du, welche Bestellungen bereits automatisch vorgeschlagen wurden – basierend auf Artikelverbrauch und Mindestmengen.
+        <p className="text-gray-300 mb-4">
+          Wir sind <strong>ORDERLY</strong>, wir wollen KMUs dabei helfen, Bestellungen zu automatisieren und Lagerführung zu betreiben.
         </p>
-        <ul>
-          <li>Automatische Bestellvorschläge nach KI-Analyse</li>
-          <li>Übersicht aller geplanten Nachbestellungen</li>
-          <li>Letzte manuelle Bestellungen zur Nachverfolgung</li>
+        <p>
+          Unter <Link className="section-link text-[#f7a440] hover:underline" to="/termintreue">Termintreue</Link> siehst du, wie pünktlich deine Lieferanten liefern, und analysierst Verspätungen.
+        </p>
+        <ul className="list-disc list-inside text-gray-300 mt-2">
+          <li>Pünktlichkeitsrate pro Lieferant und Monat</li>
+          <li>Durchschnittliche Verspätung in Tagen</li>
+          <li>Verteilung der Verspätungen als Diagramm</li>
         </ul>
-        <p>
-          Über <Link className="section-link" to="/feedback">Feedback</Link> kannst du jederzeit Rückmeldung geben oder Ideen einreichen.
-        </p>
       </>
-    )
+    ),
   },
   {
-    title: 'Setup, Datenschutz & Support',
+    title: 'Lieferantenbewertung: Vergleich und Optimierung',
     content: (
       <>
-        <p><strong>Einrichtung:</strong> Keine Installation nötig. Einfach im Browser öffnen. Benutzer per Mail einladen und Rechte verteilen.</p>
-        <p><strong>Datenschutz:</strong> DSGVO-konform. Alle Daten liegen verschlüsselt auf Servern in der EU. Keine Weitergabe.</p>
-        <p><strong>Support:</strong> In der Pilotphase stehen wir persönlich zur Verfügung. Danach via Ticketsystem oder Videochat.</p>
+        <p className="text-gray-300 mb-4">
+          Wir sind <strong>ORDERLY</strong>, wir wollen KMUs dabei helfen, Bestellungen zu automatisieren und Lagerführung zu betreiben.
+        </p>
+        <p>
+          Die <Link className="section-link text-[#f7a440] hover:underline" to="/lieferantenbewertung">Lieferantenbewertung</Link> vergleicht Lieferanten nach Pünktlichkeit, Retourenquote und Lieferdauer.
+        </p>
+        <ul className="list-disc list-inside text-gray-300 mt-2">
+          <li>Radar-Diagramm für Lieferantenvergleich</li>
+          <li>Detailansicht für einzelne Lieferanten</li>
+          <li>Analyse von Engpässen und Retouren</li>
+        </ul>
       </>
-    )
+    ),
+  },
+  {
+    title: 'Engpässe: Kritische Lagerbestände erkennen',
+    content: (
+      <>
+        <p className="text-gray-300 mb-4">
+          Wir sind <strong>ORDERLY</strong>, wir wollen KMUs dabei helfen, Bestellungen zu automatisieren und Lagerführung zu betreiben.
+        </p>
+        <p>
+          Die <Link className="section-link text-[#f7a440] hover:underline" to="/engpaesse">Engpassanalyse</Link> identifiziert kritische Artikel und zeigt, wie lange sie bereits problematisch sind.
+        </p>
+        <ul className="list-disc list-inside text-gray-300 mt-2">
+          <li>Übersicht kritischer Lagerbestände</li>
+          <li>Filter nach Lieferant oder Zeitraum</li>
+          <li>Detailansicht für betroffene Artikel</li>
+        </ul>
+      </>
+    ),
+  },
+  {
+    title: 'Finanzen: Kosten im Griff',
+    content: (
+      <>
+        <p className="text-gray-300 mb-4">
+          Wir sind <strong>ORDERLY</strong>, wir wollen KMUs dabei helfen, Bestellungen zu automatisieren und Lagerführung zu betreiben.
+        </p>
+        <p>
+          Unter <Link className="section-link text-[#f7a440] hover:underline" to="/finanzen">Finanzen</Link> behältst du deine Ausgaben und Lieferzeiten im Blick, um Kosten zu optimieren.
+        </p>
+        <ul className="list-disc list-inside text-gray-300 mt-2">
+          <li>Monatliche Ausgaben nach Lieferant oder Kategorie</li>
+          <li>Gesamtausgaben und durchschnittlicher Bestellwert</li>
+          <li>Trends zur finanziellen Planung</li>
+        </ul>
+      </>
+    ),
+  },
+  {
+    title: 'Bestell- und Ausgangsprotokoll',
+    content: (
+      <>
+        <p className="text-gray-300 mb-4">
+          Wir sind <strong>ORDERLY</strong>, wir wollen KMUs dabei helfen, Bestellungen zu automatisieren und Lagerführung zu betreiben.
+        </p>
+        <p>
+          Im <Link className="section-link text-[#f7a440] hover:underline" to="/orderlog">Bestelllog</Link> und <Link className="section-link text-[#f7a440] hover:underline" to="/outputlog">Ausgangslog</Link> findest du detaillierte Protokolle aller Bestellungen und Verbrauchsvorgänge.
+        </p>
+        <ul className="list-disc list-inside text-gray-300 mt-2">
+          <li>Bestellhistorie mit Details zu Menge, Preis und Lieferant</li>
+          <li>Ausgangsprotokoll mit Verbrauch und Lagerbestandsänderungen</li>
+          <li>Löschen oder Anzeigen von Details möglich</li>
+        </ul>
+      </>
+    ),
+  },
+  {
+    title: 'Feedback und Support',
+    content: (
+      <>
+        <p className="text-gray-300 mb-4">
+          Wir sind <strong>ORDERLY</strong>, wir wollen KMUs dabei helfen, Bestellungen zu automatisieren und Lagerführung zu betreiben.
+        </p>
+        <p>
+          Gib uns dein <Link className="section-link text-[#f7a440] hover:underline" to="/feedback">Feedback</Link>, um ORDERLY weiter zu verbessern, oder kontaktiere unseren <Link className="section-link text-[#f7a440] hover:underline" to="/help">Support</Link>.
+        </p>
+        <ul className="list-disc list-inside text-gray-300 mt-2">
+          <li>Feedback direkt über die Plattform einreichen</li>
+          <li>Support in der Pilotphase per Videochat oder Ticketsystem</li>
+          <li>DSGVO-konforme Datenverarbeitung in der EU</li>
+        </ul>
+      </>
+    ),
   },
   {
     title: 'Tutorial abgeschlossen',
     content: (
       <>
-        <p>Das war das Tutorial zu ORDERLY!</p>
-        <p>Du kannst dieses Tutorial jederzeit erneut über <code>/tutorial</code> aufrufen.</p>
-        <p>Viel Spaß beim Arbeiten mit ORDERLY! 🚀</p>
+        <p className="text-gray-300 mb-4">
+          Wir sind <strong>ORDERLY</strong>, wir wollen KMUs dabei helfen, Bestellungen zu automatisieren und Lagerführung zu betreiben.
+        </p>
+        <p>
+          Du hast das Tutorial zu ORDERLY erfolgreich abgeschlossen! Starte jetzt mit der Optimierung deines Lagers und deiner Bestellungen.
+        </p>
+        <p>
+          Rufe das Tutorial jederzeit unter <code>/tutorial</code> erneut auf oder gehe direkt zum <Link className="section-link text-[#f7a440] hover:underline" to="/">Dashboard</Link>.
+        </p>
+        <p className="mt-2">
+          Viel Erfolg mit ORDERLY! 🚀
+        </p>
       </>
-    )
-  }
+    ),
+  },
 ];
 
 const Tutorial = () => {
@@ -171,14 +237,21 @@ const Tutorial = () => {
   const handleBack = () => setStep(prev => Math.max(prev - 1, 0));
 
   return (
-    <div className="detail-view">
-      <h2>{tutorialSteps[step].title}</h2>
-      <div>{tutorialSteps[step].content}</div>
-      <div style={{ marginTop: '2rem', display: 'flex', justifyContent: 'space-between' }}>
-        <button onClick={handleBack} disabled={isFirst} style={{ opacity: isFirst ? 0.5 : 1 }}>
+    <div className="detail-view p-4">
+      <h2 className="text-2xl font-bold text-[#f7a440] mb-4">{tutorialSteps[step].title}</h2>
+      <div className="text-gray-300 text-sm sm:text-base">{tutorialSteps[step].content}</div>
+      <div className="mt-6 flex justify-between">
+        <button
+          onClick={handleBack}
+          disabled={isFirst}
+          className={`px-4 py-2 rounded-lg text-white ${isFirst ? 'bg-gray-500 opacity-50 cursor-not-allowed' : 'bg-[#3b82f6] hover:bg-[#2563eb]'}`}
+        >
           Zurück
         </button>
-        <button onClick={handleNext}>
+        <button
+          onClick={handleNext}
+          className="px-4 py-2 bg-[#3b82f6] text-white rounded-lg hover:bg-[#2563eb]"
+        >
           {isLast ? 'Zur Startseite' : 'Weiter'}
         </button>
       </div>

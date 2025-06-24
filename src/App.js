@@ -648,12 +648,6 @@ const App = () => {
               Daten werden geladen...
             </div>
           )}
-          <button
-            onClick={loadData}
-            className="reload-data-button"
-          >
-            Daten neu laden
-          </button>
           <Routes>
             <Route
               path="/"
