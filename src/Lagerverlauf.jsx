@@ -1,7 +1,8 @@
 import React, { useState, useMemo } from 'react';
 import {
-  BarChart,
+  ComposedChart,
   Bar,
+  Line,
   XAxis,
   YAxis,
   CartesianGrid,
@@ -72,7 +73,7 @@ const Lagerverlauf = ({ orders = [], outputs = [] }) => {
   return (
     <div className="detail-view p-4">
       <h2 className="text-2xl font-bold text-[#f7a440] mb-4">📦 Lagerbestandsverlauf</h2>
-
+      <p className="text-gray-300 mb-4">Übersicht über Zu- und Abgänge sowie den Lagerbestand über die Zeit.</p>
       <div className="flex flex-col sm:flex-row gap-4 mb-6">
         <select
           value={selectedSupplier}
@@ -80,19 +81,18 @@ const Lagerverlauf = ({ orders = [], outputs = [] }) => {
             setSelectedSupplier(e.target.value);
             setSelectedArticle('');
           }}
-          className="p-2 bg-gray-700 text-white rounded-lg"
+          className="p-2 bg-gray-700 text-white rounded-lg focus:ring-2 focus:ring-[#f7a440]"
         >
           <option value="">Lieferant wählen</option>
           {[...new Set(orders.map(o => o.Lieferant))].map((s, i) => (
             <option key={i} value={s}>{s}</option>
           ))}
         </select>
-
         <select
           value={selectedArticle}
           onChange={e => setSelectedArticle(e.target.value)}
           disabled={!selectedSupplier}
-          className="p-2 bg-gray-700 text-white rounded-lg"
+          className="p-2 bg-gray-700 text-white rounded-lg focus:ring-2 focus:ring-[#f7a440]"
         >
           <option value="">Artikel wählen</option>
           {[...(artikelMap[selectedSupplier] || [])].map((a, i) => (
@@ -100,18 +100,17 @@ const Lagerverlauf = ({ orders = [], outputs = [] }) => {
           ))}
         </select>
       </div>
-
       <ResponsiveContainer width="100%" height={400}>
-        <BarChart data={monthlyData}>
+        <ComposedChart data={monthlyData}>
           <CartesianGrid strokeDasharray="3 3" stroke="#444" />
           <XAxis dataKey="month" stroke="#ccc" />
           <YAxis stroke="#ccc" />
           <Tooltip contentStyle={{ backgroundColor: '#222', borderColor: '#666', color: '#fff' }} />
           <Legend />
-          <Bar dataKey="zugang" stackId="a" fill="#4caf50" name="Bestellungen" />
-          <Bar dataKey="abgang" stackId="a" fill="#f44336" name="Ausgänge" />
-          <Bar dataKey="bestand" fill="#2196f3" name="Lagerbestand" />
-        </BarChart>
+          <Bar dataKey="zugang" stackId="a" fill="#4caf50" name="Bestellungen (Zugang)" />
+          <Bar dataKey="abgang" stackId="a" fill="#f44336" name="Ausgänge (Abgang)" />
+          <Line type="monotone" dataKey="bestand" stroke="#2196f3" name="Lagerbestand" strokeWidth={2} />
+        </ComposedChart>
       </ResponsiveContainer>
     </div>
   );

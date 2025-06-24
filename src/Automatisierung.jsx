@@ -47,15 +47,16 @@ const Automatisierung = ({ orders = [], onDataUpdate }) => {
     setIsLoading(true);
     try {
       const response = await fetch(`/api/supabase?suppliers=true&_t=${Date.now()}`, {
+        method: 'GET', // Änderung von POST zu GET
         headers: {
           'Accept': 'application/json',
           'Content-Type': 'application/json',
-          'Cache-Control': 'no-cache',
+          'Cache-Control': 'no-cache', // Stellt sicher, dass keine zwischengespeicherten Daten verwendet werden
         },
       });
       if (!response.ok) throw new Error(`Fehler: ${response.status}`);
       const data = await response.json();
-      setSuppliers(data);
+      setSuppliers(data); // Setzt die abgerufenen Lieferanten in den State
     } catch (err) {
       setError('Fehler beim Abrufen der Lieferanten: ' + err.message);
     } finally {
@@ -123,28 +124,54 @@ const Automatisierung = ({ orders = [], onDataUpdate }) => {
   };
 
   const connectSupplier = async (supplierName) => {
-    setIsLoading(true);
-    setError(null);
+    setIsLoading(true); // Falls du einen Ladezustand hast
+    setError(null); // Falls du Fehler anzeigst
+
     try {
+      // API-Daten für den Lieferanten (z. B. aus deinem Mock-Objekt)
       const api = mockSupplierApis[supplierName];
-      if (!api) throw new Error(`Keine API für ${supplierName} gefunden`);
-      setConnectedSuppliers(prev => ({ ...prev, [supplierName]: api }));
-      const response = await fetch('/api/supabase', {
+      if (!api) {
+        throw new Error(`Keine API für ${supplierName} gefunden`);
+      }
+
+      // Supabase URL und Key aus Umgebungsvariablen
+      const supabaseUrl = process.env.REACT_APP_SUPABASE_URL;
+      const supabaseAnonKey = process.env.REACT_APP_SUPABASE_ANON_KEY;
+      const url = `${supabaseUrl}/rest/v1/connected_suppliers`;
+
+      // Header wie im curl-Befehl
+      const headers = {
+        'Content-Type': 'application/json',
+        'apikey': supabaseAnonKey,
+        'Authorization': `Bearer ${supabaseAnonKey}`,
+      };
+
+      // Daten, die gespeichert werden sollen
+      const data = {
+        supplier: supplierName,
+        api: api,
+      };
+
+      // POST-Anfrage senden
+      const response = await fetch(url, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ table: 'connected_suppliers', data: { supplier: supplierName, api } }),
+        headers: headers,
+        body: JSON.stringify(data),
       });
-      if (!response.ok) throw new Error(`Fehler beim Speichern: ${response.status}`);
-      setAutoOrders(prev =>
-        prev.map(o =>
-          o.lieferant === supplierName
-            ? { ...o, status: 'Bestellt', progressText: 'Bestellung platziert', progressPercent: 80 }
-            : o
-        )
-      );
+
+      // Fehler prüfen
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(`Fehler beim Speichern: ${response.status} - ${errorData.message}`);
+      }
+
+      // Erfolg: UI aktualisieren
+      setConnectedSuppliers((prev) => ({ ...prev, [supplierName]: api }));
+      console.log(`Lieferant ${supplierName} erfolgreich verbunden`);
+
     } catch (err) {
       console.error('Fehler beim Verbinden:', err);
-      setError('Fehler beim Verbinden der API: ' + err.message);
+      setError('Fehler beim Verbinden: ' + err.message);
     } finally {
       setIsLoading(false);
     }
