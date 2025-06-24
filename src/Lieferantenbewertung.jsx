@@ -52,9 +52,14 @@ const Lieferantenbewertung = ({ orders = [], retouren = [] }) => {
     return Object.values(map);
   }, [orders, retouren, lieferanten]);
 
-  const chartData = selectedSuppliers.length > 0
-    ? bewertungen.filter(b => selectedSuppliers.includes(b.lieferant))
-    : bewertungen;
+  const chartData = useMemo(() => {
+    const filteredData = selectedSuppliers.length > 0
+      ? bewertungen.filter(b => selectedSuppliers.includes(b.lieferant))
+      : bewertungen;
+    return filteredData.length > 0 ? filteredData : [];
+  }, [bewertungen, selectedSuppliers]);
+
+  const selectedCount = selectedSuppliers.length;
 
   return (
     <div className="detail-view p-4">
@@ -77,20 +82,50 @@ const Lieferantenbewertung = ({ orders = [], retouren = [] }) => {
           ))}
         </div>
       </AccordionSection>
-      <AccordionSection title="Radar-Diagramm: Vergleich">
-        <ResponsiveContainer width="100%" height={400}>
-          <RadarChart cx="50%" cy="50%" outerRadius="80%" data={chartData}>
-            <PolarGrid />
-            <PolarAngleAxis dataKey="lieferant" stroke="#ccc" />
-            <PolarRadiusAxis />
-            <Radar name="Pünktlichkeit (%)" dataKey="puenktlichkeit" stroke="#4caf50" fill="#4caf50" fillOpacity={0.6} />
-            <Radar name="Engpässe" dataKey="engpaesse" stroke="#f44336" fill="#f44336" fillOpacity={0.3} />
-            <Radar name="Retouren" dataKey="retouren" stroke="#ff9800" fill="#ff9800" fillOpacity={0.3} />
-            <Tooltip contentStyle={{ backgroundColor: '#222', borderColor: '#666', color: '#fff' }} />
-            <Legend />
-          </RadarChart>
-        </ResponsiveContainer>
-      </AccordionSection>
+
+      {selectedCount === 1 ? (
+        <AccordionSection title="Einzelner Lieferant: Detailansicht">
+          <div className="text-white">
+            <h3 className="text-lg font-bold mb-2">{chartData[0].lieferant}</h3>
+            <p><strong>Pünktlichkeit (%):</strong> {chartData[0].puenktlichkeit}</p>
+            <p><strong>Ø Lieferdauer (Tage):</strong> {chartData[0].lieferdauer}</p>
+            <p><strong>Retouren:</strong> {chartData[0].retouren}</p>
+            <p><strong>Engpässe:</strong> {chartData[0].engpaesse}</p>
+          </div>
+        </AccordionSection>
+      ) : selectedCount === 2 ? (
+        <AccordionSection title="Vergleich von zwei Lieferanten">
+          <ResponsiveContainer width="100%" height={300}>
+            <BarChart data={chartData}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#444" />
+              <XAxis dataKey="lieferant" stroke="#ccc" />
+              <YAxis stroke="#ccc" />
+              <Tooltip contentStyle={{ backgroundColor: '#222', borderColor: '#666', color: '#fff' }} />
+              <Legend />
+              <Bar dataKey="puenktlichkeit" name="Pünktlichkeit (%)" fill="#4caf50" />
+              <Bar dataKey="lieferdauer" name="Ø Lieferdauer (Tage)" fill="#2196f3" />
+              <Bar dataKey="retouren" name="Retouren" fill="#ff9800" />
+              <Bar dataKey="engpaesse" name="Engpässe" fill="#f44336" />
+            </BarChart>
+          </ResponsiveContainer>
+        </AccordionSection>
+      ) : (
+        <AccordionSection title="Radar-Diagramm: Vergleich">
+          <ResponsiveContainer width="100%" height={400}>
+            <RadarChart cx="50%" cy="50%" outerRadius="80%" data={chartData}>
+              <PolarGrid />
+              <PolarAngleAxis dataKey="lieferant" stroke="#ccc" />
+              <PolarRadiusAxis />
+              <Radar name="Pünktlichkeit (%)" dataKey="puenktlichkeit" stroke="#4caf50" fill="#4caf50" fillOpacity={0.6} />
+              <Radar name="Engpässe" dataKey="engpaesse" stroke="#f44336" fill="#f44336" fillOpacity={0.3} />
+              <Radar name="Retouren" dataKey="retouren" stroke="#ff9800" fill="#ff9800" fillOpacity={0.3} />
+              <Tooltip contentStyle={{ backgroundColor: '#222', borderColor: '#666', color: '#fff' }} />
+              <Legend />
+            </RadarChart>
+          </ResponsiveContainer>
+        </AccordionSection>
+      )}
+
       <AccordionSection title="Durchschnittliche Lieferdauer">
         <ResponsiveContainer width="100%" height={300}>
           <BarChart data={chartData}>
@@ -103,6 +138,7 @@ const Lieferantenbewertung = ({ orders = [], retouren = [] }) => {
           </BarChart>
         </ResponsiveContainer>
       </AccordionSection>
+
       <AccordionSection title="Detailtabelle">
         <table className="w-full text-gray-300 text-sm">
           <thead>
