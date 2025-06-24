@@ -1,59 +1,61 @@
 import React, { useMemo } from 'react';
 import {
-  LineChart,
+  ComposedChart,
+  Bar,
   Line,
   XAxis,
   YAxis,
-  Tooltip,
-  ResponsiveContainer,
   CartesianGrid,
-  Legend
+  Tooltip,
+  ResponsiveContainer
 } from 'recharts';
 
 const LagerverlaufPreview = ({ orders = [], outputs = [] }) => {
-  const data = useMemo(() => {
-    const monthly = {};
-    const getMonth = (dateStr) => {
-      if (!dateStr || typeof dateStr !== 'string') return null;
-      const d = new Date(dateStr);
-      return isNaN(d.getTime()) ? null : d.toISOString().slice(0, 7);
+  const monthlyData = useMemo(() => {
+    const data = {};
+    const formatMonth = (dateStr) => {
+      if (!dateStr) return null;
+      const date = new Date(dateStr);
+      return isNaN(date.getTime()) ? null : date.toISOString().slice(0, 7);
     };
 
-    outputs.forEach((o) => {
-      const month = getMonth(o.Ausgangsdatum);
-      const menge = parseFloat(o.VerbrauchteMenge) || 0;
+    orders.forEach(o => {
+      const month = formatMonth(o.Bestelldatum);
       if (!month) return;
-      monthly[month] = monthly[month] || { month, Verbrauch: 0, Bestellungen: 0 };
-      monthly[month].Verbrauch += menge;
+      if (!data[month]) data[month] = { month, zugang: 0, abgang: 0 };
+      data[month].zugang += parseInt(o.Menge || 0);
     });
 
-    orders.forEach((o) => {
-      const month = getMonth(o.Bestelldatum);
-      const menge = parseFloat(o.Menge) || 0;
+    outputs.forEach(a => {
+      const month = formatMonth(a.Ausgangsdatum);
       if (!month) return;
-      monthly[month] = monthly[month] || { month, Verbrauch: 0, Bestellungen: 0 };
-      monthly[month].Bestellungen += menge;
+      if (!data[month]) data[month] = { month, zugang: 0, abgang: 0 };
+      data[month].abgang += parseInt(a.VerbrauchteMenge || 0);
     });
 
-    const dataArray = Object.values(monthly).sort((a, b) => a.month.localeCompare(b.month));
-    return dataArray.length > 0 ? dataArray : [{ month: 'Keine Daten', Verbrauch: 0, Bestellungen: 0 }];
+    const sorted = Object.values(data).sort((a, b) => a.month.localeCompare(b.month));
+    let bestand = 0;
+    return sorted.map(d => {
+      bestand += (d.zugang || 0) - (d.abgang || 0);
+      return { ...d, bestand };
+    });
   }, [orders, outputs]);
 
   return (
     <div className="relative w-full h-full">
-      {data.length === 1 && data[0].month === 'Keine Daten' ? (
+      {monthlyData.length === 0 ? (
         <div className="text-gray-400 text-center py-4">Keine Daten verfügbar</div>
       ) : (
-        <ResponsiveContainer width="100%" height="100%">
-          <LineChart data={data}>
+        <ResponsiveContainer width="100%" height={200}>
+          <ComposedChart data={monthlyData}>
             <CartesianGrid strokeDasharray="3 3" stroke="#444" />
-            <XAxis dataKey="month" stroke="#ccc" tick={{ fontSize: 12 }} />
-            <YAxis stroke="#ccc" />
+            <XAxis dataKey="month" stroke="#ccc" tick={{ fontSize: 10 }} />
+            <YAxis stroke="#ccc" tick={{ fontSize: 10 }} />
             <Tooltip contentStyle={{ backgroundColor: '#222', borderColor: '#666', color: '#fff' }} />
-            <Legend />
-            <Line type="monotone" dataKey="Verbrauch" stroke="#ff9800" strokeWidth={2} />
-            <Line type="monotone" dataKey="Bestellungen" stroke="#2196f3" strokeWidth={2} />
-          </LineChart>
+            <Bar dataKey="zugang" stackId="a" fill="#4caf50" name="Zugang" />
+            <Bar dataKey="abgang" stackId="a" fill="#f44336" name="Abgang" />
+            <Line type="monotone" dataKey="bestand" stroke="#2196f3" name="Bestand" strokeWidth={2} />
+          </ComposedChart>
         </ResponsiveContainer>
       )}
     </div>

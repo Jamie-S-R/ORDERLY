@@ -5,19 +5,20 @@ import {
   Bar,
   XAxis,
   YAxis,
-  Tooltip,
-  CartesianGrid
+  CartesianGrid,
+  Tooltip
 } from 'recharts';
 
-const RetourenPreview = ({ retouren = [] }) => {
+const EngpaessePreview = ({ orders = [] }) => {
   const data = useMemo(() => {
+    const engpaesse = orders.filter(r => r.Engpass === 'True' || r.Engpass === true);
     const map = {};
-    retouren.forEach(r => {
+    engpaesse.forEach(r => {
       const name = r.Lieferant || 'Unbekannt';
-      map[name] = (map[name] || 0) + parseInt(r.Menge || 1);
+      map[name] = (map[name] || 0) + 1;
     });
     return Object.entries(map).map(([lieferant, count]) => ({ lieferant, count }));
-  }, [retouren]);
+  }, [orders]);
 
   return (
     <div className="relative w-full h-full">
@@ -30,7 +31,7 @@ const RetourenPreview = ({ retouren = [] }) => {
             <XAxis dataKey="lieferant" stroke="#ccc" interval={0} tick={{ fontSize: 10 }} />
             <YAxis stroke="#ccc" tick={{ fontSize: 10 }} />
             <Tooltip contentStyle={{ backgroundColor: '#222', borderColor: '#666', color: '#fff' }} />
-            <Bar dataKey="count" fill="#ff9800" />
+            <Bar dataKey="count" fill="#f44336" />
           </BarChart>
         </ResponsiveContainer>
       )}
@@ -38,4 +39,4 @@ const RetourenPreview = ({ retouren = [] }) => {
   );
 };
 
-export default RetourenPreview;
+export default EngpaessePreview;

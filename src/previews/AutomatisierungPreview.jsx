@@ -1,24 +1,40 @@
 import React, { useMemo } from 'react';
 
 const AutomatisierungPreview = ({ orders = [] }) => {
-  const latestOrder = useMemo(() => {
-    if (orders.length === 0) return null;
-    const sorted = [...orders].sort((a, b) => new Date(b.Bestelldatum) - new Date(a.Bestelldatum));
-    return sorted[0];
+  const autoOrders = useMemo(() => {
+    const lowStockItems = orders.filter(o => parseInt(o.AktuellerLagerbestand) < 20);
+    return lowStockItems.map(o => ({
+      lieferant: o.Lieferant,
+      artikel: o.Artikelbeschreibung,
+      artikelnummer: o.Artikelnummer,
+      bestand: parseInt(o.AktuellerLagerbestand) || 0,
+      menge: 50,
+    })).slice(0, 3); // Nur die ersten 3 anzeigen
   }, [orders]);
 
   return (
     <div className="p-2 text-gray-300 text-sm">
-      {latestOrder ? (
-        <div className="mb-2">
-          <strong className="text-[#f7a440]">{latestOrder.Lieferant}</strong><br />
-          <span>{latestOrder.Artikelbeschreibung} ({latestOrder.Artikelnummer})</span><br />
-          <span className="text-gray-400">Menge: {latestOrder.Menge} {latestOrder.Einheit}</span><br />
-          <span className="text-gray-400">Status: {latestOrder.Bestellstatus}</span><br />
-          <span className="text-gray-500">Lieferung: {latestOrder.GeplantesLieferdatum}</span>
-        </div>
-      ) : (
+      {autoOrders.length === 0 ? (
         <div className="text-gray-400 text-center py-4">Keine Bestellungen verfügbar</div>
+      ) : (
+        <table className="w-full text-xs">
+          <thead>
+            <tr className="bg-gray-700">
+              <th className="p-1 text-left">Lieferant</th>
+              <th className="p-1 text-left">Artikel</th>
+              <th className="p-1 text-right">Menge</th>
+            </tr>
+          </thead>
+          <tbody>
+            {autoOrders.map((order, index) => (
+              <tr key={index} className="hover:bg-gray-700">
+                <td className="p-1">{order.lieferant}</td>
+                <td className="p-1">{order.artikel}</td>
+                <td className="p-1 text-right">{order.menge}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       )}
     </div>
   );

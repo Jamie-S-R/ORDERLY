@@ -10,75 +10,62 @@ import {
   Legend
 } from 'recharts';
 
-// Offen ab Start
 const AccordionSection = ({ title, children }) => {
   return (
-    <section style={{ marginBottom: '1.5rem', border: '1px solid #444', borderRadius: '6px' }}>
-      <header
-        style={{ padding: '0.8rem 1rem', background: '#333', color: '#fff' }}
-      >
-        <strong>▼ {title}</strong>
+    <section className="mb-6 border border-gray-600 rounded-lg overflow-hidden">
+      <header className="p-3 bg-gray-700 text-white font-semibold cursor-pointer">
+        ▼ {title}
       </header>
-      <div style={{ padding: '1rem', background: '#1e1e1e' }}>
+      <div className="p-4 bg-gray-800">
         {children}
       </div>
     </section>
   );
 };
 
-// Direkt eingebettete CSV-Daten
-const retourenData = [
-  { RetoureID: '5000', Datum: '2023-09-18', Artikelnummer: 'MA-RT-MDR-P', GrundDerRetoure: 'Qualitätsmängel', Menge: '16', Lieferant: 'Magura Bosch Parts & Services GmbH' },
-  { RetoureID: '5001', Datum: '2023-03-01', Artikelnummer: 'SI-KI-STORIA', GrundDerRetoure: 'Qualitätsmängel', Menge: '19', Lieferant: 'Selle Italia S.r.l.' },
-  { RetoureID: '5002', Datum: '2024-01-14', Artikelnummer: 'SH-BR-M820', GrundDerRetoure: 'Falscher Artikel geliefert', Menge: '30', Lieferant: 'Shimano GmbH' },
-  // Weitere Daten hier einfügen...
-];
-
-const Retouren = () => {
-  const [retouren, setRetouren] = useState(retourenData);
+const Retouren = ({ returns = [] }) => {
   const [selectedSupplier, setSelectedSupplier] = useState('');
 
   const filteredRetouren = useMemo(() => {
     return selectedSupplier
-      ? retouren.filter(r => r.Lieferant === selectedSupplier)
-      : retouren;
-  }, [retouren, selectedSupplier]);
+      ? returns.filter(r => r.Lieferant === selectedSupplier)
+      : returns;
+  }, [returns, selectedSupplier]);
 
   const lieferanten = useMemo(() => {
-    return [...new Set(retouren.map(r => r.Lieferant || 'Unbekannt'))];
-  }, [retouren]);
+    return [...new Set(returns.map(r => r.Lieferant || 'Unbekannt'))];
+  }, [returns]);
 
   const lieferantenStats = useMemo(() => {
     const map = {};
-    retouren.forEach(r => {
+    returns.forEach(r => {
       const name = r.Lieferant || 'Unbekannt';
       if (!map[name]) map[name] = 0;
-      map[name] += 1;
+      map[name] += parseInt(r.Menge || 1);
     });
     return Object.entries(map).map(([lieferant, count]) => ({ lieferant, count }));
-  }, [retouren]);
+  }, [returns]);
 
   const artikelStats = useMemo(() => {
     const map = {};
     filteredRetouren.forEach(r => {
       const art = r.Artikelnummer || 'Unbekannt';
       if (!map[art]) map[art] = 0;
-      map[art] += 1;
+      map[art] += parseInt(r.Menge || 1);
     });
     return Object.entries(map).map(([artikel, count]) => ({ artikel, count }));
   }, [filteredRetouren]);
 
   return (
-    <div className="detail-view">
-      <h2>📦 Retourenanalyse</h2>
-
-      {/* Lieferantenauswahl */}
-      <div style={{ marginBottom: '20px' }}>
-        <label>
-          Lieferant: 
+    <div className="detail-view p-4">
+      <h2 className="text-2xl font-bold text-[#f7a440] mb-4">📦 Retourenanalyse</h2>
+      <div className="mb-6">
+        <label className="flex items-center text-white">
+          Lieferant:
           <select
             value={selectedSupplier}
             onChange={e => setSelectedSupplier(e.target.value)}
+            className="ml-2 p-2 bg-gray-700 text-white rounded-lg focus:ring-2 focus:ring-[#f7a440]"
           >
             <option value="">Alle</option>
             {lieferanten.map((s, i) => (
@@ -87,53 +74,40 @@ const Retouren = () => {
           </select>
         </label>
       </div>
-
-      {/* Charts und Daten */}
       {!selectedSupplier && (
         <AccordionSection title="Anzahl Retouren je Lieferant">
           <ResponsiveContainer width="100%" height={300}>
             <BarChart data={lieferantenStats}>
               <CartesianGrid strokeDasharray="3 3" stroke="#444" />
-              <XAxis dataKey="lieferant" stroke="#ccc" interval={0} angle={0} tick={{ fontSize: 12 }} />
+              <XAxis dataKey="lieferant" stroke="#ccc" interval={0} tick={{ fontSize: 12 }} />
               <YAxis stroke="#ccc" />
-              <Tooltip />
+              <Tooltip contentStyle={{ backgroundColor: '#222', borderColor: '#666', color: '#fff' }} />
               <Legend />
               <Bar dataKey="count" fill="#ff9800" name="Retouren" />
             </BarChart>
           </ResponsiveContainer>
         </AccordionSection>
       )}
-
       {selectedSupplier && (
-        <>
-          <AccordionSection title="Retouren nach Artikel">
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={artikelStats} margin={{ bottom: 40 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#444" />
-                <XAxis
-                  dataKey="artikel"
-                  stroke="#ccc"
-                  interval={0}
-                  angle={0}
-                  tick={{ fontSize: 12 }}
-                  height={60}
-                />
-                <YAxis stroke="#ccc" />
-                <Tooltip />
-                <Legend />
-                <Bar dataKey="count" fill="#4caf50" name="Retouren" />
-              </BarChart>
-            </ResponsiveContainer>
-          </AccordionSection>
-        </>
+        <AccordionSection title="Retouren nach Artikel">
+          <ResponsiveContainer width="100%" height={300}>
+            <BarChart data={artikelStats} margin={{ bottom: 40 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#444" />
+              <XAxis dataKey="artikel" stroke="#ccc" interval={0} tick={{ fontSize: 12 }} height={60} />
+              <YAxis stroke="#ccc" />
+              <Tooltip contentStyle={{ backgroundColor: '#222', borderColor: '#666', color: '#fff' }} />
+              <Legend />
+              <Bar dataKey="count" fill="#4caf50" name="Retouren" />
+            </BarChart>
+          </ResponsiveContainer>
+        </AccordionSection>
       )}
-
       <AccordionSection title="Rückläufer im Detail">
-        <ul className="order-list">
+        <ul className="order-list space-y-2">
           {filteredRetouren.map((r, i) => (
-            <li key={i}>
-              <strong>{r.Datum}</strong> – {r.Artikelnummer} – {r.Menge} Stück<br />
-              <em>{r.GrundDerRetoure}</em>
+            <li key={i} className="bg-gray-800 p-3 rounded-lg">
+              <strong className="text-[#f7a440]">{r.Datum}</strong> – {r.Artikelnummer} – {r.Menge} Stück<br />
+              <em className="text-gray-400">{r.GrundDerRetoure}</em>
             </li>
           ))}
         </ul>
