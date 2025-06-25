@@ -78,13 +78,13 @@ html, body {
 
 .sidebar a.active {
   background-color: #3a4b5c;
-  color: #f7a440;
+  color: #CA6508;
   font-weight: 600;
   border-left: none;
 }
 
 .sidebar.sidebar--open a.active {
-  border-left: 4px solid #f7a440;
+  border-left: 4px solid #CA6508;
 }
 
 .sidebar a {
@@ -99,14 +99,14 @@ html, body {
 }
 
 .sidebar a:hover {
-  color: #f7a440;
+  color: #CA6508;
 }
 
 .sidebar .icon {
   font-size: 20px;
   min-width: 24px;
   margin-right: 12px;
-  color: #f7a440;
+  color: #CA6508;
 }
 
 .sidebar .label {
@@ -140,11 +140,11 @@ html, body {
 }
 
 .active-category-collapsed .icon {
-  color: #f7a440;
+  color: #CA6508;
 }
 
 .sidebar-category.active-category {
-  color: #f7a440;
+  color: #CA6508;
 }
 
 .sidebar:not(.sidebar--open) .sidebar-icon-only {
@@ -218,13 +218,13 @@ html, body {
   background-color: #283546;
   margin-top: 8px;
   border-radius: 10px;
-  border: 1px solid #f7a440;
+  border: 1px solid #CA6508;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
   transition: border-color 0.2s, transform 0.2s;
 }
 
 .graph-container:hover .graph-placeholder {
-  border-color: #f7a440;
+  border-color: #CA6508;
   transform: translateY(-2px);
 }
 
@@ -238,7 +238,7 @@ html, body {
   padding: 10px 14px;
   background-color: #1f1f1f;
   margin: 6px 0;
-  border-left: 4px solid #f7a440;
+  border-left: 4px solid #CA6508;
   border-radius: 6px;
   box-shadow: 0 1px 4px rgba(0,0,0,0.2);
   transition: transform 0.2s, background-color 0.2s;
@@ -257,7 +257,7 @@ html, body {
   background: #2e3b4e;
   padding: 16px 24px;
   border-radius: 8px;
-  border-left: 4px solid #f7a440;
+  border-left: 4px solid #CA6508;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
   box-sizing: border-box;
 }
@@ -270,7 +270,7 @@ html, body {
 
 .detail-view h2 {
   margin-bottom: 16px;
-  color: #f7a440;
+  color: #CA6508;
   font-size: 24px;
 }
 
@@ -281,7 +281,7 @@ html, body {
 }
 
 .detail-view button {
-  background-color: #f7a440;
+  background-color: #CA6508;
   border: none;
   padding: 8px 16px;
   color: white;
@@ -297,7 +297,7 @@ html, body {
 
 /* Links */
 .section-link {
-  color: #f7a440;
+  color: #CA6508;
   text-decoration: none;
   transition: color 0.2s;
 }
@@ -308,7 +308,7 @@ html, body {
 }
 
 a.email-link {
-  color: #f7a440;
+  color: #CA6508;
   text-decoration: none;
   font-weight: 600;
 }
@@ -334,12 +334,12 @@ a.email-link:hover {
 .sidebar-header .icon {
   font-size: 20px;
   min-width: 24px;
-  color: #f7a440;
+  color: #CA6508;
   margin-right: 12px;
 }
 
 .sidebar-header .label {
-  color: #f7a440;
+  color: #CA6508;
   font-weight: 600;
 }
 
@@ -349,7 +349,7 @@ a.email-link:hover {
   justify-content: center;
   align-items: center;
   padding: 12px;
-  color: #f7a440;
+  color: #CA6508;
   background-color: transparent !important;
   border: none !important;
   box-shadow: none !important;
@@ -364,7 +364,7 @@ a.email-link:hover {
 }
 
 .active-category-collapsed .icon {
-  color: #f7a440;
+  color: #CA6508;
 }
 
 /* Menu Toggle Button */
@@ -373,7 +373,7 @@ a.email-link:hover {
   top: 12px;
   left: 12px;
   z-index: 10001;
-  background: #f7a440;
+  background: #CA6508;
   color: #1b1f23;
   font-size: 24px;
   padding: 8px 12px;
@@ -499,13 +499,13 @@ a.email-link:hover {
   background-color: #1f2937;
   max-width: 100%;
   margin: 0 auto;
-  border-left: 4px solid #f7a440;
+  border-left: 4px solid #CA6508;
   border-radius: 8px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
 
 .barcode-scanner h2 {
-  color: #f7a440;
+  color: #CA6508;
   margin-bottom: 12px;
   font-size: 18px;
   font-weight: 600;
@@ -545,7 +545,7 @@ a.email-link:hover {
 
 .barcode-scanner button {
   padding: 10px 16px;
-  background-color: #f7a440;
+  background-color: #CA6508;
   color: #ffffff;
   border: none;
   border-radius: 6px;
@@ -576,7 +576,7 @@ a.email-link:hover {
 .barcode-scanner video {
   max-width: 100%;
   height: auto;
-  border: 2px solid #f7a440;
+  border: 2px solid #CA6508;
   border-radius: 6px;
 }
 
